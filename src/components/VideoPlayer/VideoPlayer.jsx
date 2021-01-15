@@ -6,13 +6,11 @@ import getYouTubeID from 'get-youtube-id';
 // * get-youtube-id: https://www.npmjs.com/package/get-youtube-id
 
 // ! NOTE: Avoided using typescript b/c opts passed into YouTube component gives too many errors
-const VideoPlayer = () => {
+const VideoPlayer = ({ curVideo, addVideoToList }) => {
 	const [url, setUrl] = useState('https://www.youtube.com/watch?v=OHviieMFY0c');
-	const [id, setId] = useState('');
 
 	const handleChange = (e) => {
 		setUrl(e.target.value);
-		setId(getYouTubeID(e.target.value));
 	};
 
 	const opts = {
@@ -32,7 +30,10 @@ const VideoPlayer = () => {
 	return (
 		<div>
 			<input name="id" id="video-id" value={url} onChange={handleChange} />
-			<YouTube videoId={id} opts={opts} onReady={_onReady} />
+			<button type="button" onClick={() => addVideoToList(getYouTubeID(url))}>
+				Add to Queue
+			</button>
+			<YouTube videoId={curVideo} opts={opts} onReady={_onReady} />
 		</div>
 	);
 };
