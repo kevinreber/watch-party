@@ -3,7 +3,7 @@ import './App.css';
 
 // Components
 import VideoPlayer from './components/VideoPlayer/VideoPlayer';
-import VideoList from './components/VideoList/VideoList';
+import WatchList from './components/WatchList/WatchList';
 
 function App() {
 	const [videos, setVideos] = useState<string[] | []>([]);
@@ -15,7 +15,7 @@ function App() {
 	return (
 		<div className="App">
 			<VideoPlayer curVideo={videos[0]} addVideoToList={addVideoToList} />
-			<VideoList videos={videos} />
+			<WatchList videos={videos} />
 		</div>
 	);
 }

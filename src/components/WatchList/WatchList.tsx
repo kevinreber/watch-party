@@ -4,7 +4,7 @@ interface Props {
 	videos: string[];
 }
 
-const VideoList = ({ videos }: Props): JSX.Element => {
+const WatchList = ({ videos }: Props): JSX.Element => {
 	return (
 		<ul>
 			{videos.length > 0 ? (
@@ -16,4 +16,4 @@ const VideoList = ({ videos }: Props): JSX.Element => {
 	);
 };
 
-export default VideoList;
+export default WatchList;
