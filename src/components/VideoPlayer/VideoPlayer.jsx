@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import YouTube from 'react-youtube';
-import getYouTubeID from 'get-youtube-id';
 
 // * react-youtube: https://www.npmjs.com/package/react-youtube
 // * get-youtube-id: https://www.npmjs.com/package/get-youtube-id
@@ -30,7 +29,7 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 	return (
 		<div>
 			<input name="id" id="video-id" value={url} onChange={handleChange} />
-			<button type="button" onClick={() => addVideoToList(getYouTubeID(url))}>
+			<button type="button" onClick={() => addVideoToList(url)}>
 				Add to Queue
 			</button>
 			<YouTube videoId={curVideo} opts={opts} onReady={_onReady} />

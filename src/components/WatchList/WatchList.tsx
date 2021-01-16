@@ -2,13 +2,19 @@
 
 interface Props {
 	videos: string[];
+	removeVideo: Function;
 }
 
-const WatchList = ({ videos }: Props): JSX.Element => {
+const WatchList = ({ videos, removeVideo }: Props): JSX.Element => {
 	return (
 		<ul>
 			{videos.length > 0 ? (
-				videos.map((video: string) => <li key={video}>{video}</li>)
+				videos.map((video: string) => (
+					<>
+						<li key={video}>{video}</li>
+						<button onClick={() => removeVideo(video)}>Remove</button>
+					</>
+				))
 			) : (
 				<li>Empty List</li>
 			)}

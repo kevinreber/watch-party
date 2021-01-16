@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import getYouTubeID from 'get-youtube-id';
+
 import './App.css';
 
 // Components
@@ -10,12 +12,19 @@ function App() {
 	const addVideoToList = (data: string) => {
 		// log id of YT video being appended to video list
 		console.log(data);
+		// ! need to remove duplicates
 		setVideos((vData: string[]) => [...vData, data]);
+	};
+	const removeVideoFromList = (video: string) => {
+		setVideos(videos.filter((vid) => vid !== video));
 	};
 	return (
 		<div className="App">
-			<VideoPlayer curVideo={videos[0]} addVideoToList={addVideoToList} />
-			<WatchList videos={videos} />
+			<VideoPlayer
+				curVideo={getYouTubeID(videos[0])}
+				addVideoToList={addVideoToList}
+			/>
+			<WatchList videos={videos} removeVideo={removeVideoFromList} />
 		</div>
 	);
 }
