@@ -26,10 +26,15 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 		e.target.pauseVideo();
 	};
 
+	const handleSubmit = () => {
+		addVideoToList(url);
+		setUrl('');
+	};
+
 	return (
 		<div>
 			<input name="id" id="video-id" value={url} onChange={handleChange} />
-			<button type="button" onClick={() => addVideoToList(url)}>
+			<button type="button" onClick={handleSubmit}>
 				Add to Queue
 			</button>
 			<YouTube videoId={curVideo} opts={opts} onReady={_onReady} />
