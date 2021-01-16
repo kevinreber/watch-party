@@ -11,9 +11,11 @@ function App() {
 	const [videos, setVideos] = useState<string[] | []>([]);
 	const addVideoToList = (data: string) => {
 		// log id of YT video being appended to video list
-		console.log(data);
-		// ! need to remove duplicates
-		setVideos((vData: string[]) => [...vData, data]);
+
+		// @ts-ignore
+		if (!videos.includes(data)) {
+			setVideos((vData: string[]) => [...vData, data]);
+		} else alert('video already exists!');
 	};
 	const removeVideoFromList = (video: string) => {
 		setVideos(videos.filter((vid) => vid !== video));
