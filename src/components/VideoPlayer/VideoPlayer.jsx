@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
 import YouTube from 'react-youtube';
 
+// MUI
+import IconButton from '@material-ui/core/IconButton';
+import {
+	PlayArrow as PlayArrowIcon,
+	Pause as PauseIcon,
+	SkipNext,
+	SkipPrevious,
+	AddToQueue,
+} from '@material-ui/icons';
+
 // * react-youtube: https://www.npmjs.com/package/react-youtube
 //<YouTube
 //	videoId={string} // defaults -> null
@@ -71,9 +81,9 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 	return (
 		<div>
 			<input name="id" id="video-id" value={url} onChange={handleChange} />
-			<button type="button" onClick={handleSubmit}>
-				Add to Queue
-			</button>
+			<IconButton aria-label="add to queue" onClick={handleSubmit}>
+				<AddToQueue />
+			</IconButton>
 			<YouTube
 				videoId={curVideo}
 				opts={opts}
@@ -81,6 +91,18 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 				onPlay={handlePlay}
 				onPause={handlePause}
 			/>
+			<IconButton aria-label="play">
+				<PlayArrowIcon />
+			</IconButton>
+			<IconButton aria-label="pause">
+				<PauseIcon />
+			</IconButton>
+			<IconButton aria-label="previous">
+				<SkipPrevious />
+			</IconButton>
+			<IconButton aria-label="next">
+				<SkipNext />
+			</IconButton>
 		</div>
 	);
 };
