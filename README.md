@@ -2,19 +2,32 @@
 
 ## ToDo
 
-- [x] Basic YouTube iframe setup
+### Front End
+
 - [x] When user inputs YouTube link, get video id
+- [] Create list of queued videos
+- [] Users can re-arrange queued videos
+- [] Chat interface
+
+### YT Player
+
+- [x] Basic YouTube iframe setup
+- [x] If video is removed, next video in queue takes it's place
+- [] If last video is removed, need to remove script and show "No Videos Found"
 - [] YouTube API
 - [] hide ads if possible
+
+### Websockets
+
 - [] Setup backend servers for video
 - [] Manage play state of video
 - [] Manage pause state of video
 - [] Manage time state of video
-- [] Sync state with YouTube API
-- [] Create list of queued videos
-- [] Users can re-arrange queued videos
-- [] Chat interface
 - [] Setup backend servers for chat w/ Socket.io
+- [] Sync state with YouTube API
+
+### DB
+
 - [] Database?
 
 ## Available Scripts
