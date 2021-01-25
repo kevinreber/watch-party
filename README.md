@@ -12,7 +12,7 @@
 ### YT Player
 
 - [x] Basic YouTube iframe setup
-- [x] If video is removed, next video in queue takes it's place
+- [] ? If video is removed, next video in queue takes it's place
 - [] If last video is removed, need to remove script and show "No Videos Found"
 - [] YouTube API
 - [] hide ads if possible
