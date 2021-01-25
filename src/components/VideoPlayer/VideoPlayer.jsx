@@ -54,7 +54,7 @@ let player;
 // ! NOTE: Avoided using typescript b/c opts passed into YouTube component gives too many errors
 const VideoPlayer = ({ curVideo, addVideoToList }) => {
 	const [url, setUrl] = useState('https://www.youtube.com/watch?v=OHviieMFY0c');
-
+	const [playerStatus, setPlayerStatus] = useState(-1);
 	const handleChange = (e) => {
 		setUrl(e.target.value);
 	};
@@ -73,14 +73,14 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 				events: {
 					onReady: onPlayerReady,
 					onStateChange: handleStateChange,
-					onPlay: handlePlayOnPlayer,
-					onPause: handlePauseOnPlayer,
 				},
 			});
 		} else {
 			player.loadVideoById(curVideo);
 			console.log('loaded', curVideo, player);
 		}
+		console.log(player);
+		console.log(window.YT);
 	};
 
 	// Load YT IFrame Player script into html
@@ -94,11 +94,9 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 
 				const firstScriptTag = document.getElementsByTagName('script')[0];
 				firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-			} else loadVideo();
-		} else if (!curVideo && player) {
-			player.clearVideo();
+			} else if (curVideo && !player) loadVideo();
 		}
-	}, [curVideo, player, loadVideo]);
+	}, [curVideo, loadVideo, player]);
 
 	/** Pauses current video on ready to avoid auto-play and logs video data */
 	const onPlayerReady = (e) => {
@@ -115,11 +113,15 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 	// Event Handlers for Player ------------------------
 	const handlePlayOnPlayer = (e) => {
 		console.log(e.target.getCurrentTime());
+		console.log(e);
+		// setPlayerStatus(e.data);
 		// console.log(e.target.getDuration());
 		console.log('play', YouTube.PlayerState);
 	};
 	const handlePauseOnPlayer = (e) => {
 		console.log(e.target.getCurrentTime());
+		console.log(e);
+		// setPlayerStatus(e.data);
 		// console.log(e.target.getDuration());
 		console.log('pause', player.getCurrentTime());
 	};
@@ -127,31 +129,30 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 
 	const handlePlay = () => {
 		player.playVideo();
-		console.log('play', player.getCurrentTime());
+		console.log('play', player.getPlayerState(), player.getCurrentTime());
 	};
 
 	const handlePause = () => {
 		player.pauseVideo();
-		// console.log(e.target.getDuration());
-		console.log('pause', player.getCurrentTime());
+		console.log('pause', player.getPlayerState(), player.getCurrentTime());
 	};
 
 	const handleStateChange = (e) => {
-		console.log(e);
-		console.log(player);
+		console.log('state', e.data);
+		setPlayerStatus(e.data);
 	};
 
-	// const player = (
-	// 	<YouTube
-	// 		videoId={curVideo}
-	// 		opts={opts}
-	// 		onReady={onPlayerReady}
-	// 		onPlay={handlePlay}
-	// 		onPause={handlePause}
-	// 		onStateChange={handleState}
-	// 	/>
-	// );
-	console.log('player', player);
+	const ButtonStatus =
+		playerStatus === 1 ? (
+			<IconButton aria-label="pause" onClick={handlePause}>
+				<PauseIcon />
+			</IconButton>
+		) : (
+			<IconButton aria-label="play" onClick={handlePlay}>
+				<PlayArrowIcon />
+			</IconButton>
+		);
+
 	return (
 		<div>
 			<input name="id" id="video-id" value={url} onChange={handleChange} />
@@ -161,12 +162,7 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 			<div id="player">
 				<h3>No Video Found</h3>
 			</div>
-			<IconButton aria-label="play" onClick={handlePlay}>
-				<PlayArrowIcon />
-			</IconButton>
-			<IconButton aria-label="pause" onClick={handlePause}>
-				<PauseIcon />
-			</IconButton>
+			{ButtonStatus}
 			<IconButton aria-label="previous">
 				<SkipPrevious />
 			</IconButton>
