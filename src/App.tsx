@@ -9,13 +9,16 @@ import WatchList from './components/WatchList/WatchList';
 
 function App() {
 	const [videos, setVideos] = useState<string[] | []>([]);
+	const validateYTLink = (url: string) => getYouTubeID(url);
 	const addVideoToList = (data: string) => {
 		// log id of YT video being appended to video list
 
-		// @ts-ignore
-		if (!videos.includes(data)) {
-			setVideos((vData: string[]) => [...vData, data]);
-		} else alert('video already exists!');
+		if (validateYTLink(data)) {
+			// @ts-ignore
+			if (!videos.includes(data)) {
+				setVideos((vData: string[]) => [...vData, data]);
+			} else alert('video already exists!');
+		} else alert('invalid URL');
 	};
 	const removeVideoFromList = (video: string) => {
 		setVideos(videos.filter((vid) => vid !== video));
