@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import YouTube from 'react-youtube';
 
 // MUI
 import IconButton from '@material-ui/core/IconButton';
@@ -11,22 +10,6 @@ import {
 	AddToQueue,
 } from '@material-ui/icons';
 
-// * react-youtube: https://www.npmjs.com/package/react-youtube
-//<YouTube
-//	videoId={string} // defaults -> null
-//	id={string} // defaults -> null
-//	className={string} // defaults -> null
-//	containerClassName={string} // defaults -> ''
-//	opts={obj} // defaults -> {}
-//	onReady={func} // defaults -> noop
-//	onPlay={func} // defaults -> noop
-//	onPause={func} // defaults -> noop
-//	onEnd={func} // defaults -> noop
-//	onError={func} // defaults -> noop
-//	onStateChange={func} // defaults -> noop
-//	onPlaybackRateChange={func} // defaults -> noop
-//	onPlaybackQualityChange={func} // defaults -> noop
-///>
 // * get-youtube-id: https://www.npmjs.com/package/get-youtube-id
 
 /**
@@ -109,23 +92,6 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 		addVideoToList(url);
 		setUrl('');
 	};
-
-	// Event Handlers for Player ------------------------
-	const handlePlayOnPlayer = (e) => {
-		console.log(e.target.getCurrentTime());
-		console.log(e);
-		// setPlayerStatus(e.data);
-		// console.log(e.target.getDuration());
-		console.log('play', YouTube.PlayerState);
-	};
-	const handlePauseOnPlayer = (e) => {
-		console.log(e.target.getCurrentTime());
-		console.log(e);
-		// setPlayerStatus(e.data);
-		// console.log(e.target.getDuration());
-		console.log('pause', player.getCurrentTime());
-	};
-	// -------------------------------------------------
 
 	const handlePlay = () => {
 		player.playVideo();
