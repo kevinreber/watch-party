@@ -12,9 +12,10 @@
 ### YT Player
 
 - [x] Basic YouTube iframe setup
+- [x] Feat: Add volume controls
+- [] Disable player controls if no video is loaded
 - [] ? If video is removed, next video in queue takes it's place
 - [] If last video is removed, need to remove script and show "No Videos Found"
-- [] Feat: Add volume controls
 - [] YouTube API
 - [] hide ads if possible
 
