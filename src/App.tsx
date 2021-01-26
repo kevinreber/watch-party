@@ -7,8 +7,29 @@ import './App.css';
 import VideoPlayer from './components/VideoPlayer/VideoPlayer';
 import WatchList from './components/WatchList/WatchList';
 
+// MUI
+import { Snackbar, IconButton } from '@material-ui/core';
+import CloseIcon from '@material-ui/icons/Close';
+import Alert from '@material-ui/lab/Alert';
+
+const vertical = 'top';
+const horizontal = 'center';
+interface ErrorTypes {
+	open: boolean;
+	message: string;
+}
+
 function App() {
 	const [videos, setVideos] = useState<string[] | []>([]);
+	const [errors, setErrors] = useState<ErrorTypes>({
+		open: false,
+		message: '',
+	});
+
+	const closeErrorMessage = () => {
+		setErrors((st) => ({ ...st, open: false, message: '' }));
+	};
+
 	const validateYTLink = (url: string) => getYouTubeID(url);
 	const addVideoToList = (data: string) => {
 		// log id of YT video being appended to video list
@@ -17,14 +38,51 @@ function App() {
 			// @ts-ignore
 			if (!videos.includes(data)) {
 				setVideos((vData: string[]) => [...vData, data]);
-			} else alert('video already exists!');
-		} else alert('invalid URL');
+			} else
+				setErrors((st) => ({
+					...st,
+					open: true,
+					message: 'video already in queue',
+				}));
+		} else
+			setErrors((st) => ({
+				...st,
+				open: true,
+				message: 'invalid URL',
+			}));
 	};
 	const removeVideoFromList = (video: string) => {
 		setVideos(videos.filter((vid) => vid !== video));
 	};
+
+	{
+		/* <Snackbar
+anchorOrigin={{ vertical, horizontal }}
+open={errors.open}
+onClose={closeErrorMessage}
+message={errors.message}
+autoHideDuration={3000}
+action={
+<IconButton
+	size="small"
+	aria-label="close"
+	color="inherit"
+	onClick={closeErrorMessage}>
+	<CloseIcon fontSize="small" />
+</IconButton>
+} /> */
+	}
 	return (
 		<div className="App">
+			<Snackbar
+				anchorOrigin={{ vertical, horizontal }}
+				open={errors.open}
+				onClose={closeErrorMessage}
+				autoHideDuration={3000}>
+				<Alert onClose={closeErrorMessage} severity="error">
+					{errors.message}
+				</Alert>
+			</Snackbar>
 			<VideoPlayer
 				curVideo={getYouTubeID(videos[0])}
 				addVideoToList={addVideoToList}
