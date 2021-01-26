@@ -1,8 +1,16 @@
 // import React from 'react';
 
 // MUI
-import IconButton from '@material-ui/core/IconButton';
-import { Delete as DeleteIcon } from '@material-ui/icons';
+import {
+	IconButton,
+	List,
+	ListItem,
+	ListItemAvatar,
+	Avatar,
+	ListItemText,
+	ListItemSecondaryAction,
+} from '@material-ui/core';
+import { Delete as DeleteIcon, Folder as FolderIcon } from '@material-ui/icons';
 
 interface Props {
 	videos: string[];
@@ -11,24 +19,34 @@ interface Props {
 
 const WatchList = ({ videos, removeVideo }: Props): JSX.Element => {
 	return (
-		<ul>
+		<List dense={false}>
 			{videos.length > 0 ? (
 				videos.map((video: string) => (
 					<>
-						<li key={video}>
-							{video}
-							<IconButton
-								aria-label="remove"
-								onClick={() => removeVideo(video)}>
-								<DeleteIcon />
-							</IconButton>
-						</li>
+						<ListItem key={video}>
+							<ListItemAvatar>
+								<Avatar>
+									<FolderIcon />
+								</Avatar>
+							</ListItemAvatar>
+							<ListItemText primary={video} secondary={'Secondary text'} />
+							<ListItemSecondaryAction>
+								<IconButton
+									edge="end"
+									aria-label="remove"
+									onClick={() => removeVideo(video)}>
+									<DeleteIcon />
+								</IconButton>
+							</ListItemSecondaryAction>
+						</ListItem>
 					</>
 				))
 			) : (
-				<li>Empty List</li>
+				<ListItem>
+					<ListItemText primary="Empty List" />
+				</ListItem>
 			)}
-		</ul>
+		</List>
 	);
 };
 
