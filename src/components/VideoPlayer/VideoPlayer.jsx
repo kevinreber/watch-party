@@ -35,6 +35,9 @@ let player;
 const VideoPlayer = ({ curVideo, addVideoToList }) => {
 	const [url, setUrl] = useState('https://www.youtube.com/watch?v=OHviieMFY0c');
 	const [playerStatus, setPlayerStatus] = useState(-1);
+	const [volumeLevel, setVolumeLevel] = useState(100);
+	const [muted, setIsMuted] = useState(false);
+
 	const handleChange = (e) => {
 		setUrl(e.target.value);
 	};
@@ -49,6 +52,9 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 				playerVars: {
 					// https://developers.google.com/youtube/player_parameters
 					autoplay: 1,
+					disablekb: 0,
+					// hides controllers
+					controls: 0,
 				},
 				events: {
 					onReady: onPlayerReady,
@@ -92,12 +98,35 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 
 	const handlePlay = () => {
 		player.playVideo();
-		console.log('play', player.getPlayerState(), player.getCurrentTime());
+		console.log('play', player.getCurrentTime());
 	};
 
 	const handlePause = () => {
 		player.pauseVideo();
-		console.log('pause', player.getPlayerState(), player.getCurrentTime());
+		console.log('pause', player.getCurrentTime());
+	};
+
+	// MUI passes value through 2nd paramter, DO NOT remove 'e'
+	const handleVolume = (e, value) => {
+		// Unmute volume if user changes volume and player is already muted
+		if (player.isMuted()) {
+			player.unMute();
+			setIsMuted(false);
+		}
+		setVolumeLevel(value);
+		player.setVolume(value);
+		console.log('volume', value);
+	};
+
+	const handleMute = () => {
+		if (player.isMuted()) {
+			player.unMute();
+			setIsMuted(false);
+		} else {
+			setIsMuted(true);
+			player.mute();
+		}
+		console.log('muting', player.isMuted());
 	};
 
 	const handleStateChange = (e) => {
@@ -116,8 +145,12 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 			</div>
 			<VideoPlayerControls
 				status={playerStatus}
+				muted={muted}
 				handlePause={handlePause}
 				handlePlay={handlePlay}
+				volumeLevel={volumeLevel}
+				handleVolume={handleVolume}
+				handleMute={handleMute}
 			/>
 		</div>
 	);
