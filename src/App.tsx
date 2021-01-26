@@ -8,8 +8,7 @@ import VideoPlayer from './components/VideoPlayer/VideoPlayer';
 import WatchList from './components/WatchList/WatchList';
 
 // MUI
-import { Snackbar, IconButton } from '@material-ui/core';
-import CloseIcon from '@material-ui/icons/Close';
+import { Snackbar } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 
 const vertical = 'top';
@@ -55,23 +54,6 @@ function App() {
 		setVideos(videos.filter((vid) => vid !== video));
 	};
 
-	{
-		/* <Snackbar
-anchorOrigin={{ vertical, horizontal }}
-open={errors.open}
-onClose={closeErrorMessage}
-message={errors.message}
-autoHideDuration={3000}
-action={
-<IconButton
-	size="small"
-	aria-label="close"
-	color="inherit"
-	onClick={closeErrorMessage}>
-	<CloseIcon fontSize="small" />
-</IconButton>
-} /> */
-	}
 	return (
 		<div className="App">
 			<Snackbar
