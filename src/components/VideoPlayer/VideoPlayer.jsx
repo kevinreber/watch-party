@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
 
+// Components & Helpers
+import { VideoPlayerControls } from '../VideoPlayerControls/VideoPlayerControls';
+
 // MUI
 import IconButton from '@material-ui/core/IconButton';
-import {
-	PlayArrow as PlayArrowIcon,
-	Pause as PauseIcon,
-	SkipNext,
-	SkipPrevious,
-	AddToQueue,
-} from '@material-ui/icons';
+import { AddToQueue } from '@material-ui/icons';
 
 // * get-youtube-id: https://www.npmjs.com/package/get-youtube-id
 
@@ -108,17 +105,6 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 		setPlayerStatus(e.data);
 	};
 
-	const ButtonStatus =
-		playerStatus === 1 ? (
-			<IconButton aria-label="pause" onClick={handlePause}>
-				<PauseIcon />
-			</IconButton>
-		) : (
-			<IconButton aria-label="play" onClick={handlePlay}>
-				<PlayArrowIcon />
-			</IconButton>
-		);
-
 	return (
 		<div>
 			<input name="id" id="video-id" value={url} onChange={handleChange} />
@@ -128,13 +114,11 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 			<div id="player">
 				<h3>No Video Found</h3>
 			</div>
-			{ButtonStatus}
-			<IconButton aria-label="previous">
-				<SkipPrevious />
-			</IconButton>
-			<IconButton aria-label="next">
-				<SkipNext />
-			</IconButton>
+			<VideoPlayerControls
+				status={playerStatus}
+				handlePause={handlePause}
+				handlePlay={handlePlay}
+			/>
 		</div>
 	);
 };
