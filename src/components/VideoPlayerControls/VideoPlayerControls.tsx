@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 // MUI
-import IconButton from '@material-ui/core/IconButton';
 import {
 	PlayArrow as PlayArrowIcon,
 	Pause as PauseIcon,
@@ -10,8 +9,46 @@ import {
 	VolumeUp,
 	VolumeOff,
 } from '@material-ui/icons';
-import Grid from '@material-ui/core/Grid';
-import Slider from '@material-ui/core/Slider';
+import {
+	Grid,
+	Slider,
+	Paper,
+	IconButton,
+	Typography,
+	makeStyles,
+} from '@material-ui/core';
+
+const useStyles = makeStyles((theme: any) => ({
+	volumeIconContainer: {
+		position: 'relative',
+		flex: '0 0 auto',
+		'&:hover': {
+			cursor: 'pointer',
+		},
+	},
+	volumeControlContainer: {
+		position: 'absolute',
+		display: 'none',
+		// right: '40px',
+		// left: '0px',
+		[theme.breakpoints.up('sm')]: {
+			display: 'flex',
+			height: '60px',
+		},
+		padding: '10px 5px',
+	},
+	sliderContainerWrapper: {
+		width: 'auto',
+		flex: '1 1 auto',
+		display: 'flex',
+		boxSizing: 'border-box',
+		alignItems: 'center',
+		// order: props.componentsOrder,
+	},
+	sliderContainer: {
+		flex: '1 1 auto',
+	},
+}));
 
 interface PlayerControlProps {
 	status: number;
@@ -32,46 +69,86 @@ export const VideoPlayerControls = ({
 	handleVolume,
 	handleMute,
 }: PlayerControlProps) => {
+	// @ts-ignore
+	const classes = useStyles();
+
+	const [volumeSlider, openVolumeSlider] = useState(false);
+	const toggleVolumeSlider = (value: boolean) => () => {
+		openVolumeSlider(value);
+	};
 	const ButtonStatus =
 		status === 1 ? (
 			//  @ts-ignore
 			<IconButton aria-label="pause" onClick={handlePause}>
-				<PauseIcon />
+				<PauseIcon fontSize="large" />
 			</IconButton>
 		) : (
 			//  @ts-ignore
 			<IconButton aria-label="play" onClick={handlePlay}>
-				<PlayArrowIcon />
+				<PlayArrowIcon fontSize="large" />
 			</IconButton>
 		);
 	return (
-		<div className="Video-Controls">
-			<div className="Player-Controls">
-				{ButtonStatus}
-				<IconButton aria-label="previous">
-					<SkipPrevious />
-				</IconButton>
-				<IconButton aria-label="next">
-					<SkipNext />
-				</IconButton>
-			</div>
-			<div className="Volume-Controls">
-				<Grid container spacing={2}>
-					<Grid item>
-						<IconButton onClick={() => handleMute()}>
-							{muted ? <VolumeOff /> : <VolumeUp />}
-						</IconButton>
+		<>
+			{/* @ts-ignore */}
+			<Grid container={true} className="Video-Controls">
+				<Grid item={true} className="Player-Controls">
+					{ButtonStatus}
+					{/* <IconButton aria-label="previous">
+						<SkipPrevious fontSize="large" />
+					</IconButton>
+					<IconButton aria-label="next">
+						<SkipNext fontSize="large" />
+					</IconButton> */}
+				</Grid>
+				{/* <div className="Volume-Controls"> */}
+				{/* <Grid container spacing={2}> */}
+				<Grid
+					item={true}
+					spacing={2}
+					className={classes.volumeIconContainer}
+					onMouseEnter={toggleVolumeSlider(true)}
+					onMouseLeave={toggleVolumeSlider(false)}>
+					<IconButton onClick={() => handleMute()}>
+						{muted ? (
+							<VolumeOff fontSize="large" />
+						) : (
+							<VolumeUp fontSize="large" />
+						)}
+					</IconButton>
+					{volumeSlider && (
+						<Paper className={classes.volumeControlContainer}>
+							<Slider
+								orientation="vertical"
+								aria-labelledby="volume-control"
+								value={volumeLevel}
+								// @ts-ignore
+								onChange={handleVolume}
+							/>
+						</Paper>
+					)}
+				</Grid>
+				<Grid
+					item={true}
+					container={true}
+					spacing={2}
+					className={classes.sliderContainerWrapper}>
+					<Grid item={true}>
+						<Typography>00:00</Typography>
 					</Grid>
-					<Grid item xs>
+					<Grid item={true} className={classes.sliderContainer}>
 						<Slider
 							value={volumeLevel}
 							// @ts-ignore
 							onChange={handleVolume}
-							aria-labelledby="continuous-slider"
+							aria-labelledby="video-slider"
 						/>
 					</Grid>
+					<Grid item={true}>
+						<Typography>00:00</Typography>
+					</Grid>
 				</Grid>
-			</div>
-		</div>
+			</Grid>
+		</>
 	);
 };
