@@ -43,7 +43,6 @@ const useStyles = makeStyles((theme: any) => ({
 		display: 'flex',
 		boxSizing: 'border-box',
 		alignItems: 'center',
-		// order: props.componentsOrder,
 	},
 	sliderContainer: {
 		flex: '1 1 auto',
@@ -101,8 +100,6 @@ export const VideoPlayerControls = ({
 						<SkipNext fontSize="large" />
 					</IconButton> */}
 				</Grid>
-				{/* <div className="Volume-Controls"> */}
-				{/* <Grid container spacing={2}> */}
 				<Grid
 					item={true}
 					spacing={2}
