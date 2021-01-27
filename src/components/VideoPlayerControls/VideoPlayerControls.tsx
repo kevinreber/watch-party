@@ -18,6 +18,7 @@ import {
 	makeStyles,
 } from '@material-ui/core';
 
+// @ts-ignore
 const useStyles = makeStyles((theme: any) => ({
 	volumeIconContainer: {
 		position: 'relative',
@@ -29,20 +30,22 @@ const useStyles = makeStyles((theme: any) => ({
 	volumeControlContainer: {
 		position: 'absolute',
 		display: 'none',
-		// right: '40px',
-		// left: '0px',
+		zIndex: '100',
+		right: '10px',
 		[theme.breakpoints.up('sm')]: {
 			display: 'flex',
 			height: '60px',
 		},
 		padding: '10px 5px',
+		'&:hover': {
+			cursor: 'pointer',
+		},
 	},
 	sliderContainerWrapper: {
 		width: 'auto',
 		flex: '1 1 auto',
 		display: 'flex',
 		boxSizing: 'border-box',
-		alignItems: 'center',
 	},
 	sliderContainer: {
 		flex: '1 1 auto',
@@ -72,8 +75,8 @@ export const VideoPlayerControls = ({
 	const classes = useStyles();
 
 	const [volumeSlider, openVolumeSlider] = useState(false);
-	const toggleVolumeSlider = (value: boolean) => () => {
-		openVolumeSlider(value);
+	const toggleVolumeSlider = () => {
+		openVolumeSlider((value) => !value);
 	};
 	const ButtonStatus =
 		status === 1 ? (
@@ -90,7 +93,11 @@ export const VideoPlayerControls = ({
 	return (
 		<>
 			{/* @ts-ignore */}
-			<Grid container={true} className="Video-Controls">
+			<Grid
+				container={true}
+				className="Video-Controls"
+				// component={Paper}
+				alignItems="center">
 				<Grid item={true} className="Player-Controls">
 					{ButtonStatus}
 					{/* <IconButton aria-label="previous">
@@ -104,8 +111,8 @@ export const VideoPlayerControls = ({
 					item={true}
 					spacing={2}
 					className={classes.volumeIconContainer}
-					onMouseEnter={toggleVolumeSlider(true)}
-					onMouseLeave={toggleVolumeSlider(false)}>
+					onMouseEnter={toggleVolumeSlider}
+					onMouseLeave={toggleVolumeSlider}>
 					<IconButton onClick={() => handleMute()}>
 						{muted ? (
 							<VolumeOff fontSize="large" />
