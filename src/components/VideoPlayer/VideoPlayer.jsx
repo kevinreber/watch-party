@@ -91,9 +91,12 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 		console.log(e.target.getVideoData());
 	};
 
-	const handleSubmit = () => {
-		addVideoToList(url);
-		setUrl('');
+	const handleSubmit = (e) => {
+		if (e.keyCode === 13 || e.type === 'submit') {
+			e.preventDefault();
+			addVideoToList(url);
+			setUrl('');
+		}
 	};
 
 	const handlePlay = () => {
@@ -136,10 +139,18 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 
 	return (
 		<div>
-			<input name="id" id="video-id" value={url} onChange={handleChange} />
-			<IconButton aria-label="add to queue" onClick={handleSubmit}>
-				<AddToQueue />
-			</IconButton>
+			<form onSubmit={handleSubmit}>
+				<input
+					name="id"
+					id="video-id"
+					value={url}
+					onChange={handleChange}
+					onKeyDown={handleSubmit}
+				/>
+				<IconButton type="submit" aria-label="add to queue">
+					<AddToQueue />
+				</IconButton>
+			</form>
 			<div id="player">
 				<h3>No Video Found</h3>
 			</div>
