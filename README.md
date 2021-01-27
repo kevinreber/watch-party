@@ -5,6 +5,8 @@
 ### Front End
 
 - [x] When user inputs YouTube link, get video id
+- [] Validate YT link before YT id
+- [] Sync player with video playback
 - [] Create list of queued videos
 - [] Users can re-arrange queued videos
 - [] Chat interface
