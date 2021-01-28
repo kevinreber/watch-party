@@ -5,8 +5,8 @@
 ### Front End
 
 - [x] When user inputs YouTube link, get video id
+- [x] Sync player with video playback
 - [] Validate YT link before YT id
-- [] Sync player with video playback
 - [] Create list of queued videos
 - [] Users can re-arrange queued videos
 - [] Chat interface
@@ -15,6 +15,7 @@
 
 - [x] Basic YouTube iframe setup
 - [x] Feat: Add volume controls
+- [] Feat: Add keyboard arrow features to control video
 - [] Disable player controls if no video is loaded
 - [] ? If video is removed, next video in queue takes it's place
 - [] If last video is removed, need to remove script and show "No Videos Found"
