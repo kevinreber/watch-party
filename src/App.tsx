@@ -7,6 +7,9 @@ import './App.css';
 import VideoPlayer from './components/VideoPlayer/VideoPlayer';
 import WatchList from './components/WatchList/WatchList';
 
+// Helpers
+import { isValidYTLink } from './helpers';
+
 // MUI
 import { Snackbar } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
@@ -29,11 +32,11 @@ function App() {
 		setErrors((st) => ({ ...st, open: false, message: '' }));
 	};
 
-	const validateYTLink = (url: string) => getYouTubeID(url);
+	// const validateYTLink = (url: string) => getYouTubeID(url);
 	const addVideoToList = (data: string) => {
 		// log id of YT video being appended to video list
 
-		if (validateYTLink(data)) {
+		if (isValidYTLink(data)) {
 			// @ts-ignore
 			if (!videos.includes(data)) {
 				setVideos((vData: string[]) => [...vData, data]);

@@ -1,1 +1,1 @@
-export { getFormattedTime } from './helpers';
+export { getFormattedTime, isValidYTLink } from './helpers';

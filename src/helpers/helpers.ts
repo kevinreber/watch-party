@@ -1,6 +1,14 @@
-export const appendZero = (num: any) => (num < 10 ? `0${num}` : num);
+import getYouTubeID from 'get-youtube-id';
 
-export const getFormattedTime = (time: any, remaining: boolean = false) => {
+export const isValidYTLink = (url: string) => getYouTubeID(url);
+
+export const appendZero = (num: any): number | string =>
+	num < 10 ? `0${num}` : num;
+
+export const getFormattedTime = (
+	time: any,
+	remaining: boolean = false
+): string => {
 	const dateTime = new Date(0, 0, 0, 0, 0, time, 0);
 
 	const dateTimeH = appendZero(dateTime.getHours());

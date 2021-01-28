@@ -69,7 +69,7 @@ export const VideoPlayerControls = ({
 	playerTimeline,
 	handleTimelineChange,
 	playerTime,
-}: PlayerControlProps) => {
+}: PlayerControlProps): JSX.Element => {
 	// @ts-ignore
 	const classes = useStyles();
 
