@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 // Components & Helpers
 import { VideoPlayerControls } from '../VideoPlayerControls/VideoPlayerControls';
+import { getFormattedTime } from '../../helpers';
 
 // MUI
 import IconButton from '@material-ui/core/IconButton';
@@ -36,6 +37,10 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 	const [url, setUrl] = useState('https://www.youtube.com/watch?v=OHviieMFY0c');
 	const [playerStatus, setPlayerStatus] = useState(-1);
 	const [playerTimeline, setPlayerTimeline] = useState(0);
+	const [playerTime, setPlayerTime] = useState({
+		current: null,
+		remaining: null,
+	});
 	const [volumeLevel, setVolumeLevel] = useState(100);
 	const [muted, setIsMuted] = useState(false);
 
@@ -55,7 +60,7 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 					autoplay: 1,
 					disablekb: 0,
 					// hides controllers
-					// controls: 0,
+					controls: 0,
 				},
 				events: {
 					onReady: onPlayerReady,
@@ -90,14 +95,27 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 		}
 	}, [curVideo, loadVideo, player]);
 
+	const updateTimelineState = () => {
+		const currentTime = player.getCurrentTime();
+		const duration = player.getDuration();
+		const remainingTime = duration - currentTime;
+		const time = (currentTime / duration) * 100;
+
+		// Format current and remaining times into string, ex: "01:00"
+		setPlayerTime((st) => ({
+			...st,
+			current: getFormattedTime(currentTime),
+			remaining: getFormattedTime(remainingTime, true),
+		}));
+		setPlayerTimeline(time);
+	};
+
 	// Timeline Player
 	useEffect(() => {
 		let interval = null;
 		if (playerStatus === 1) {
 			interval = setInterval(() => {
-				let time = (player.getCurrentTime() / player.getDuration()) * 100;
-				// console.log(time);
-				setPlayerTimeline(time);
+				updateTimelineState();
 			}, 200);
 		} else if (playerStatus !== 1 && playerTimeline !== 0) {
 			clearInterval(interval);
@@ -157,6 +175,7 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 	const handleTimelineChange = (e, value) => {
 		const time = (value / 100) * player.getDuration();
 		player.seekTo(time);
+		console.log(value, player.getCurrentTime());
 		setPlayerTimeline(value);
 	};
 
@@ -192,6 +211,7 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 				handleVolume={handleVolume}
 				handleMute={handleMute}
 				handleTimelineChange={handleTimelineChange}
+				playerTime={playerTime}
 			/>
 		</div>
 	);

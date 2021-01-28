@@ -62,6 +62,7 @@ interface PlayerControlProps {
 	handleMute: Function;
 	playerTimeline: number;
 	handleTimelineChange: Function;
+	playerTime: { current: string; remaining: string };
 }
 
 export const VideoPlayerControls = ({
@@ -74,6 +75,7 @@ export const VideoPlayerControls = ({
 	handleMute,
 	playerTimeline,
 	handleTimelineChange,
+	playerTime,
 }: PlayerControlProps) => {
 	// @ts-ignore
 	const classes = useStyles();
@@ -113,7 +115,6 @@ export const VideoPlayerControls = ({
 				</Grid>
 				<Grid
 					item={true}
-					spacing={2}
 					className={classes.volumeIconContainer}
 					onMouseEnter={toggleVolumeSlider}
 					onMouseLeave={toggleVolumeSlider}>
@@ -142,8 +143,9 @@ export const VideoPlayerControls = ({
 					spacing={2}
 					className={classes.sliderContainerWrapper}>
 					<Grid item={true}>
-						<Typography>00:00</Typography>
-						{/* <Typography>{playerTimeline}</Typography> */}
+						<Typography>
+							{playerTime?.current ? playerTime.current : '00:00'}
+						</Typography>
 					</Grid>
 					<Grid item={true} className={classes.sliderContainer}>
 						<Slider
@@ -154,7 +156,9 @@ export const VideoPlayerControls = ({
 						/>
 					</Grid>
 					<Grid item={true}>
-						<Typography>00:00</Typography>
+						<Typography>
+							{playerTime?.remaining ? playerTime.remaining : '00:00'}
+						</Typography>
 					</Grid>
 				</Grid>
 			</Grid>
