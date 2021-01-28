@@ -173,10 +173,21 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 
 	// MUI passes value through 2nd paramter, DO NOT remove 'e'
 	const handleTimelineChange = (e, value) => {
-		const time = (value / 100) * player.getDuration();
-		player.seekTo(time);
+		const duration = player.getDuration();
+		const newTime = (value / 100) * duration;
+		const remainingTime = duration - newTime;
+
+		player.seekTo(newTime);
 		console.log(value, player.getCurrentTime());
+
 		setPlayerTimeline(value);
+
+		// Format current and remaining times into string, ex: "01:00"
+		setPlayerTime((st) => ({
+			...st,
+			current: getFormattedTime(newTime),
+			remaining: getFormattedTime(remainingTime, true),
+		}));
 	};
 
 	const handleStateChange = (e) => {
