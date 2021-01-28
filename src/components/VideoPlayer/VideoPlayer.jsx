@@ -35,6 +35,7 @@ let player;
 const VideoPlayer = ({ curVideo, addVideoToList }) => {
 	const [url, setUrl] = useState('https://www.youtube.com/watch?v=OHviieMFY0c');
 	const [playerStatus, setPlayerStatus] = useState(-1);
+	const [playerTimeline, setPlayerTimeline] = useState(0);
 	const [volumeLevel, setVolumeLevel] = useState(100);
 	const [muted, setIsMuted] = useState(false);
 
@@ -54,14 +55,19 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 					autoplay: 1,
 					disablekb: 0,
 					// hides controllers
-					controls: 0,
+					// controls: 0,
 				},
 				events: {
 					onReady: onPlayerReady,
 					onStateChange: handleStateChange,
 				},
 			});
-		} else {
+		}
+		// ! RESTART PLAYER - TRY LATER
+		// else if (player && !curVideo){
+		// player.destroy()
+		// }
+		else {
 			player.loadVideoById(curVideo);
 			console.log('loaded', curVideo, player);
 		}
@@ -84,6 +90,21 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 		}
 	}, [curVideo, loadVideo, player]);
 
+	// Timeline Player
+	useEffect(() => {
+		let interval = null;
+		if (playerStatus === 1) {
+			interval = setInterval(() => {
+				let time = (player.getCurrentTime() / player.getDuration()) * 100;
+				// console.log(time);
+				setPlayerTimeline(time);
+			}, 200);
+		} else if (playerStatus !== 1 && playerTimeline !== 0) {
+			clearInterval(interval);
+		}
+		return () => clearInterval(interval);
+	}, [playerStatus, playerTimeline]);
+
 	/** Pauses current video on ready to avoid auto-play and logs video data */
 	const onPlayerReady = (e) => {
 		// access to player in all event handlers via event.target
@@ -101,12 +122,12 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 
 	const handlePlay = () => {
 		player.playVideo();
-		console.log('play', player.getCurrentTime());
+		console.log('play', player.getCurrentTime(), player.getDuration());
 	};
 
 	const handlePause = () => {
 		player.pauseVideo();
-		console.log('pause', player.getCurrentTime());
+		console.log('pause', player.getCurrentTime(), player.getDuration());
 	};
 
 	// MUI passes value through 2nd paramter, DO NOT remove 'e'
@@ -130,6 +151,13 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 			player.mute();
 		}
 		console.log('muting', player.isMuted());
+	};
+
+	// MUI passes value through 2nd paramter, DO NOT remove 'e'
+	const handleTimelineChange = (e, value) => {
+		const time = (value / 100) * player.getDuration();
+		player.seekTo(time);
+		setPlayerTimeline(value);
 	};
 
 	const handleStateChange = (e) => {
@@ -160,8 +188,10 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 				handlePause={handlePause}
 				handlePlay={handlePlay}
 				volumeLevel={volumeLevel}
+				playerTimeline={playerTimeline}
 				handleVolume={handleVolume}
 				handleMute={handleMute}
+				handleTimelineChange={handleTimelineChange}
 			/>
 		</div>
 	);

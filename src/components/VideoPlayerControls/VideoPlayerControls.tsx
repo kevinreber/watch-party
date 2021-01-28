@@ -60,6 +60,8 @@ interface PlayerControlProps {
 	volumeLevel: number;
 	handleVolume: Function;
 	handleMute: Function;
+	playerTimeline: number;
+	handleTimelineChange: Function;
 }
 
 export const VideoPlayerControls = ({
@@ -70,6 +72,8 @@ export const VideoPlayerControls = ({
 	volumeLevel,
 	handleVolume,
 	handleMute,
+	playerTimeline,
+	handleTimelineChange,
 }: PlayerControlProps) => {
 	// @ts-ignore
 	const classes = useStyles();
@@ -139,12 +143,13 @@ export const VideoPlayerControls = ({
 					className={classes.sliderContainerWrapper}>
 					<Grid item={true}>
 						<Typography>00:00</Typography>
+						{/* <Typography>{playerTimeline}</Typography> */}
 					</Grid>
 					<Grid item={true} className={classes.sliderContainer}>
 						<Slider
-							value={volumeLevel}
+							value={playerTimeline}
 							// @ts-ignore
-							onChange={handleVolume}
+							onChange={handleTimelineChange}
 							aria-labelledby="video-slider"
 						/>
 					</Grid>
