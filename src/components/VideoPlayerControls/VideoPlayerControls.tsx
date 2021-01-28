@@ -1,22 +1,15 @@
 import React, { useState } from 'react';
 
+// Components & Helpers
+import { VideoPlayerTimeline } from '../VideoPlayerTimeline/VideoPlayerTimeline';
+import { VolumeControls } from '../VolumeControls/VolumeControls';
+
 // MUI
 import {
 	PlayArrow as PlayArrowIcon,
 	Pause as PauseIcon,
-	SkipNext,
-	SkipPrevious,
-	VolumeUp,
-	VolumeOff,
 } from '@material-ui/icons';
-import {
-	Grid,
-	Slider,
-	Paper,
-	IconButton,
-	Typography,
-	makeStyles,
-} from '@material-ui/core';
+import { Grid, IconButton, makeStyles } from '@material-ui/core';
 
 // @ts-ignore
 const useStyles = makeStyles((theme: any) => ({
@@ -118,48 +111,26 @@ export const VideoPlayerControls = ({
 					className={classes.volumeIconContainer}
 					onMouseEnter={toggleVolumeSlider}
 					onMouseLeave={toggleVolumeSlider}>
-					<IconButton onClick={() => handleMute()}>
-						{muted ? (
-							<VolumeOff fontSize="large" />
-						) : (
-							<VolumeUp fontSize="large" />
-						)}
-					</IconButton>
-					{volumeSlider && (
-						<Paper className={classes.volumeControlContainer}>
-							<Slider
-								orientation="vertical"
-								aria-labelledby="volume-control"
-								value={volumeLevel}
-								// @ts-ignore
-								onChange={handleVolume}
-							/>
-						</Paper>
-					)}
+					<VolumeControls
+						muted={muted}
+						handleMute={handleMute}
+						volumeSlider={volumeSlider}
+						volumeControlContainer={classes.volumeControlContainer}
+						volumeLevel={volumeLevel}
+						handleVolume={handleVolume}
+					/>
 				</Grid>
 				<Grid
 					item={true}
 					container={true}
 					spacing={2}
 					className={classes.sliderContainerWrapper}>
-					<Grid item={true}>
-						<Typography>
-							{playerTime?.current ? playerTime.current : '00:00'}
-						</Typography>
-					</Grid>
-					<Grid item={true} className={classes.sliderContainer}>
-						<Slider
-							value={playerTimeline}
-							// @ts-ignore
-							onChange={handleTimelineChange}
-							aria-labelledby="video-slider"
-						/>
-					</Grid>
-					<Grid item={true}>
-						<Typography>
-							{playerTime?.remaining ? playerTime.remaining : '00:00'}
-						</Typography>
-					</Grid>
+					<VideoPlayerTimeline
+						playerTime={playerTime}
+						playerTimeline={playerTimeline}
+						handleTimelineChange={handleTimelineChange}
+						sliderContainer={classes.sliderContainer}
+					/>
 				</Grid>
 			</Grid>
 		</>
