@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import io from 'socket.io-client';
 
 // Components & Helpers
@@ -100,16 +100,19 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 	}, [curVideo, loadVideo, player]);
 
 	useEffect(() => {
-		if (socket) return;
-
-		const newSocket = io(ENDPOINT);
-		newSocket.on('connection', (data) => {
-			console.log(data);
-			console.log('connected to websocket server');
-		});
-		console.log(newSocket);
-		setSocket(newSocket);
-	}, []);
+		const setUpNewSocket = () => {
+			const newSocket = io(ENDPOINT);
+			newSocket.on('connection', (data) => {
+				console.log(data);
+				console.log('connected to websocket server');
+			});
+			console.log(newSocket);
+			setSocket(newSocket);
+		};
+		if (!socket) {
+			setUpNewSocket();
+		}
+	}, [socket]);
 
 	const updateTimelineState = () => {
 		const currentTime = player.getCurrentTime();
@@ -154,25 +157,54 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 		}
 	};
 
-	const handlePlay = () => {
+	const handlePlay = useCallback(() => {
 		player.playVideo();
 		console.log('play', player.getCurrentTime(), player.getDuration());
 		const data = {
 			currentTime: player.getCurrentTime(),
-			state: player.getPlayerState(),
+			state: 'play',
 		};
-		socket.emit('send-play', data);
-	};
+		socket.emit('event', data);
+	}, [socket]);
 
-	const handlePause = () => {
+	const handlePause = useCallback(() => {
 		player.pauseVideo();
 		console.log('pause', player.getCurrentTime(), player.getDuration());
 		const data = {
 			currentTime: player.getCurrentTime(),
-			state: player.getPlayerState(),
+			state: 'pause',
 		};
-		socket.emit('send-pause', data);
-	};
+		socket.emit('event', data);
+	}, [socket]);
+
+	// MUI passes value through 2nd paramter, DO NOT remove 'e'
+	const handleTimelineChange = useCallback(
+		(e, value) => {
+			const duration = player.getDuration();
+			const newTime = (value / 100) * duration;
+			const remainingTime = duration - newTime;
+
+			player.seekTo(newTime);
+			console.log(value, player.getCurrentTime());
+
+			setPlayerTimeline(value);
+
+			const data = {
+				value,
+				newTime,
+				state: 'seek',
+			};
+			socket.emit('event', data);
+
+			// Format current and remaining times into string, ex: "01:00"
+			setPlayerTime((st) => ({
+				...st,
+				current: getFormattedTime(newTime),
+				remaining: getFormattedTime(remainingTime, true),
+			}));
+		},
+		[socket]
+	);
 
 	// MUI passes value through 2nd paramter, DO NOT remove 'e'
 	const handleVolume = (e, value) => {
@@ -197,35 +229,41 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 		console.log('muting', player.isMuted());
 	};
 
-	// MUI passes value through 2nd paramter, DO NOT remove 'e'
-	const handleTimelineChange = (e, value) => {
-		const duration = player.getDuration();
-		const newTime = (value / 100) * duration;
-		const remainingTime = duration - newTime;
-
-		player.seekTo(newTime);
-		console.log(value, player.getCurrentTime());
-
-		setPlayerTimeline(value);
-
-		const data = {
-			newTime,
-			state: player.getPlayerState(),
-		};
-		socket.emit('send-new-timestamp', data);
-
-		// Format current and remaining times into string, ex: "01:00"
-		setPlayerTime((st) => ({
-			...st,
-			current: getFormattedTime(newTime),
-			remaining: getFormattedTime(remainingTime, true),
-		}));
-	};
-
 	const handleStateChange = (e) => {
 		console.log('state', e.data);
 		setPlayerStatus(e.data);
 	};
+
+	useEffect(() => {
+		if (!socket) return;
+		socket.on('receive-event', (data) => {
+			console.log(data);
+			if (data.state === 'play') {
+				console.log('play function...');
+				// handlePlay();
+			} else if (data.state === 'pause') {
+				console.log('pause function...');
+				// handlePause();
+			} else {
+				console.log('receive-new-timestamp');
+				// handleTimelineChange({ value: data.value });
+			}
+		});
+		// return () => socket.off('receive-play');
+	}, [socket, handlePlay, handlePause, handleTimelineChange]);
+
+	// useEffect(() => {
+	// 	if (!socket) return;
+	// 	console.log('receive-pause');
+	// 	return () => socket.off('receive-pause');
+	// }, [socket, handlePause]);
+
+	// useEffect(() => {
+	// 	if (!socket) return;
+	// 	socket.on('receive-new-timestamp', handleTimelineChange);
+	// 	console.log('receive-new-timestamp');
+	// 	return () => socket.off('receive-new-timestamp');
+	// }, [socket, handleTimelineChange]);
 
 	return (
 		<div>
