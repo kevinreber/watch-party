@@ -157,29 +157,39 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 		}
 	};
 
-	const handlePlay = useCallback(() => {
-		player.playVideo();
-		console.log('play', player.getCurrentTime(), player.getDuration());
-		const data = {
-			currentTime: player.getCurrentTime(),
-			state: 'play',
-		};
-		socket.emit('event', data);
-	}, [socket]);
+	const handlePlay = useCallback(
+		(emit = true) => {
+			player.playVideo();
+			console.log('play', player.getCurrentTime(), player.getDuration());
+			if (emit) {
+				const data = {
+					currentTime: player.getCurrentTime(),
+					state: 'play',
+				};
+				socket.emit('event', data);
+			}
+		},
+		[socket]
+	);
 
-	const handlePause = useCallback(() => {
-		player.pauseVideo();
-		console.log('pause', player.getCurrentTime(), player.getDuration());
-		const data = {
-			currentTime: player.getCurrentTime(),
-			state: 'pause',
-		};
-		socket.emit('event', data);
-	}, [socket]);
+	const handlePause = useCallback(
+		(emit = true) => {
+			player.pauseVideo();
+			console.log('pause', player.getCurrentTime(), player.getDuration());
+			if (emit) {
+				const data = {
+					currentTime: player.getCurrentTime(),
+					state: 'pause',
+				};
+				socket.emit('event', data);
+			}
+		},
+		[socket]
+	);
 
 	// MUI passes value through 2nd paramter, DO NOT remove 'e'
 	const handleTimelineChange = useCallback(
-		(e, value) => {
+		(e, value, emit = true) => {
 			const duration = player.getDuration();
 			const newTime = (value / 100) * duration;
 			const remainingTime = duration - newTime;
@@ -188,13 +198,14 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 			console.log(value, player.getCurrentTime());
 
 			setPlayerTimeline(value);
-
-			const data = {
-				value,
-				newTime,
-				state: 'seek',
-			};
-			socket.emit('event', data);
+			if (emit) {
+				const data = {
+					value,
+					newTime,
+					state: 'seek',
+				};
+				socket.emit('event', data);
+			}
 
 			// Format current and remaining times into string, ex: "01:00"
 			setPlayerTime((st) => ({
@@ -234,22 +245,24 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 		setPlayerStatus(e.data);
 	};
 
+	// * Socket Event Listener
 	useEffect(() => {
 		if (!socket) return;
 		socket.on('receive-event', (data) => {
 			console.log(data);
 			if (data.state === 'play') {
 				console.log('play function...');
-				// handlePlay();
+				handlePlay(false);
 			} else if (data.state === 'pause') {
 				console.log('pause function...');
-				// handlePause();
+				handlePause(false);
 			} else {
-				console.log('receive-new-timestamp');
-				// handleTimelineChange({ value: data.value });
+				console.log('seeking...');
+				// handleTimelineChange({ value: data.value, emit: false });
+				handleTimelineChange(null, data.value, false);
 			}
 		});
-		// return () => socket.off('receive-play');
+		return () => socket.off('receive-event');
 	}, [socket, handlePlay, handlePause, handleTimelineChange]);
 
 	// useEffect(() => {

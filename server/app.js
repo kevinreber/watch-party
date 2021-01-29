@@ -24,10 +24,7 @@ io.on('connection', (socket) => {
 			socket.broadcast.emit('receive-event', data);
 		} else {
 			console.log('new timestamp', data);
-			socket.broadcast.emit('receive-event', {
-				e: null,
-				value: data.value,
-			});
+			socket.broadcast.emit('receive-event', data);
 		}
 	});
 });
