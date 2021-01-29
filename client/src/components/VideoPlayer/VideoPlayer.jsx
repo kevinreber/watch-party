@@ -258,25 +258,11 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 				handlePause(false);
 			} else {
 				console.log('seeking...');
-				// handleTimelineChange({ value: data.value, emit: false });
 				handleTimelineChange(null, data.value, false);
 			}
 		});
 		return () => socket.off('receive-event');
 	}, [socket, handlePlay, handlePause, handleTimelineChange]);
-
-	// useEffect(() => {
-	// 	if (!socket) return;
-	// 	console.log('receive-pause');
-	// 	return () => socket.off('receive-pause');
-	// }, [socket, handlePause]);
-
-	// useEffect(() => {
-	// 	if (!socket) return;
-	// 	socket.on('receive-new-timestamp', handleTimelineChange);
-	// 	console.log('receive-new-timestamp');
-	// 	return () => socket.off('receive-new-timestamp');
-	// }, [socket, handleTimelineChange]);
 
 	return (
 		<div>
