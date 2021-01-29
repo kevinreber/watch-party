@@ -12,6 +12,9 @@ io.on('connection', (socket) => {
 	socket.on('send-pause', (data) => {
 		console.log('pause', data);
 	});
+	socket.on('send-new-timestamp', (data) => {
+		console.log('new timestamp', data);
+	});
 });
 
 module.exports = server;

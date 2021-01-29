@@ -208,6 +208,12 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 
 		setPlayerTimeline(value);
 
+		const data = {
+			newTime,
+			state: player.getPlayerState(),
+		};
+		socket.emit('send-new-timestamp', data);
+
 		// Format current and remaining times into string, ex: "01:00"
 		setPlayerTime((st) => ({
 			...st,
