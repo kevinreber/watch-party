@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import io from 'socket.io-client';
 
 // Components & Helpers
 import { VideoPlayerControls } from '../VideoPlayerControls/VideoPlayerControls';
@@ -32,6 +33,8 @@ import { AddToQueue } from '@material-ui/icons';
 
 // * Variable to control our YT Player
 let player;
+const ENDPOINT = 'http://localhost:3001';
+
 // ! NOTE: Avoided using typescript b/c opts passed into YouTube component gives too many errors
 const VideoPlayer = ({ curVideo, addVideoToList }) => {
 	const [url, setUrl] = useState('https://www.youtube.com/watch?v=OHviieMFY0c');
@@ -43,6 +46,7 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 	});
 	const [volumeLevel, setVolumeLevel] = useState(100);
 	const [muted, setIsMuted] = useState(false);
+	const [socket, setSocket] = useState();
 
 	const handleChange = (e) => {
 		setUrl(e.target.value);
@@ -95,6 +99,18 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 		}
 	}, [curVideo, loadVideo, player]);
 
+	useEffect(() => {
+		if (socket) return;
+
+		const newSocket = io(ENDPOINT);
+		newSocket.on('connection', (data) => {
+			console.log(data);
+			console.log('connected to websocket server');
+		});
+		console.log(newSocket);
+		setSocket(newSocket);
+	}, []);
+
 	const updateTimelineState = () => {
 		const currentTime = player.getCurrentTime();
 		const duration = player.getDuration();
@@ -141,11 +157,21 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 	const handlePlay = () => {
 		player.playVideo();
 		console.log('play', player.getCurrentTime(), player.getDuration());
+		const data = {
+			currentTime: player.getCurrentTime(),
+			state: player.getPlayerState(),
+		};
+		socket.emit('send-play', data);
 	};
 
 	const handlePause = () => {
 		player.pauseVideo();
 		console.log('pause', player.getCurrentTime(), player.getDuration());
+		const data = {
+			currentTime: player.getCurrentTime(),
+			state: player.getPlayerState(),
+		};
+		socket.emit('send-pause', data);
 	};
 
 	// MUI passes value through 2nd paramter, DO NOT remove 'e'
