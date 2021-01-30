@@ -9,6 +9,17 @@ interface PlayerTimelineTypes {
 	sliderContainer: any;
 }
 
+/**
+ * VideoPlayerTimeline
+ *
+ * VideoPlayer -> VidePlayerControls -> VolumeControls | VideoPlayerTimeline
+ *
+ * @param {number}		playerTime
+ * @param {Function}	playerTimeline
+ * @param {object} 		handleTimelineChange
+ * @param {any} 		sliderContainer
+ */
+
 export const VideoPlayerTimeline = ({
 	playerTime,
 	playerTimeline,

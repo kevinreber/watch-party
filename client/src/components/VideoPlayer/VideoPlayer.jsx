@@ -33,6 +33,15 @@ import { AddToQueue } from '@material-ui/icons';
 // * Variable to control our YT Player
 let player;
 
+/**
+ * Video Player Component - has all functions to control video player
+ *
+ * VideoPlayer -> VidePlayerControls -> VolumeControls | VideoPlayerTimeline
+ * @param curVideo
+ * @param addVideoToList
+ * @param socket
+ */
+
 // ! NOTE: Avoided using typescript b/c opts passed into YouTube component gives too many errors
 const VideoPlayer = ({ curVideo, addVideoToList, socket }) => {
 	const [url, setUrl] = useState('https://www.youtube.com/watch?v=OHviieMFY0c');

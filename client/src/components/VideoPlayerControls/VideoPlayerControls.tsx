@@ -58,6 +58,22 @@ interface PlayerControlProps {
 	playerTime: { current: string; remaining: string };
 }
 
+/**
+ * VideoPlayerControls
+ *
+ * VideoPlayer -> VidePlayerControls -> VolumeControls | VideoPlayerTimeline
+ *
+ * @param {number}		status
+ * @param {boolean}		muted
+ * @param {Function}	handlePause
+ * @param {Function}	handlePlay
+ * @param {number}		volumeLevel
+ * @param {Function} 	handleVolume
+ * @param {Function} 	handleMute
+ * @param {number}		playerTimeline
+ * @param {Function}	handleTimelineChange
+ * @param {object}		playerTime
+ */
 export const VideoPlayerControls = ({
 	status,
 	muted,
