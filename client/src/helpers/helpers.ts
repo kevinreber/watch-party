@@ -24,8 +24,8 @@ export const getFormattedTime = (
 export const loadYTScript = (loadVideo: Function) => {
 	const tag = document.createElement('script');
 	tag.src = 'https://www.youtube.com/iframe_api';
-	// @ts-ignore
-	window.onYouTubeIframeAPIReady = loadVideo;
+	// // @ts-ignore
+	// window.onYouTubeIframeAPIReady = loadVideo;
 
 	const firstScriptTag = document.getElementsByTagName('script')[0];
 	// @ts-ignore
