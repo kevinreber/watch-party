@@ -59,6 +59,7 @@ function App() {
 			// @ts-ignore
 			if (!videos.includes(data)) {
 				setVideos((vData: string[]) => [...vData, data]);
+				// TODO: add 'list-event' socket listener
 			} else
 				setErrors((st) => ({
 					...st,
