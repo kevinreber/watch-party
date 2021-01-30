@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 // Components & Helpers
 import { VideoPlayerControls } from '../VideoPlayerControls/VideoPlayerControls';
-import { getFormattedTime } from '../../helpers';
+import { getFormattedTime, loadYTScript } from '../../helpers';
 
 // MUI
 import IconButton from '@material-ui/core/IconButton';
@@ -77,6 +77,7 @@ const VideoPlayer = ({ curVideo, addVideoToList, socket }) => {
 					onStateChange: handleStateChange,
 				},
 			});
+			console.log('player created', curVideo);
 		}
 		// ! RESTART PLAYER - TRY LATER
 		// else if (player && !curVideo){
@@ -94,14 +95,13 @@ const VideoPlayer = ({ curVideo, addVideoToList, socket }) => {
 	useEffect(() => {
 		if (curVideo !== null) {
 			if (!window.YT) {
-				const tag = document.createElement('script');
-				tag.src = 'https://www.youtube.com/iframe_api';
-
-				window.onYouTubeIframeAPIReady = loadVideo;
-
-				const firstScriptTag = document.getElementsByTagName('script')[0];
-				firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-			} else if (curVideo && !player) loadVideo();
+				loadYTScript(loadVideo);
+				// TODO: Find better way to emit event
+				// Sometimes video will load, but not start on other users browsers
+				socket.emit('event', { state: 'load-video', videoId: curVideo });
+			} else if (curVideo && !player) {
+				loadVideo();
+			}
 		}
 	}, [curVideo, loadVideo, player]);
 
@@ -241,7 +241,10 @@ const VideoPlayer = ({ curVideo, addVideoToList, socket }) => {
 		if (!socket) return;
 		socket.on('receive-event', (data) => {
 			console.log(data);
-			if (data.state === 'play') {
+			if (data.state === 'load-video') {
+				curVideo = data.videoId;
+				loadYTScript(loadVideo);
+			} else if (data.state === 'play') {
 				console.log('play function...');
 				handlePlay(false);
 			} else if (data.state === 'pause') {
