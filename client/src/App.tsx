@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import getYouTubeID from 'get-youtube-id';
+import io from 'socket.io-client';
 
 import './App.css';
 
@@ -16,6 +17,7 @@ import Alert from '@material-ui/lab/Alert';
 
 const vertical = 'top';
 const horizontal = 'center';
+const ENDPOINT = 'http://localhost:3001';
 interface ErrorTypes {
 	open: boolean;
 	message: string;
@@ -27,6 +29,23 @@ function App() {
 		open: false,
 		message: '',
 	});
+	const [socket, setSocket] = useState();
+
+	useEffect(() => {
+		const setUpNewSocket = () => {
+			const newSocket = io(ENDPOINT);
+			newSocket.on('connection', (data: any) => {
+				console.log(data);
+				console.log('connected to websocket server');
+			});
+			console.log(newSocket);
+			// @ts-ignore
+			setSocket(newSocket);
+		};
+		if (!socket) {
+			setUpNewSocket();
+		}
+	}, [socket]);
 
 	const closeErrorMessage = () => {
 		setErrors((st) => ({ ...st, open: false, message: '' }));
@@ -71,6 +90,7 @@ function App() {
 			<VideoPlayer
 				curVideo={getYouTubeID(videos[0])}
 				addVideoToList={addVideoToList}
+				socket={socket}
 			/>
 			<WatchList videos={videos} removeVideo={removeVideoFromList} />
 		</div>

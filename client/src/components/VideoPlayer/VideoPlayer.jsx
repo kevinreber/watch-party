@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import io from 'socket.io-client';
 
 // Components & Helpers
 import { VideoPlayerControls } from '../VideoPlayerControls/VideoPlayerControls';
@@ -33,10 +32,9 @@ import { AddToQueue } from '@material-ui/icons';
 
 // * Variable to control our YT Player
 let player;
-const ENDPOINT = 'http://localhost:3001';
 
 // ! NOTE: Avoided using typescript b/c opts passed into YouTube component gives too many errors
-const VideoPlayer = ({ curVideo, addVideoToList }) => {
+const VideoPlayer = ({ curVideo, addVideoToList, socket }) => {
 	const [url, setUrl] = useState('https://www.youtube.com/watch?v=OHviieMFY0c');
 	const [playerStatus, setPlayerStatus] = useState(-1);
 	const [playerTimeline, setPlayerTimeline] = useState(0);
@@ -46,7 +44,6 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 	});
 	const [volumeLevel, setVolumeLevel] = useState(100);
 	const [muted, setIsMuted] = useState(false);
-	const [socket, setSocket] = useState();
 
 	const handleChange = (e) => {
 		setUrl(e.target.value);
@@ -98,21 +95,6 @@ const VideoPlayer = ({ curVideo, addVideoToList }) => {
 			} else if (curVideo && !player) loadVideo();
 		}
 	}, [curVideo, loadVideo, player]);
-
-	useEffect(() => {
-		const setUpNewSocket = () => {
-			const newSocket = io(ENDPOINT);
-			newSocket.on('connection', (data) => {
-				console.log(data);
-				console.log('connected to websocket server');
-			});
-			console.log(newSocket);
-			setSocket(newSocket);
-		};
-		if (!socket) {
-			setUpNewSocket();
-		}
-	}, [socket]);
 
 	const updateTimelineState = () => {
 		const currentTime = player.getCurrentTime();

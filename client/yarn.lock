@@ -1930,6 +1930,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/socket.io-client@^1.4.35":
+  "integrity" "sha512-MI8YmxFS+jMkIziycT5ickBWK1sZwDwy16mgH/j99Mcom6zRG/NimNGQ3vJV0uX5G6g/hEw0FG3w3b3sT5OUGw=="
+  "resolved" "https://registry.npmjs.org/@types/socket.io-client/-/socket.io-client-1.4.35.tgz"
+  "version" "1.4.35"
+
 "@types/source-list-map@*":
   "integrity" "sha512-K5K+yml8LTo9bWJI/rECfIPrGgxdpeNbj+d53lwN4QjW1MCwlkhUms+gtdzigTeUyBr09+u8BwOIY3MXvHdcsA=="
   "resolved" "https://registry.yarnpkg.com/@types/source-list-map/-/source-list-map-0.1.2.tgz"
