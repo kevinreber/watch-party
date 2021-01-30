@@ -59,10 +59,10 @@ const VideoPlayer = ({ curVideo, addVideoToList, socket }) => {
 	};
 
 	// Create player
-	const loadVideo = () => {
+	const loadVideo = (videoId) => {
 		if (!player) {
 			player = new window.YT.Player('player', {
-				videoId: curVideo,
+				videoId,
 				height: '480',
 				width: '854',
 				playerVars: {
@@ -77,15 +77,15 @@ const VideoPlayer = ({ curVideo, addVideoToList, socket }) => {
 					onStateChange: handleStateChange,
 				},
 			});
-			console.log('player created', curVideo);
+			console.log('player created', videoId);
 		}
 		// ! RESTART PLAYER - TRY LATER
 		// else if (player && !curVideo){
 		// player.destroy()
 		// }
 		else {
-			player.loadVideoById(curVideo);
-			console.log('loaded', curVideo, player);
+			player.loadVideoById(videoId);
+			console.log('loaded', videoId, player);
 		}
 		console.log(player);
 		console.log(window.YT);
@@ -95,13 +95,17 @@ const VideoPlayer = ({ curVideo, addVideoToList, socket }) => {
 	useEffect(() => {
 		if (curVideo !== null) {
 			if (!window.YT) {
-				loadYTScript(loadVideo);
+				// ! NOT SURE IF WE NEED LINE BELOW?
+				// @ts-ignore
+				// window.onYouTubeIframeAPIReady = loadVideo;
+			} else if (curVideo && !player) {
 				// TODO: Find better way to emit event
 				// Sometimes video will load, but not start on other users browsers
-				socket.emit('event', { state: 'load-video', videoId: curVideo });
-			} else if (curVideo && !player) {
-				loadVideo();
+				loadVideo(curVideo);
 			}
+			// else if (!curVideo && player) {
+			// 	player.destroy();
+			// }
 		}
 	}, [curVideo, loadVideo, player]);
 
@@ -137,6 +141,7 @@ const VideoPlayer = ({ curVideo, addVideoToList, socket }) => {
 	const onPlayerReady = (e) => {
 		// access to player in all event handlers via event.target
 		e.target.pauseVideo();
+		socket.emit('event', { state: 'load-video', videoId: curVideo });
 		console.log(e.target.getVideoData());
 	};
 
@@ -242,8 +247,7 @@ const VideoPlayer = ({ curVideo, addVideoToList, socket }) => {
 		socket.on('receive-event', (data) => {
 			console.log(data);
 			if (data.state === 'load-video') {
-				curVideo = data.videoId;
-				loadYTScript(loadVideo);
+				loadVideo(data.videoId);
 			} else if (data.state === 'play') {
 				console.log('play function...');
 				handlePlay(false);

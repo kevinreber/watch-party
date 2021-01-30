@@ -7,6 +7,7 @@ import './App.css';
 // Components
 import VideoPlayer from './components/VideoPlayer/VideoPlayer';
 import WatchList from './components/WatchList/WatchList';
+import { loadYTScript } from './helpers';
 
 // Helpers
 import { isValidYTLink } from './helpers';
@@ -31,6 +32,7 @@ function App() {
 	});
 	const [socket, setSocket] = useState();
 
+	// Initialize WebSocket connection
 	useEffect(() => {
 		const setUpNewSocket = () => {
 			const newSocket = io(ENDPOINT);
@@ -46,6 +48,14 @@ function App() {
 			setUpNewSocket();
 		}
 	}, [socket]);
+
+	// Load YT IFrame Player script into html
+	useEffect(() => {
+		if (!window.YT) {
+			// @ts-ignore
+			loadYTScript();
+		}
+	}, []);
 
 	const closeErrorMessage = () => {
 		setErrors((st) => ({ ...st, open: false, message: '' }));
