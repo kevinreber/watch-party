@@ -2,7 +2,7 @@
 import React, { useState, useCallback, memo } from 'react';
 
 // MUI
-import IconButton from '@material-ui/core/IconButton';
+import { IconButton } from '@material-ui/core';
 import { AddToQueue } from '@material-ui/icons';
 
 interface BarTypes {
