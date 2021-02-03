@@ -44,7 +44,7 @@ let player;
 
 // ! NOTE: Avoided using typescript b/c opts passed into YouTube component gives too many errors
 const VideoPlayer = ({ curVideo, addVideoToList, socket }) => {
-	const [url, setUrl] = useState('https://www.youtube.com/watch?v=OHviieMFY0c');
+	// const [url, setUrl] = useState('https://www.youtube.com/watch?v=OHviieMFY0c');
 	const [playerStatus, setPlayerStatus] = useState(-1);
 	const [playerTimeline, setPlayerTimeline] = useState(0);
 	const [playerTime, setPlayerTime] = useState({
@@ -54,9 +54,9 @@ const VideoPlayer = ({ curVideo, addVideoToList, socket }) => {
 	const [volumeLevel, setVolumeLevel] = useState(100);
 	const [muted, setIsMuted] = useState(false);
 
-	const handleChange = (e) => {
-		setUrl(e.target.value);
-	};
+	// const handleChange = (e) => {
+	// 	setUrl(e.target.value);
+	// };
 
 	// Create player
 	const loadVideo = (videoId) => {
@@ -145,13 +145,13 @@ const VideoPlayer = ({ curVideo, addVideoToList, socket }) => {
 		console.log(e.target.getVideoData());
 	};
 
-	const handleSubmit = (e) => {
-		if (e.keyCode === 13 || e.type === 'submit') {
-			e.preventDefault();
-			addVideoToList(url);
-			setUrl('');
-		}
-	};
+	// const handleSubmit = (e) => {
+	// 	if (e.keyCode === 13 || e.type === 'submit') {
+	// 		e.preventDefault();
+	// 		addVideoToList(url);
+	// 		setUrl('');
+	// 	}
+	// };
 
 	const handlePlay = useCallback(
 		(emit = true) => {
@@ -264,7 +264,7 @@ const VideoPlayer = ({ curVideo, addVideoToList, socket }) => {
 
 	return (
 		<div>
-			<form onSubmit={handleSubmit}>
+			{/* <form onSubmit={handleSubmit}>
 				<input
 					name="id"
 					id="video-id"
@@ -275,7 +275,7 @@ const VideoPlayer = ({ curVideo, addVideoToList, socket }) => {
 				<IconButton type="submit" aria-label="add to queue">
 					<AddToQueue />
 				</IconButton>
-			</form>
+			</form> */}
 			<div id="player">
 				<h3>No Video Found</h3>
 			</div>

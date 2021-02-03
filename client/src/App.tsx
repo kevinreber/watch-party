@@ -7,6 +7,7 @@ import './App.css';
 // Components
 import VideoPlayer from './components/VideoPlayer/VideoPlayer';
 import WatchList from './components/WatchList/WatchList';
+import AddVideoBar from './components/AddVideoBar/AddVideoBar';
 import { loadYTScript } from './helpers';
 
 // Helpers
@@ -98,6 +99,7 @@ function App() {
 					{errors.message}
 				</Alert>
 			</Snackbar>
+			<AddVideoBar addVideoToList={addVideoToList} />
 			<VideoPlayer
 				curVideo={getYouTubeID(videos[0])}
 				addVideoToList={addVideoToList}
