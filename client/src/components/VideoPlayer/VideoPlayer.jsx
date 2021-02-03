@@ -246,7 +246,7 @@ const VideoPlayer = ({ curVideo, socket }) => {
 	}, [socket, handlePlay, handlePause, handleTimelineChange]);
 
 	return (
-		<div>
+		<div id="primary">
 			<div id="player">
 				<h3>No Video Found</h3>
 			</div>

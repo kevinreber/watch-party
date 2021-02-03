@@ -14,7 +14,7 @@ import { loadYTScript } from './helpers';
 import { isValidYTLink } from './helpers';
 
 // MUI
-import { Snackbar } from '@material-ui/core';
+import { Snackbar, Grid } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 
 const vertical = 'top';
@@ -100,8 +100,14 @@ function App() {
 				</Alert>
 			</Snackbar>
 			<AddVideoBar addVideoToList={addVideoToList} />
-			<VideoPlayer curVideo={getYouTubeID(videos[0])} socket={socket} />
-			<WatchList videos={videos} removeVideo={removeVideoFromList} />
+			<Grid container direction="row" justify="space-evenly">
+				<Grid item={true}>
+					<VideoPlayer curVideo={getYouTubeID(videos[0])} socket={socket} />
+				</Grid>
+				<Grid item={true}>
+					<WatchList videos={videos} removeVideo={removeVideoFromList} />
+				</Grid>
+			</Grid>
 		</div>
 	);
 }
