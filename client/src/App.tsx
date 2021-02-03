@@ -100,11 +100,7 @@ function App() {
 				</Alert>
 			</Snackbar>
 			<AddVideoBar addVideoToList={addVideoToList} />
-			<VideoPlayer
-				curVideo={getYouTubeID(videos[0])}
-				addVideoToList={addVideoToList}
-				socket={socket}
-			/>
+			<VideoPlayer curVideo={getYouTubeID(videos[0])} socket={socket} />
 			<WatchList videos={videos} removeVideo={removeVideoFromList} />
 		</div>
 	);
