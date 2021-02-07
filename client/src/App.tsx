@@ -15,7 +15,7 @@ import { loadYTScript } from './helpers';
 import { isValidYTLink } from './helpers';
 
 // MUI
-import { Snackbar, Grid } from '@material-ui/core';
+import { Snackbar, Grid, Button } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 
 const vertical = 'top';
@@ -32,6 +32,7 @@ function App() {
 		open: false,
 		message: '',
 	});
+	const [activeList, setActiveList] = useState('videos');
 	const [socket, setSocket] = useState();
 
 	// Initialize WebSocket connection
@@ -89,6 +90,10 @@ function App() {
 		setVideos(videos.filter((vid) => vid !== video));
 	};
 
+	const toggleActiveList = (active: string) => {
+		setActiveList(active);
+	};
+
 	return (
 		<div className="App">
 			<Snackbar
@@ -106,8 +111,13 @@ function App() {
 					<VideoPlayer curVideo={getYouTubeID(videos[0])} socket={socket} />
 				</Grid>
 				<Grid item={true}>
-					<ChatList />
-					<WatchList videos={videos} removeVideo={removeVideoFromList} />
+					<Button onClick={() => toggleActiveList('videos')}>Videos</Button>
+					<Button onClick={() => toggleActiveList('chats')}>Chat</Button>
+					{activeList === 'videos' ? (
+						<WatchList videos={videos} removeVideo={removeVideoFromList} />
+					) : (
+						<ChatList />
+					)}
 				</Grid>
 			</Grid>
 		</div>
