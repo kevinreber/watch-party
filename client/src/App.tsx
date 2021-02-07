@@ -8,6 +8,7 @@ import './App.css';
 import VideoPlayer from './components/VideoPlayer/VideoPlayer';
 import WatchList from './components/WatchList/WatchList';
 import AddVideoBar from './components/AddVideoBar/AddVideoBar';
+import ChatList from './components/ChatList/ChatList';
 import { loadYTScript } from './helpers';
 
 // Helpers
@@ -105,6 +106,7 @@ function App() {
 					<VideoPlayer curVideo={getYouTubeID(videos[0])} socket={socket} />
 				</Grid>
 				<Grid item={true}>
+					<ChatList />
 					<WatchList videos={videos} removeVideo={removeVideoFromList} />
 				</Grid>
 			</Grid>
