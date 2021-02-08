@@ -92,8 +92,13 @@ function App() {
 	};
 
 	const sendMessage = (data: any) => {
+		const { content } = data;
+		const messageData = {
+			content,
+			created_at: new Date().getTime(),
+		};
 		// @ts-ignore
-		setMessages((m) => [...m, data]);
+		setMessages((m) => [...m, messageData]);
 	};
 
 	const toggleActiveList = (active: string) => {
