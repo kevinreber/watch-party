@@ -13,8 +13,11 @@ const ChatBody = ({ messages, setRef }: ChatBodyTypes): JSX.Element => {
 	const Body = messages.map((message: any, index: number) => {
 		const lastMessage = messages.length - 1 === index;
 		return (
-			// @ts-ignore
-			<ListItem key={message} id={message} ref={lastMessage ? setRef : null}>
+			<ListItem
+				key={message.content}
+				id={message.content}
+				// @ts-ignore
+				ref={lastMessage ? setRef : null}>
 				<ListItemText>
 					{message.content}
 					<span className="chat__timestamp">12:00pm</span>
