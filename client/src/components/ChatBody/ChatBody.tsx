@@ -12,6 +12,8 @@ interface ChatBodyTypes {
 const ChatBody = ({ messages, setRef }: ChatBodyTypes): JSX.Element => {
 	const Body = messages.map((message: any, index: number) => {
 		const lastMessage = messages.length - 1 === index;
+		// const date = new Date(message.created_at);
+		// const hhmmss = date.toISOString().substring(11, 8);
 		return (
 			<ListItem
 				key={index}
@@ -19,7 +21,7 @@ const ChatBody = ({ messages, setRef }: ChatBodyTypes): JSX.Element => {
 				ref={lastMessage ? setRef : null}>
 				<ListItemText>
 					{message.content}
-					<span className="chat__timestamp">12:00pm</span>
+					<span className="chat__timestamp">{message.created_at}</span>
 				</ListItemText>
 			</ListItem>
 		);
