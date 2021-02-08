@@ -28,6 +28,7 @@ interface ErrorTypes {
 
 function App() {
 	const [videos, setVideos] = useState<string[] | []>([]);
+	const [messages, setMessages] = useState([]);
 	const [errors, setErrors] = useState<ErrorTypes>({
 		open: false,
 		message: '',
@@ -90,6 +91,11 @@ function App() {
 		setVideos(videos.filter((vid) => vid !== video));
 	};
 
+	const sendMessage = (data: any) => {
+		// @ts-ignore
+		setMessages((m) => [...m, data]);
+	};
+
 	const toggleActiveList = (active: string) => {
 		setActiveList(active);
 	};
@@ -116,7 +122,7 @@ function App() {
 					{activeList === 'videos' ? (
 						<WatchList videos={videos} removeVideo={removeVideoFromList} />
 					) : (
-						<ChatList />
+						<ChatList messages={messages} sendMessage={sendMessage} />
 					)}
 				</Grid>
 			</Grid>
