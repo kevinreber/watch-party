@@ -1,5 +1,8 @@
+// Dependencies
 import React from 'react';
 
+// MUI
+import { ListItem, ListItemText } from '@material-ui/core';
 interface ChatBodyTypes {
 	messages: any[];
 	setRef: Function;
@@ -11,12 +14,12 @@ const ChatBody = ({ messages, setRef }: ChatBodyTypes): JSX.Element => {
 		const lastMessage = messages.length - 1 === index;
 		return (
 			// @ts-ignore
-			<li key={message} id={message} ref={lastMessage ? setRef : null}>
-				<p className="MessageChatBody__message chat__message">
+			<ListItem key={message} id={message} ref={lastMessage ? setRef : null}>
+				<ListItemText>
 					{message.content}
 					<span className="chat__timestamp">12:00pm</span>
-				</p>
-			</li>
+				</ListItemText>
+			</ListItem>
 		);
 	});
 	return <>{Body} </>;

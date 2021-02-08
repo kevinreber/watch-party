@@ -4,6 +4,9 @@ import React, { useCallback } from 'react';
 import ChatBody from '../ChatBody/ChatBody';
 import MessageFooter from '../MessageFooter/MessageFooter';
 
+// MUI
+import { List } from '@material-ui/core';
+
 interface ChatListTypes {
 	messages: string[];
 	sendMessage: Function;
@@ -21,9 +24,11 @@ const ChatList = ({ messages, sendMessage }: ChatListTypes): JSX.Element => {
 
 	return (
 		<div className="MessageChat">
-			<ul id="MessageChat__Body" className="MessageChat__Body Page__Body">
+			{/* <ul className="MessageChat__Body Page__Body"> */}
+			<List>
 				<ChatBody messages={messages} setRef={setRef} />
-			</ul>
+			</List>
+			{/* </ul> */}
 			<div className="MessageChat__Footer">
 				<MessageFooter sendMessage={sendMessage} />
 			</div>
