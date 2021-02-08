@@ -14,8 +14,7 @@ const ChatBody = ({ messages, setRef }: ChatBodyTypes): JSX.Element => {
 		const lastMessage = messages.length - 1 === index;
 		return (
 			<ListItem
-				key={message.content}
-				id={message.content}
+				key={index}
 				// @ts-ignore
 				ref={lastMessage ? setRef : null}>
 				<ListItemText>
