@@ -84,21 +84,16 @@ const VideoPlayer = ({ curVideo, socket }) => {
 
 	// Load YT IFrame Player script into html
 	useEffect(() => {
-		if (curVideo !== null) {
-			if (!window.YT) {
-				// ! NOT SURE IF WE NEED LINE BELOW?
-				// @ts-ignore
-				// window.onYouTubeIframeAPIReady = loadVideo;
-			} else if (curVideo && !player) {
-				// TODO: Find better way to emit event
-				// Sometimes video will load, but not start on other users browsers
-				loadVideo(curVideo);
-			}
-			// else if (!curVideo && player) {
-			// 	player.destroy();
-			// }
+		if (curVideo) {
+			// TODO: Find better way to emit event
+			// Sometimes video will load, but not start on other users browsers
+			loadVideo(curVideo);
 		}
-	}, [curVideo, loadVideo, player]);
+
+		// else if (!curVideo && player) {
+		// 	player.destroy();
+		// }
+	}, [curVideo, player]);
 
 	const updateTimelineState = () => {
 		const currentTime = player.getCurrentTime();
