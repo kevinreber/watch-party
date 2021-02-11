@@ -46,8 +46,17 @@
 - https://github.com/bramgiessen/react-youtube-sync/tree/master/server
 - https://github.com/YasserYka/YT-Together/blob/master/frontend/src/components/Watch.js
 
+#### Instructions (How To)
+- https://www.linode.com/docs/guides/build-react-video-streaming-app/
+
+#### Whiteboard Feature
+- https://medium.com/better-programming/building-a-realtime-drawing-app-using-socket-io-and-p5-js-86f979285b12
+
 #### Chat Feature
 - https://www.npmjs.com/package/emoji-mart (Emojis)
+
+#### YT Player Package
+- https://github.com/BTMPL/react-yt
 
 #### App Ideas
 - https://dev.to/reedbarger/7-react-projects-you-should-build-in-2021-p20
