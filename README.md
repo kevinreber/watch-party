@@ -35,6 +35,23 @@
 
 - [] Database?
 
+### Resources
+
+#### Similar Projects
+- https://github.com/howardchung/watchparty/blob/master/server/room.ts (Hackathon Project)
+- https://github.com/filahf/wevid-youtube-together/blob/master/server/server.js (Reddit Post)
+- https://github.com/filahf/wevid-youtube-together/blob/master/client/src/components/video/Video.js (Reddit Post)
+- https://www.reddit.com/r/reactjs/comments/gh76ez/synchronized_youtube_player_built_in_react/ (Reddit Post)
+
+- https://github.com/bramgiessen/react-youtube-sync/tree/master/server
+- https://github.com/YasserYka/YT-Together/blob/master/frontend/src/components/Watch.js
+
+#### Chat Feature
+- https://www.npmjs.com/package/emoji-mart (Emojis)
+
+#### App Ideas
+- https://dev.to/reedbarger/7-react-projects-you-should-build-in-2021-p20
+
 ## Available Scripts
 
 In the project directory, you can run:
