@@ -1,5 +1,7 @@
 // dependencies
 import React, { FormEvent } from 'react';
+import 'emoji-mart/css/emoji-mart.css';
+import { Picker } from 'emoji-mart';
 
 // hooks
 import useFields from '../../hooks/useFields';
@@ -32,6 +34,17 @@ const MessageFooter = ({ sendMessage }: MessageTypes): JSX.Element => {
 		resetFormData();
 	};
 
+	// reformat emoji event to handleChange()
+	const handleEmoji = (emoji: any) => {
+		const event = {
+			target: {
+				name: 'content',
+				value: formData.content + emoji.native,
+			},
+		};
+		handleChange(event);
+	};
+
 	return (
 		<>
 			<form onSubmit={handleSubmit}>
@@ -50,6 +63,18 @@ const MessageFooter = ({ sendMessage }: MessageTypes): JSX.Element => {
 					variant="contained">
 					<SendIcon />
 				</IconButton>
+				<Picker onSelect={handleEmoji} native={true} theme="auto" />
+				{/* <Picker onSelect={handleEmoji} set="google" /> */}
+				{/* <Picker title="Pick your emoji…" emoji="point_up" />
+				<Picker
+					style={{ position: 'absolute', bottom: '20px', right: '20px' }}
+				/>
+				<Picker
+					i18n={{
+						search: 'Recherche',
+						categories: { search: 'Résultats de recherche', recent: 'Récents' },
+					}}
+				/> */}
 			</form>
 		</>
 	);
