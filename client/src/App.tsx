@@ -99,7 +99,21 @@ function App() {
 		};
 		// @ts-ignore
 		setMessages((m) => [...m, messageData]);
+		// @ts-ignore
+		socket.emit('send-message', messageData);
 	};
+
+	// * Socket Event Listener
+	useEffect(() => {
+		if (!socket) return;
+		// @ts-ignore
+		socket.on('receive-message', (data) => {
+			// @ts-ignore
+			setMessages((m) => [...m, data]);
+		});
+		// @ts-ignore
+		return () => socket.off('receive-message');
+	}, [socket]);
 
 	const toggleActiveList = (active: string) => {
 		setActiveList(active);
