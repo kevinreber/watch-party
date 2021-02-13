@@ -1,5 +1,5 @@
 // dependencies
-import React, { FormEvent } from 'react';
+import React, { useState, FormEvent } from 'react';
 import 'emoji-mart/css/emoji-mart.css';
 import { Picker } from 'emoji-mart';
 
@@ -8,7 +8,10 @@ import useFields from '../../hooks/useFields';
 
 /** MUI */
 import IconButton from '@material-ui/core/IconButton';
-import SendIcon from '@material-ui/icons/Send';
+import {
+	Send as SendIcon,
+	InsertEmoticon as InsertEmoticonIcon,
+} from '@material-ui/icons';
 
 const INITIAL_STATE = {
 	content: '',
@@ -24,6 +27,7 @@ interface MessageTypes {
 
 const MessageFooter = ({ sendMessage }: MessageTypes): JSX.Element => {
 	const [formData, handleChange, resetFormData] = useFields(INITIAL_STATE);
+	const [showEmojis, setShowEmojis] = useState(false);
 
 	const handleSubmit = (e: FormEvent): void => {
 		e.preventDefault();
@@ -33,6 +37,8 @@ const MessageFooter = ({ sendMessage }: MessageTypes): JSX.Element => {
 		sendMessage(formData);
 		resetFormData();
 	};
+
+	const toggleShowEmojis = (): void => setShowEmojis(!showEmojis);
 
 	// reformat emoji event to handleChange()
 	const handleEmoji = (emoji: any) => {
@@ -63,7 +69,12 @@ const MessageFooter = ({ sendMessage }: MessageTypes): JSX.Element => {
 					variant="contained">
 					<SendIcon />
 				</IconButton>
-				<Picker onSelect={handleEmoji} native={true} theme="auto" />
+				<IconButton type="button" onClick={toggleShowEmojis}>
+					<InsertEmoticonIcon onClick={toggleShowEmojis} />
+				</IconButton>
+				{showEmojis && (
+					<Picker onSelect={handleEmoji} native={true} theme="auto" />
+				)}
 				{/* <Picker onSelect={handleEmoji} set="google" /> */}
 				{/* <Picker title="Pick your emoji…" emoji="point_up" />
 				<Picker
