@@ -70,7 +70,7 @@ const MessageFooter = ({ sendMessage }: MessageTypes): JSX.Element => {
 					<SendIcon />
 				</IconButton>
 				<IconButton type="button" onClick={toggleShowEmojis}>
-					<InsertEmoticonIcon onClick={toggleShowEmojis} />
+					<InsertEmoticonIcon />
 				</IconButton>
 				{showEmojis && (
 					<Picker onSelect={handleEmoji} native={true} theme="auto" />
