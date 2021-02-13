@@ -1,5 +1,6 @@
 // Dependencies
 import React from 'react';
+import moment from 'moment';
 
 // MUI
 import { ListItem, ListItemText } from '@material-ui/core';
@@ -19,10 +20,10 @@ const ChatBody = ({ messages, setRef }: ChatBodyTypes): JSX.Element => {
 				key={index}
 				// @ts-ignore
 				ref={lastMessage ? setRef : null}>
-				<ListItemText>
-					{message.content}
-					<span className="chat__timestamp">{message.created_at}</span>
-				</ListItemText>
+				<ListItemText
+					primary={message.content}
+					secondary={moment(message.created_at).calendar()}
+				/>
 			</ListItem>
 		);
 	});
