@@ -1,19 +1,31 @@
 /** app for watch party */
 
+require('dotenv').config();
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 
 // mongo/mongoose
-const uri = process.env.MONGODB_URI;
+const uri = process.env.DB_URL;
 const Message = require('./models/Message');
+const Room = require('./models/Room');
 const mongoose = require('mongoose');
 
-// mongoose.connect(uri, {
-// 	useUnifiedTopology: true,
-// 	useNewUrlParser: true,
-// });
+mongoose
+	.connect(uri, {
+		useUnifiedTopology: true,
+		useNewUrlParser: true,
+		useCreateIndex: true,
+		useFindAndModify: false,
+	})
+	.then(() => console.log('SUCCESS - Connected to DB'))
+	.catch((err) => console.error('ERROR connecting to DB:', err));
+
+app.get('/:roomId', async (req, res) => {
+	const { roomId } = req.params;
+	console.log(roomId);
+});
 
 io.on('connection', (socket) => {
 	// Get the last 10 messages from the database.
