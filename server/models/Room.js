@@ -15,6 +15,7 @@ const roomSchema = new Schema(
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'User',
 		},
+		admins: [{ type: String, ref: 'User' }],
 		users: [{ type: String, ref: 'User' }],
 		messages: [
 			{
