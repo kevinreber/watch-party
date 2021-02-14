@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const opts = require('./options');
 
 const messageSchema = new mongoose.Schema(
 	{
@@ -6,9 +7,7 @@ const messageSchema = new mongoose.Schema(
 		username: String,
 		user_id: String,
 	},
-	{
-		timestamps: true,
-	}
+	opts
 );
 
 const Message = mongoose.model('Message', messageSchema);

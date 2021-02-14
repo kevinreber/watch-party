@@ -10,6 +10,7 @@ const io = require('socket.io')(server);
 const uri = process.env.DB_URL;
 const Message = require('./models/Message');
 const Room = require('./models/Room');
+const User = require('./models/User');
 const mongoose = require('mongoose');
 
 mongoose
@@ -22,9 +23,8 @@ mongoose
 	.then(() => console.log('SUCCESS - Connected to DB'))
 	.catch((err) => console.error('ERROR connecting to DB:', err));
 
-app.get('/:roomId', async (req, res) => {
-	const { roomId } = req.params;
-	console.log(roomId);
+app.get('/login', async (req, res) => {
+	console.log('logging in');
 });
 
 io.on('connection', (socket) => {
