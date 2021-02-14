@@ -1,6 +1,9 @@
 // Dependencies
-import React from 'react';
+import React, { useContext } from 'react';
 import moment from 'moment';
+
+// Providers
+import { UserContext } from '../../store/UserContext';
 
 // MUI
 import { ListItem, ListItemText } from '@material-ui/core';
@@ -11,18 +14,24 @@ interface ChatBodyTypes {
 
 /** Display receiver and user's chat */
 const ChatBody = ({ messages, setRef }: ChatBodyTypes): JSX.Element => {
+	// @ts-ignore
+	const { user } = useContext(UserContext);
+
 	const Body = messages.map((message: any, index: number) => {
 		const lastMessage = messages.length - 1 === index;
 		// const date = new Date(message.created_at);
 		// const hhmmss = date.toISOString().substring(11, 8);
 		return (
 			<ListItem
+				alignItems={message.user === user ? 'flex-start' : 'center'}
 				key={index}
 				// @ts-ignore
 				ref={lastMessage ? setRef : null}>
 				<ListItemText
 					primary={message.content}
-					secondary={moment(message.created_at).calendar()}
+					secondary={
+						message.username + '-' + moment(message.created_at).calendar()
+					}
 				/>
 			</ListItem>
 		);

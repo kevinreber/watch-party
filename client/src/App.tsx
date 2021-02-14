@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import getYouTubeID from 'get-youtube-id';
 import io from 'socket.io-client';
 
@@ -18,6 +18,9 @@ import { isValidYTLink } from './helpers';
 import { Snackbar, Grid, Button } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 
+// Providers
+import { UserContext } from './store/UserContext';
+
 const vertical = 'top';
 const horizontal = 'center';
 const ENDPOINT = 'http://localhost:3001';
@@ -27,6 +30,9 @@ interface ErrorTypes {
 }
 
 function App() {
+	const [user, setUser] = useState<any>(null);
+	const userData = useMemo(() => ({ user, setUser }), [user, setUser]);
+
 	const [videos, setVideos] = useState<string[] | []>([]);
 	const [messages, setMessages] = useState([]);
 	const [errors, setErrors] = useState<ErrorTypes>({
@@ -96,6 +102,7 @@ function App() {
 		const messageData = {
 			content,
 			created_at: new Date().getTime(),
+			username: userData.user,
 		};
 		// @ts-ignore
 		setMessages((m) => [...m, messageData]);
@@ -121,30 +128,32 @@ function App() {
 
 	return (
 		<div className="App">
-			<Snackbar
-				anchorOrigin={{ vertical, horizontal }}
-				open={errors.open}
-				onClose={closeErrorMessage}
-				autoHideDuration={3000}>
-				<Alert onClose={closeErrorMessage} severity="error">
-					{errors.message}
-				</Alert>
-			</Snackbar>
-			<AddVideoBar addVideoToList={addVideoToList} />
-			<Grid container direction="row" justify="space-evenly">
-				<Grid item={true}>
-					<VideoPlayer curVideo={getYouTubeID(videos[0])} socket={socket} />
+			<UserContext.Provider value={userData}>
+				<Snackbar
+					anchorOrigin={{ vertical, horizontal }}
+					open={errors.open}
+					onClose={closeErrorMessage}
+					autoHideDuration={3000}>
+					<Alert onClose={closeErrorMessage} severity="error">
+						{errors.message}
+					</Alert>
+				</Snackbar>
+				<AddVideoBar addVideoToList={addVideoToList} />
+				<Grid container direction="row" justify="space-evenly">
+					<Grid item={true}>
+						<VideoPlayer curVideo={getYouTubeID(videos[0])} socket={socket} />
+					</Grid>
+					<Grid item={true}>
+						<Button onClick={() => toggleActiveList('videos')}>Videos</Button>
+						<Button onClick={() => toggleActiveList('chats')}>Chat</Button>
+						{activeList === 'videos' ? (
+							<WatchList videos={videos} removeVideo={removeVideoFromList} />
+						) : (
+							<ChatList messages={messages} sendMessage={sendMessage} />
+						)}
+					</Grid>
 				</Grid>
-				<Grid item={true}>
-					<Button onClick={() => toggleActiveList('videos')}>Videos</Button>
-					<Button onClick={() => toggleActiveList('chats')}>Chat</Button>
-					{activeList === 'videos' ? (
-						<WatchList videos={videos} removeVideo={removeVideoFromList} />
-					) : (
-						<ChatList messages={messages} sendMessage={sendMessage} />
-					)}
-				</Grid>
-			</Grid>
+			</UserContext.Provider>
 		</div>
 	);
 }

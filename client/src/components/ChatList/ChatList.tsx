@@ -1,8 +1,10 @@
-import React, { useCallback } from 'react';
+import React, { useContext, useCallback } from 'react';
+import { UserContext } from '../../store/UserContext';
 
 // components
 import ChatBody from '../ChatBody/ChatBody';
 import MessageFooter from '../MessageFooter/MessageFooter';
+import LoginFooter from '../LoginFooter/LoginFooter';
 
 // MUI
 import { List } from '@material-ui/core';
@@ -13,7 +15,12 @@ interface ChatListTypes {
 }
 
 const ChatList = ({ messages, sendMessage }: ChatListTypes): JSX.Element => {
-	// const [messages, setMessages] = useState([]);
+	// @ts-ignore
+	const { user, setUser } = useContext(UserContext);
+	const login = (username: string) => {
+		console.log(username);
+		setUser(username);
+	};
 
 	/** Scroll to Bottom of Chat */
 	const setRef = useCallback((node): void => {
@@ -30,7 +37,11 @@ const ChatList = ({ messages, sendMessage }: ChatListTypes): JSX.Element => {
 			</List>
 			{/* </ul> */}
 			<div className="MessageChat__Footer">
-				<MessageFooter sendMessage={sendMessage} />
+				{user ? (
+					<MessageFooter sendMessage={sendMessage} />
+				) : (
+					<LoginFooter login={login} />
+				)}
 			</div>
 		</div>
 	);
