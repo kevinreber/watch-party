@@ -3,11 +3,13 @@ const mongoose = require('mongoose');
 const messageSchema = new mongoose.Schema(
 	{
 		content: String,
-		name: String,
+		username: String,
+		user_id: String,
 	},
 	{
 		timestamps: true,
 	}
 );
 
-module.exports = mongoose.model('Message', messageSchema);
+const Message = mongoose.model('Message', messageSchema);
+module.exports = Message;
