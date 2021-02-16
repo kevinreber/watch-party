@@ -31,11 +31,9 @@ const ChatList = ({ messages, sendMessage }: ChatListTypes): JSX.Element => {
 
 	return (
 		<div className="MessageChat">
-			{/* <ul className="MessageChat__Body Page__Body"> */}
 			<List>
 				<ChatBody messages={messages} setRef={setRef} />
 			</List>
-			{/* </ul> */}
 			<div className="MessageChat__Footer">
 				{user ? (
 					<MessageFooter sendMessage={sendMessage} />

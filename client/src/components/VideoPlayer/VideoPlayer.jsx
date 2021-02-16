@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 // Components & Helpers
 import { VideoPlayerControls } from '../VideoPlayerControls/VideoPlayerControls';
-import { getFormattedTime, loadYTScript } from '../../helpers';
+import { getFormattedTime } from '../../helpers';
 
 // * get-youtube-id: https://www.npmjs.com/package/get-youtube-id
 
@@ -69,12 +69,7 @@ const VideoPlayer = ({ curVideo, socket }) => {
 				},
 			});
 			console.log('player created', videoId);
-		}
-		// ! RESTART PLAYER - TRY LATER
-		// else if (player && !curVideo){
-		// player.destroy()
-		// }
-		else {
+		} else {
 			player.loadVideoById(videoId);
 			console.log('loaded', videoId, player);
 		}
@@ -89,10 +84,6 @@ const VideoPlayer = ({ curVideo, socket }) => {
 			// Sometimes video will load, but not start on other users browsers
 			loadVideo(curVideo);
 		}
-
-		// else if (!curVideo && player) {
-		// 	player.destroy();
-		// }
 	}, [curVideo, player]);
 
 	const updateTimelineState = () => {
