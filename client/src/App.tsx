@@ -71,16 +71,18 @@ function App() {
 		setErrors((st) => ({ ...st, open: false, message: '' }));
 	};
 
-	// const validateYTLink = (url: string) => getYouTubeID(url);
 	const addVideoToList = (video: string) => {
-		// log id of YT video being appended to video list
-
 		if (isValidYTLink(video)) {
 			// @ts-ignore
 			if (!videos.includes(video)) {
-				setVideos((vData: string[]) => [...vData, video]);
-				// TODO: add 'list-event' socket listener
-				socket.emit('video-list-event', { state: 'add-video', video });
+				const updatedVideos = [...videos, video];
+				setVideos(updatedVideos);
+
+				// emit event
+				socket.emit('video-list-event', {
+					type: 'add-video',
+					videos: updatedVideos,
+				});
 			} else
 				setErrors((st) => ({
 					...st,
@@ -94,9 +96,16 @@ function App() {
 				message: 'invalid URL',
 			}));
 	};
+
 	const removeVideoFromList = (video: string) => {
-		setVideos(videos.filter((vid) => vid !== video));
-		socket.emit('video-list-event', { state: 'remove-video', video });
+		const filteredVideos = videos.filter((vid) => vid !== video);
+		setVideos(filteredVideos);
+
+		// emit event
+		socket.emit('video-list-event', {
+			type: 'remove-video',
+			videos: filteredVideos,
+		});
 	};
 
 	const sendMessage = (data: any) => {
@@ -129,12 +138,10 @@ function App() {
 		if (!socket) return;
 		// @ts-ignore
 		socket.on('update-video-list', (data) => {
-			console.log(data);
-
-			if (data.state === 'add-video') {
-				setVideos((vData: string[]) => [...vData, data.video]);
-			} else if (data.state === 'remove-video') {
-				setVideos(videos.filter((vid) => vid !== data.video));
+			if (data.type === 'add-video') {
+				setVideos(data.videos);
+			} else if (data.type === 'remove-video') {
+				setVideos(data.videos);
 			}
 		});
 		// @ts-ignore
