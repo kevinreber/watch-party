@@ -40,7 +40,7 @@ function App() {
 		message: '',
 	});
 	const [activeList, setActiveList] = useState('videos');
-	const [socket, setSocket] = useState();
+	const [socket, setSocket] = useState<any>();
 
 	// Initialize WebSocket connection
 	useEffect(() => {
@@ -72,14 +72,15 @@ function App() {
 	};
 
 	// const validateYTLink = (url: string) => getYouTubeID(url);
-	const addVideoToList = (data: string) => {
+	const addVideoToList = (video: string) => {
 		// log id of YT video being appended to video list
 
-		if (isValidYTLink(data)) {
+		if (isValidYTLink(video)) {
 			// @ts-ignore
-			if (!videos.includes(data)) {
-				setVideos((vData: string[]) => [...vData, data]);
+			if (!videos.includes(video)) {
+				setVideos((vData: string[]) => [...vData, video]);
 				// TODO: add 'list-event' socket listener
+				socket.emit('video-list-event', { state: 'add-video', video });
 			} else
 				setErrors((st) => ({
 					...st,
@@ -95,6 +96,7 @@ function App() {
 	};
 	const removeVideoFromList = (video: string) => {
 		setVideos(videos.filter((vid) => vid !== video));
+		socket.emit('video-list-event', { state: 'remove-video', video });
 	};
 
 	const sendMessage = (data: any) => {
@@ -120,6 +122,23 @@ function App() {
 		});
 		// @ts-ignore
 		return () => socket.off('receive-message');
+	}, [socket]);
+
+	// * Socket Event Listener
+	useEffect(() => {
+		if (!socket) return;
+		// @ts-ignore
+		socket.on('update-video-list', (data) => {
+			console.log(data);
+
+			if (data.state === 'add-video') {
+				setVideos((vData: string[]) => [...vData, data.video]);
+			} else if (data.state === 'remove-video') {
+				setVideos(videos.filter((vid) => vid !== data.video));
+			}
+		});
+		// @ts-ignore
+		return () => socket.off('update-video-list');
 	}, [socket]);
 
 	const toggleActiveList = (active: string) => {

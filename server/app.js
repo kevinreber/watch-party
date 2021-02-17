@@ -45,6 +45,12 @@ io.on('connection', (socket) => {
 		socket.broadcast.emit('receive-event', data);
 	});
 
+	socket.on('video-list-event', (data) => {
+		// data.state : 'add-video' | 'remove-video'
+		console.log(data.state, data.video);
+		socket.broadcast.emit('update-video-list', data);
+	});
+
 	// Listen to connected users for a new message.
 	socket.on('send-message', (msg) => {
 		console.log(msg);
