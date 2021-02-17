@@ -216,7 +216,7 @@ const VideoPlayer = ({ curVideo, socket }) => {
 		socket.on('receive-event', (data) => {
 			console.log(data);
 			if (data.state === 'load-video') {
-				loadVideo(data.videoId);
+				// loadVideo(data.videoId);
 			} else if (data.state === 'play') {
 				console.log('play function...');
 				handlePlay(false);
