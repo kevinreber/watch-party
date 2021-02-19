@@ -1,20 +1,19 @@
 /** app for watch party */
 
-require('dotenv').config();
+const config = require('./config');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 
 // mongo/mongoose
-const uri = process.env.DB_URL;
 const Message = require('./models/Message');
 const Room = require('./models/Room');
 const User = require('./models/User');
 const mongoose = require('mongoose');
 
 mongoose
-	.connect(uri, {
+	.connect(config.DB_URI, {
 		useUnifiedTopology: true,
 		useNewUrlParser: true,
 		useCreateIndex: true,
