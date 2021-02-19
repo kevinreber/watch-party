@@ -6,6 +6,8 @@ const app = express();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 
+const { searchYoutube } = require('./utils/youtube');
+
 // mongo/mongoose
 const Message = require('./models/Message');
 const Room = require('./models/Room');
@@ -24,6 +26,19 @@ mongoose
 
 app.get('/login', async (req, res) => {
 	console.log('logging in');
+});
+
+app.get('/api/youtube', async (req, res) => {
+	if (typeof req.query.q === 'string') {
+		try {
+			const items = await searchYoutube(req.query.q);
+			res.json(items);
+		} catch {
+			return res.status(500).json({ error: 'youtube error' });
+		}
+	} else {
+		return res.status(500).json({ error: 'query must be a string' });
+	}
 });
 
 io.on('connection', (socket) => {
