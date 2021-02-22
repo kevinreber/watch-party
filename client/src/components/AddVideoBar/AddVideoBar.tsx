@@ -1,5 +1,6 @@
 // Dependencies
 import React, { useState, useCallback, memo } from 'react';
+import Api from '../../api/api';
 
 // MUI
 import { IconButton } from '@material-ui/core';
@@ -10,21 +11,22 @@ interface BarTypes {
 }
 
 const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
-	const [url, setUrl] = useState('https://www.youtube.com/watch?v=OHviieMFY0c');
+	const [search, setSearch] = useState('https://www.youtube.com/watch?v=OHviieMFY0c');
 
-	const handleChange = useCallback((e: any) => {
-		setUrl(e.target.value);
-	}, []);
+	const handleChange = async (e: any) => {
+		setSearch(e.target.value);
+		const results = await Api.searchForYoutubeVideos(e.target.value);
+	};
 
 	const handleSubmit = useCallback(
 		(e: any) => {
 			if (e.keyCode === 13 || e.type === 'submit') {
 				e.preventDefault();
-				addVideoToList(url);
-				setUrl('');
+				addVideoToList(search);
+				setSearch('');
 			}
 		},
-		[url, addVideoToList]
+		[search, addVideoToList]
 	);
 
 	return (
@@ -32,7 +34,7 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
 			<input
 				name="id"
 				id="video-id"
-				value={url}
+				value={search}
 				onChange={handleChange}
 				onKeyDown={handleSubmit}
 			/>
