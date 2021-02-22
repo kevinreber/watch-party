@@ -4,6 +4,7 @@ const config = require('./config');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
+const cors = require('cors')
 const io = require('socket.io')(server);
 
 const { searchYoutube } = require('./utils/youtube');
@@ -15,14 +16,17 @@ const User = require('./models/User');
 const mongoose = require('mongoose');
 
 mongoose
-	.connect(config.DB_URI, {
-		useUnifiedTopology: true,
-		useNewUrlParser: true,
-		useCreateIndex: true,
-		useFindAndModify: false,
-	})
-	.then(() => console.log('SUCCESS - Connected to DB'))
-	.catch((err) => console.error('ERROR connecting to DB:', err));
+.connect(config.DB_URI, {
+	useUnifiedTopology: true,
+	useNewUrlParser: true,
+	useCreateIndex: true,
+	useFindAndModify: false,
+})
+.then(() => console.log('SUCCESS - Connected to DB'))
+.catch((err) => console.error('ERROR connecting to DB:', err));
+
+app.use(express.json());
+app.use(cors())
 
 app.get('/login', async (req, res) => {
 	console.log('logging in');
