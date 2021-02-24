@@ -26,9 +26,7 @@ const OptionsList = ({
 		<List>
 			{options.length ? (
 				options.map((option) => (
-					<ListItem
-						key={option.videoId}
-						onClick={() => handleClick(option.url)}>
+					<ListItem key={option.videoId} onClick={() => handleClick(option)}>
 						<ListItemAvatar>
 							<Avatar variant="square" alt={option.img} src={option.img} />
 						</ListItemAvatar>
