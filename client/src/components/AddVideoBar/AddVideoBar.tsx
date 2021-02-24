@@ -42,6 +42,11 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
 		[search, addVideoToList]
 	);
 
+	const handleClick = (url: string) => {
+		setSearch(url);
+		setShowOptions(false);
+	};
+
 	return (
 		<form onSubmit={handleSubmit}>
 			<input
@@ -51,7 +56,9 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
 				onChange={handleChange}
 				onKeyDown={handleSubmit}
 			/>
-			{showOptions && <OptionsList options={options} />}
+			{showOptions && (
+				<OptionsList options={options} handleClick={handleClick} />
+			)}
 			<IconButton type="submit" aria-label="add to queue">
 				<AddToQueue />
 			</IconButton>
