@@ -4,6 +4,7 @@ import Api from '../../api/api';
 
 // Components
 import OptionsList from '../OptionsList/OptionsList';
+import { debounce } from '../../utils';
 
 // MUI
 import { IconButton, Avatar, ListItemText } from '@material-ui/core';
@@ -38,16 +39,26 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
 
 	const [options, setOptions] = useState([]);
 	const [showOptions, setShowOptions] = useState(false);
+	const [isLoadingOptions, setIsLoadingOptions] = useState(false);
 
-	const handleChange = async (e: any) => {
+	let debounced: any = null;
+
+	const handleChange = (e: any) => {
 		// if value is not empty
 		if (e.target.value) setShowOptions(true);
 		else setShowOptions(false);
 
 		setSearch(e.target.value);
-		await Api.searchForYoutubeVideos(e.target.value)
-			.then((data) => setOptions(data))
-			.catch((err) => console.error(err));
+		if (!debounced) {
+			debounced = debounce(async () => {
+				setIsLoadingOptions(true);
+				await Api.searchForYoutubeVideos(e.target.value)
+					.then((data) => setOptions(data))
+					.catch((err) => console.error(err))
+					.finally(() => setIsLoadingOptions(false));
+			}, 500);
+		}
+		debounced();
 	};
 
 	const handleSubmit = useCallback(
@@ -77,7 +88,11 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
 				onKeyDown={handleSubmit}
 			/>
 			{showOptions && (
-				<OptionsList options={options} handleClick={handleClick} />
+				<OptionsList
+					options={options}
+					handleClick={handleClick}
+					isLoading={isLoadingOptions}
+				/>
 			)}
 			{video.img && (
 				<div className="Video-Add__Preview">
