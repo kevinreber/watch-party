@@ -4,7 +4,7 @@ const config = require('./config');
 const express = require('express');
 const app = express();
 const server = require('http').Server(app);
-const cors = require('cors')
+const cors = require('cors');
 const io = require('socket.io')(server);
 
 const { searchYoutube } = require('./utils/youtube');
@@ -16,17 +16,17 @@ const User = require('./models/User');
 const mongoose = require('mongoose');
 
 mongoose
-.connect(config.DB_URI, {
-	useUnifiedTopology: true,
-	useNewUrlParser: true,
-	useCreateIndex: true,
-	useFindAndModify: false,
-})
-.then(() => console.log('SUCCESS - Connected to DB'))
-.catch((err) => console.error('ERROR connecting to DB:', err));
+	.connect(config.DB_URI, {
+		useUnifiedTopology: true,
+		useNewUrlParser: true,
+		useCreateIndex: true,
+		useFindAndModify: false,
+	})
+	.then(() => console.log('SUCCESS - Connected to DB'))
+	.catch((err) => console.error('ERROR connecting to DB:', err));
 
 app.use(express.json());
-app.use(cors())
+app.use(cors());
 
 app.get('/login', async (req, res) => {
 	console.log('logging in');
@@ -46,6 +46,7 @@ app.get('/api/youtube', async (req, res) => {
 });
 
 io.on('connection', (socket) => {
+	console.log(socket.id);
 	// Get the last 10 messages from the database.
 	// Message.find()
 	// 	.sort({ createdAt: -1 })
@@ -56,6 +57,12 @@ io.on('connection', (socket) => {
 	// 		// Send the last messages to the user.
 	// 		socket.emit('init', messages);
 	// 	});
+
+	socket.on('new-user', (user) => {
+		console.log(user);
+		// needs to be io where we emit message to all users
+		io.emit('user-join', user);
+	});
 
 	socket.on('event', (data) => {
 		//  data.state : 'play' | 'pause' | 'seek'

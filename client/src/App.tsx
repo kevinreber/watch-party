@@ -46,8 +46,8 @@ function App() {
 	useEffect(() => {
 		const setUpNewSocket = () => {
 			const newSocket = io(ENDPOINT);
-			newSocket.on('connection', (data: any) => {
-				console.log(data);
+			newSocket.on('connection', (socket: any) => {
+				console.log(socket, socket.id);
 				console.log('connected to websocket server');
 			});
 			console.log(newSocket);
@@ -111,6 +111,7 @@ function App() {
 	const sendMessage = (data: any) => {
 		const { content } = data;
 		const messageData = {
+			type: 'chat',
 			content,
 			created_at: new Date().getTime(),
 			username: userData.user,
@@ -148,6 +149,25 @@ function App() {
 		return () => socket.off('update-video-list');
 	}, [socket]);
 
+	// * Socket Event Listener
+	// * When new user joins chat
+	useEffect(() => {
+		if (!socket) return;
+		// @ts-ignore
+		socket.on('user-join', ({ username }) => {
+			const message = {
+				type: 'user-join',
+				content: `${username} has joined`,
+				created_at: new Date().getTime(),
+				username,
+			};
+			// @ts-ignore
+			setMessages((m) => [...m, message]);
+		});
+		// @ts-ignore
+		// return () => socket.off('user-join');
+	}, [socket]);
+
 	const toggleActiveList = (active: string) => {
 		setActiveList(active);
 	};
@@ -175,7 +195,11 @@ function App() {
 						{activeList === 'videos' ? (
 							<WatchList videos={videos} removeVideo={removeVideoFromList} />
 						) : (
-							<ChatList messages={messages} sendMessage={sendMessage} />
+							<ChatList
+								messages={messages}
+								sendMessage={sendMessage}
+								socket={socket}
+							/>
 						)}
 					</Grid>
 				</Grid>

@@ -12,13 +12,22 @@ import { List } from '@material-ui/core';
 interface ChatListTypes {
 	messages: string[];
 	sendMessage: Function;
+	socket: any;
 }
 
-const ChatList = ({ messages, sendMessage }: ChatListTypes): JSX.Element => {
+const ChatList = ({
+	messages,
+	sendMessage,
+	socket,
+}: ChatListTypes): JSX.Element => {
 	// @ts-ignore
 	const { user, setUser } = useContext(UserContext);
 	const login = (username: string) => {
 		console.log(username);
+		// emit event
+		socket.emit('new-user', {
+			username,
+		});
 		setUser(username);
 	};
 
