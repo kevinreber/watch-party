@@ -1,6 +1,7 @@
 // Dependencies
 import React, { useState, useCallback, memo } from 'react';
 import Api from '../../api/api';
+import './AddVideoBar.css';
 
 // Components
 import OptionsList from '../OptionsList/OptionsList';
@@ -79,13 +80,14 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
 	};
 
 	return (
-		<form onSubmit={handleSubmit}>
+		<form className="Add-Video-Form" onSubmit={handleSubmit}>
 			<input
 				name="id"
 				id="video-id"
 				value={search}
 				onChange={handleChange}
 				onKeyDown={handleSubmit}
+				className="form-input"
 			/>
 			{showOptions && (
 				<OptionsList
@@ -101,7 +103,10 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
 				</div>
 			)}
 
-			<IconButton type="submit" aria-label="add to queue">
+			<IconButton
+				type="submit"
+				aria-label="add to queue"
+				className="form-btn-icon">
 				<AddToQueue />
 			</IconButton>
 		</form>

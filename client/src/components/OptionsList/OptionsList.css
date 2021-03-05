@@ -1,0 +1,19 @@
+.MuiList-root.MuiList-padding.Options-List {
+	position: absolute;
+	box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.75);
+	top: 34px;
+	background-color: #ffffff;
+	z-index: 100;
+	width: 100%;
+}
+
+.MuiList-root.MuiList-padding.Options-List
+	> .MuiListItem-root.MuiListItem-gutters.Options-Item:not(:last-child) {
+	border-bottom: 1px solid var(--light-grey);
+}
+
+.MuiList-root.MuiList-padding.Options-List
+	> .MuiListItem-root.MuiListItem-gutters.Options-Item
+	> .no-matches {
+	margin: auto;
+}
