@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import getYouTubeID from 'get-youtube-id';
 import io from 'socket.io-client';
 
@@ -6,16 +6,14 @@ import './App.css';
 
 // Components
 import VideoPlayer from './components/VideoPlayer/VideoPlayer';
-import WatchList from './components/WatchList/WatchList';
 import AddVideoBar from './components/AddVideoBar/AddVideoBar';
-import ChatList from './components/ChatList/ChatList';
-import { loadYTScript } from './helpers';
+import SideList from './components/SideList/SideList';
 
 // Helpers
-import { isValidYTLink } from './helpers';
+import { isValidYTLink, loadYTScript } from './helpers';
 
 // MUI
-import { Snackbar, Grid, Button } from '@material-ui/core';
+import { Snackbar, Grid } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 
 // Providers
@@ -189,19 +187,15 @@ function App() {
 					<Grid item={true}>
 						<VideoPlayer curVideo={getYouTubeID(videos[0])} socket={socket} />
 					</Grid>
-					<Grid item={true}>
-						<Button onClick={() => toggleActiveList('videos')}>Videos</Button>
-						<Button onClick={() => toggleActiveList('chats')}>Chat</Button>
-						{activeList === 'videos' ? (
-							<WatchList videos={videos} removeVideo={removeVideoFromList} />
-						) : (
-							<ChatList
-								messages={messages}
-								sendMessage={sendMessage}
-								socket={socket}
-							/>
-						)}
-					</Grid>
+					<SideList
+						toggleActiveList={toggleActiveList}
+						activeList={activeList}
+						videos={videos}
+						removeVideoFromList={removeVideoFromList}
+						messages={messages}
+						sendMessage={sendMessage}
+						socket={socket}
+					/>
 				</Grid>
 			</UserContext.Provider>
 		</div>

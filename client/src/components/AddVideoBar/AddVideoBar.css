@@ -2,6 +2,7 @@
 	position: relative;
 	width: 80%;
 	display: flex;
+	margin: 2rem 1rem;
 }
 
 .Add-Video-Form > .form-input {
