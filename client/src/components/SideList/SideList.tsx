@@ -1,4 +1,4 @@
-import './SideList.css';
+import { useState } from 'react';
 
 // Components
 import WatchList from '../WatchList/WatchList';
@@ -6,10 +6,9 @@ import ChatList from '../ChatList/ChatList';
 
 // MUI
 import { Grid, Button } from '@material-ui/core';
+import './SideList.css';
 
 interface SideListTypes {
-	toggleActiveList: Function;
-	activeList: string;
 	videos: any;
 	removeVideoFromList: Function;
 	messages: any;
@@ -18,14 +17,18 @@ interface SideListTypes {
 }
 
 const SideList = ({
-	toggleActiveList,
-	activeList,
 	videos,
 	removeVideoFromList,
 	messages,
 	sendMessage,
 	socket,
 }: SideListTypes): JSX.Element => {
+	const [activeList, setActiveList] = useState('videos');
+
+	const toggleActiveList = (active: string) => {
+		setActiveList(active);
+	};
+
 	return (
 		<>
 			<Grid item={true} className="Side-List">

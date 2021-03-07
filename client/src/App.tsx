@@ -37,7 +37,6 @@ function App() {
 		open: false,
 		message: '',
 	});
-	const [activeList, setActiveList] = useState('videos');
 	const [socket, setSocket] = useState<any>();
 
 	// Initialize WebSocket connection
@@ -166,10 +165,6 @@ function App() {
 		// return () => socket.off('user-join');
 	}, [socket]);
 
-	const toggleActiveList = (active: string) => {
-		setActiveList(active);
-	};
-
 	return (
 		<div className="App">
 			<UserContext.Provider value={userData}>
@@ -188,8 +183,6 @@ function App() {
 						<VideoPlayer curVideo={getYouTubeID(videos[0])} socket={socket} />
 					</Grid>
 					<SideList
-						toggleActiveList={toggleActiveList}
-						activeList={activeList}
 						videos={videos}
 						removeVideoFromList={removeVideoFromList}
 						messages={messages}
