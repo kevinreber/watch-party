@@ -8,6 +8,7 @@ import './App.css';
 import VideoPlayer from './components/VideoPlayer/VideoPlayer';
 import AddVideoBar from './components/AddVideoBar/AddVideoBar';
 import SideList from './components/SideList/SideList';
+import Modal from './components/Modal/Modal';
 
 // Helpers
 import { isValidYTLink, loadYTScript } from './helpers';
@@ -31,6 +32,8 @@ function App() {
 	const [user, setUser] = useState<any>(null);
 	const userData = useMemo(() => ({ user, setUser }), [user, setUser]);
 
+	const [showModal, setShowModal] = useState<boolean>(false);
+
 	const [videos, setVideos] = useState<string[] | []>([]);
 	const [messages, setMessages] = useState([]);
 	const [errors, setErrors] = useState<ErrorTypes>({
@@ -38,6 +41,8 @@ function App() {
 		message: '',
 	});
 	const [socket, setSocket] = useState<any>();
+
+	const toggleModal = () => setShowModal((show) => !show);
 
 	// Initialize WebSocket connection
 	useEffect(() => {
@@ -168,6 +173,10 @@ function App() {
 	return (
 		<div className="App">
 			<UserContext.Provider value={userData}>
+				{showModal && (
+					<Modal children={'hello world'} onDismiss={toggleModal} />
+				)}
+				<button onClick={toggleModal}>Show Modal</button>
 				<Snackbar
 					anchorOrigin={{ vertical, horizontal }}
 					open={errors.open}
