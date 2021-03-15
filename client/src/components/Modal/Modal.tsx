@@ -1,4 +1,5 @@
 import ReactDOM from 'react-dom';
+import './Modal.css';
 
 interface ModalTypes {
 	children: any;
@@ -10,8 +11,7 @@ const Modal = ({ children, onDismiss }: ModalTypes): JSX.Element => {
 		<div
 			className="Modal"
 			// @ts-ignore
-			onClick={onDismiss}
-			style={{ backgroundColor: 'black', padding: '3rem', color: 'white' }}>
+			onClick={onDismiss}>
 			<div className="Modal-Content" onClick={(e) => e.stopPropagation()}>
 				{children}
 			</div>
