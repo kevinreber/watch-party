@@ -12,6 +12,7 @@ import Modal from './components/Modal/Modal';
 
 // Helpers
 import { isValidYTLink, loadYTScript } from './helpers';
+import { generateName } from './utils/nameGenerator';
 
 // MUI
 import { Snackbar, Grid } from '@material-ui/core';
@@ -29,7 +30,7 @@ interface ErrorTypes {
 }
 
 function App() {
-	const [user, setUser] = useState<any>(null);
+	const [user, setUser] = useState<any>(generateName());
 	const userData = useMemo(() => ({ user, setUser }), [user, setUser]);
 
 	const [showModal, setShowModal] = useState<boolean>(false);

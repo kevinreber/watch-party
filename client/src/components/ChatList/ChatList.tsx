@@ -24,10 +24,16 @@ const ChatList = ({
 	const { user, setUser } = useContext(UserContext);
 	const login = (username: string) => {
 		console.log(username);
-		// emit event
-		socket.emit('new-user', {
-			username,
-		});
+		if (user) {
+			socket.emit('username-change', {
+				user,
+				username,
+			});
+		} else {
+			socket.emit('new-user', {
+				username,
+			});
+		}
 		setUser(username);
 	};
 
@@ -44,11 +50,8 @@ const ChatList = ({
 				<ChatBody messages={messages} setRef={setRef} />
 			</List>
 			<div className="MessageChat__Footer">
-				{user ? (
-					<MessageFooter sendMessage={sendMessage} />
-				) : (
-					<LoginFooter login={login} />
-				)}
+				<MessageFooter sendMessage={sendMessage} />
+				<LoginFooter login={login} username={user} />
 			</div>
 		</div>
 	);

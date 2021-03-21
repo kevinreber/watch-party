@@ -8,20 +8,17 @@ import useFields from '../../hooks/useFields';
 /** MUI */
 import { Button } from '@material-ui/core';
 
-const INITIAL_STATE = {
-	username: '',
-};
-
 const isValid = (data: string) => {
 	return data && data.trim() !== '';
 };
 
 interface LoginTypes {
 	login: Function;
+	username: String;
 }
 
-const LoginFooter = ({ login }: LoginTypes): JSX.Element => {
-	const [formData, handleChange, resetFormData] = useFields(INITIAL_STATE);
+const LoginFooter = ({ login, username }: LoginTypes): JSX.Element => {
+	const [formData, handleChange, resetFormData] = useFields({ username });
 
 	const handleSubmit = (e: FormEvent): void => {
 		e.preventDefault();
