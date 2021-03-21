@@ -23,17 +23,14 @@ const ChatList = ({
 	// @ts-ignore
 	const { user, setUser } = useContext(UserContext);
 	const login = (username: string) => {
-		console.log(username);
-		if (user) {
-			socket.emit('username-change', {
-				user,
-				username,
-			});
-		} else {
-			socket.emit('new-user', {
-				username,
-			});
-		}
+		const type = user ? 'username-updated' : 'user-join';
+
+		socket.emit('user-update', {
+			type,
+			user,
+			username,
+		});
+
 		setUser(username);
 	};
 

@@ -58,10 +58,16 @@ io.on('connection', (socket) => {
 	// 		socket.emit('init', messages);
 	// 	});
 
-	socket.on('new-user', (user) => {
-		console.log(user);
+	socket.on('user-update', (data) => {
+		console.log(data);
 		// needs to be io where we emit message to all users
-		io.emit('user-join', user);
+		io.emit('user-updated', data);
+	});
+
+	socket.on('username-change', (user, username) => {
+		console.log(user, username);
+		// needs to be io where we emit message to all users
+		io.emit('username-changed', user, username);
 	});
 
 	socket.on('event', (data) => {

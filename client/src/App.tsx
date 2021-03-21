@@ -20,6 +20,7 @@ import Alert from '@material-ui/lab/Alert';
 
 // Providers
 import { UserContext } from './store/UserContext';
+import { domainToASCII } from 'url';
 
 const vertical = 'top';
 const horizontal = 'center';
@@ -158,16 +159,23 @@ function App() {
 	useEffect(() => {
 		if (!socket) return;
 		// @ts-ignore
-		socket.on('user-join', ({ username }) => {
-			const message = {
-				type: 'user-join',
-				content: `${username} has joined`,
-				created_at: new Date().getTime(),
-				username,
-			};
-			// @ts-ignore
-			setMessages((m) => [...m, message]);
-		});
+		socket.on(
+			'user-updated',
+			(data: { type: String; user: String; username: String }) => {
+				const content =
+					data.type === 'user-join'
+						? `${data.username} has joined`
+						: `${data.user} changed name to ${data.username}`;
+				const message = {
+					type: data.type,
+					content,
+					created_at: new Date().getTime(),
+					username: data.username,
+				};
+				// @ts-ignore
+				setMessages((m) => [...m, message]);
+			}
+		);
 		// @ts-ignore
 		// return () => socket.off('user-join');
 	}, [socket]);
