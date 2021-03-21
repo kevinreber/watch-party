@@ -34,12 +34,13 @@ let player;
  *
  * VideoPlayer -> VidePlayerControls -> VolumeControls | VideoPlayerTimeline
  * @param curVideo
- * @param addVideoToList
  * @param socket
+ * @param addMessage
+ * @param username
  */
 
 // ! NOTE: Avoided using typescript b/c opts passed into YouTube component gives too many errors
-const VideoPlayer = ({ curVideo, socket }) => {
+const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
 	const [playerStatus, setPlayerStatus] = useState(-1);
 	const [playerTimeline, setPlayerTimeline] = useState(0);
 	const [playerTime, setPlayerTime] = useState({
@@ -130,6 +131,8 @@ const VideoPlayer = ({ curVideo, socket }) => {
 				const data = {
 					currentTime: player.getCurrentTime(),
 					state: 'play',
+					username,
+					created_at: new Date().getTime(),
 				};
 				socket.emit('event', data);
 			}
@@ -145,6 +148,8 @@ const VideoPlayer = ({ curVideo, socket }) => {
 				const data = {
 					currentTime: player.getCurrentTime(),
 					state: 'pause',
+					username,
+					created_at: new Date().getTime(),
 				};
 				socket.emit('event', data);
 			}
@@ -168,6 +173,8 @@ const VideoPlayer = ({ curVideo, socket }) => {
 					value,
 					newTime,
 					state: 'seek',
+					username,
+					created_at: new Date().getTime(),
 				};
 				socket.emit('event', data);
 			}
@@ -215,17 +222,33 @@ const VideoPlayer = ({ curVideo, socket }) => {
 		if (!socket) return;
 		socket.on('receive-event', (data) => {
 			console.log(data);
+			let message;
 			if (data.state === 'load-video') {
 				// loadVideo(data.videoId);
 			} else if (data.state === 'play') {
 				console.log('play function...');
+				message = `${data.username} resumed video`;
 				handlePlay(false);
 			} else if (data.state === 'pause') {
 				console.log('pause function...');
+				message = `${data.username} paused video`;
 				handlePause(false);
 			} else {
+				const duration = player.getDuration();
+				const newTime = (data.value / 100) * duration;
 				console.log('seeking...');
+				message = `${data.username} jumped to ${getFormattedTime(newTime)}`;
+				// message = `${data.username} jumped to ${playerTime.current}`;
 				handleTimelineChange(null, data.value, false);
+			}
+			if (message) {
+				const messageData = {
+					type: 'player-change',
+					username: data.username,
+					content: message,
+					created_at: data.created_at,
+				};
+				addMessage(messageData);
 			}
 		});
 		return () => socket.off('receive-event');

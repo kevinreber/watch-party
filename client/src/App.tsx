@@ -20,7 +20,6 @@ import Alert from '@material-ui/lab/Alert';
 
 // Providers
 import { UserContext } from './store/UserContext';
-import { domainToASCII } from 'url';
 
 const vertical = 'top';
 const horizontal = 'center';
@@ -127,6 +126,11 @@ function App() {
 		socket.emit('send-message', messageData);
 	};
 
+	const appendMessage = (message: string) => {
+		// @ts-ignore
+		setMessages((m) => [...m, message]);
+	};
+
 	// * Socket Event Listener
 	useEffect(() => {
 		if (!socket) return;
@@ -173,7 +177,8 @@ function App() {
 					username: data.username,
 				};
 				// @ts-ignore
-				setMessages((m) => [...m, message]);
+				// setMessages((m) => [...m, message]);
+				appendMessage(message);
 			}
 		);
 		// @ts-ignore
@@ -199,7 +204,12 @@ function App() {
 				<AddVideoBar addVideoToList={addVideoToList} />
 				<Grid container direction="row" justify="space-evenly">
 					<Grid item={true}>
-						<VideoPlayer curVideo={getYouTubeID(videos[0])} socket={socket} />
+						<VideoPlayer
+							curVideo={getYouTubeID(videos[0])}
+							socket={socket}
+							addMessage={appendMessage}
+							username={user}
+						/>
 					</Grid>
 					<SideList
 						videos={videos}
