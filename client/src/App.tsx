@@ -63,6 +63,7 @@ function App() {
 
 	// Load YT IFrame Player script into html
 	useEffect(() => {
+		// @ts-ignore
 		if (!window.YT) {
 			// @ts-ignore
 			loadYTScript();
