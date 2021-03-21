@@ -23,7 +23,7 @@ const ChatBody = ({ messages, setRef }: ChatBodyTypes): JSX.Element => {
 		// const hhmmss = date.toISOString().substring(11, 8);
 		return (
 			<ListItem
-				alignItems={message.user === user ? 'flex-start' : 'center'}
+				alignItems={message.username === user ? 'flex-start' : 'center'}
 				key={index}
 				// @ts-ignore
 				ref={lastMessage ? setRef : null}>
