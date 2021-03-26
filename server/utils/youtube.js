@@ -22,6 +22,7 @@ const mapYoutubeSearchResult = (video) => {
 };
 
 const searchYoutube = (query) => {
+	const options = { part: 'snippet', type: 'video', maxResults: 5, q: query };
 	return new Promise((resolve, reject) => {
 		Youtube.search.list(options, (err, data) => {
 			if (data && data.data.items) {

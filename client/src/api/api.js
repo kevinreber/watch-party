@@ -5,6 +5,7 @@ const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 
 class Api {
 	static async request(endpoint, paramsOrData = {}, verb = 'get') {
+		console.debug('API Call:', endpoint, paramsOrData, verb);
 		try {
 			return (
 				await axios({
