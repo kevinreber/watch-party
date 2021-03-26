@@ -84,6 +84,7 @@ In the project directory, you can run:
 
 - https://www.freecodecamp.org/news/create-a-professional-node-express/
 - https://dev.to/armelpingault/how-to-create-a-simple-and-beautiful-chat-with-mongodb-express-react-and-node-js-mern-stack-29l6
+- https://github.com/gordonpn/slack-clone
 
 ### `npm start`
 
