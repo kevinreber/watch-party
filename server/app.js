@@ -33,6 +33,7 @@ app.get('/login', async (req, res) => {
 });
 
 app.get('/api/youtube', async (req, res) => {
+	console.log(req.query);
 	if (typeof req.query.q === 'string') {
 		try {
 			const items = await searchYoutube(req.query.q);
