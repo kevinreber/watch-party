@@ -80,6 +80,11 @@
 
 In the project directory, you can run:
 
+## Other Resources
+
+- https://www.freecodecamp.org/news/create-a-professional-node-express/
+- https://dev.to/armelpingault/how-to-create-a-simple-and-beautiful-chat-with-mongodb-express-react-and-node-js-mern-stack-29l6
+
 ### `npm start`
 
 Runs the app in the development mode.\
