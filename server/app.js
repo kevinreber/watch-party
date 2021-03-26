@@ -46,7 +46,7 @@ app.get('/api/youtube', async (req, res) => {
 });
 
 io.on('connection', (socket) => {
-	console.log(socket.id);
+	console.log('Client connected to:', socket.id);
 	// Get the last 10 messages from the database.
 	// Message.find()
 	// 	.sort({ createdAt: -1 })
