@@ -1,5 +1,7 @@
 # Watch Party
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/d1d4abdf-4e2a-42a7-8b2f-923e370bf0ee/deploy-status)](https://app.netlify.com/sites/optimistic-clarke-29f167/deploys)
+
 ## ToDo
 
 ### Front End
@@ -76,41 +78,46 @@
 
 - https://dev.to/reedbarger/7-react-projects-you-should-build-in-2021-p20
 
-## Available Scripts
-
-In the project directory, you can run:
-
 ## Other Resources
 
 - https://www.freecodecamp.org/news/create-a-professional-node-express/
 - https://dev.to/armelpingault/how-to-create-a-simple-and-beautiful-chat-with-mongodb-express-react-and-node-js-mern-stack-29l6
 - https://github.com/gordonpn/slack-clone
 
-### `npm start`
+## Project Setup
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### Clone directory:
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+```
+cd [workspace folder]
+git clone https://github.com/kevinreber/watch-party.git
+```
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Front End
 
-### `npm build`
+```
+cd client
+npm install
+npm start
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Open [http://localhost:3000](http://localhost:3000) to view project in the browser.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Back End
 
-## Learn More
+### Environment Variables
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- `YOUTUBE_API_KEY`: Allows search feature for YouTube videos - [Get YouTube API Credentials](https://developers.google.com/youtube/v3/docs/)
+- `DB_URI`: Access to Mongo Database
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```
+cd server
+npm install
+nodemon server.js
+```
+
+Open [http://localhost:3001](http://localhost:3001) to view project in the browser.
