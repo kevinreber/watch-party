@@ -51,7 +51,7 @@ function App() {
 			const newSocket = io(ENDPOINT);
 			newSocket.on('connection', (socket: any) => {
 				console.log(socket, socket.id);
-				console.log('connected to websocket server');
+				console.log('client connected to websocket server');
 			});
 			console.log(newSocket);
 			// @ts-ignore
