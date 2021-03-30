@@ -2,18 +2,18 @@ import ReactDOM from 'react-dom';
 import './Modal.css';
 
 interface ModalTypes {
-	children: any;
+	content: any;
 	onDismiss: Function;
 }
 
-const Modal = ({ children, onDismiss }: ModalTypes): JSX.Element => {
+const Modal = ({ content, onDismiss }: ModalTypes): JSX.Element => {
 	return ReactDOM.createPortal(
 		<div
 			className="Modal"
 			// @ts-ignore
 			onClick={onDismiss}>
 			<div className="Modal-Content" onClick={(e) => e.stopPropagation()}>
-				{children}
+				{content}
 			</div>
 		</div>,
 		// @ts-ignore
