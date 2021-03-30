@@ -68,6 +68,7 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
 				e.preventDefault();
 				addVideoToList(search);
 				setSearch('');
+				setVideo(VIDEO_INITIAL_STATE);
 			}
 		},
 		[search, addVideoToList]
