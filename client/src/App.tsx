@@ -20,9 +20,7 @@ import EnterRoomForm from './components/EnterRoomForm/EnterRoomForm';
 
 const vertical = 'top';
 const horizontal = 'center';
-// ! Leave commented out when testing
-// const ENDPOINT = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
-const ENDPOINT = 'http://localhost:3001';
+const ENDPOINT = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 
 interface ErrorTypes {
 	open: boolean;
