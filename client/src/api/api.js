@@ -1,8 +1,9 @@
 import axios from 'axios';
 
 /** Check for endpoint else use local server */
-const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
-
+// ! Leave commented out when testing
+// const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
+const BASE_URL = 'http://localhost:3001';
 class Api {
 	static async request(endpoint, paramsOrData = {}, verb = 'get') {
 		console.debug('API Call:', endpoint, paramsOrData, verb);
