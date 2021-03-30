@@ -6,11 +6,9 @@ import io from 'socket.io-client';
 import VideoPlayer from '../VideoPlayer/VideoPlayer';
 import AddVideoBar from '../AddVideoBar/AddVideoBar';
 import SideList from '../SideList/SideList';
-import Modal from '../Modal/Modal';
 
 // Helpers
 import { isValidYTLink, loadYTScript } from '../../helpers';
-import { generateName } from '../../utils/nameGenerator';
 
 // MUI
 import { Grid } from '@material-ui/core';
@@ -28,17 +26,10 @@ const Room = ({ setErrors, ENDPOINT, toggleModal }: RoomTypes): JSX.Element => {
 	// const userData = useMemo(() => ({ user, setUser }), [user, setUser]);
 
 	const { user } = useContext<any>(UserContext);
-	const [showModal, setShowModal] = useState<boolean>(false);
 
 	const [videos, setVideos] = useState<string[] | []>([]);
 	const [messages, setMessages] = useState([]);
-	// const [errors, setErrors] = useState<ErrorTypes>({
-	// 	open: false,
-	// 	message: '',
-	// });
 	const [socket, setSocket] = useState<any>();
-
-	// const toggleModal = () => setShowModal((show) => !show);
 
 	// Initialize WebSocket connection
 	useEffect(() => {
@@ -55,7 +46,7 @@ const Room = ({ setErrors, ENDPOINT, toggleModal }: RoomTypes): JSX.Element => {
 		if (!socket) {
 			setUpNewSocket();
 		}
-	}, [socket]);
+	}, [socket, ENDPOINT]);
 
 	// Load YT IFrame Player script into html
 	useEffect(() => {
