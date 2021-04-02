@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useHistory } from 'react-router-dom';
 
 // Helpers
 import { generateName } from '../../utils/nameGenerator';
 
 const EnterRoomForm = () => {
+	const history = useHistory();
 	const [roomName, setRoomName] = useState('');
 
 	const handleChange = (e: any) => {
@@ -18,6 +20,7 @@ const EnterRoomForm = () => {
 		const newRoute = newRoom.toLowerCase().split(' ').join('-');
 		const encoded = encodeURIComponent(newRoom);
 		console.log(encoded, newRoute);
+		history.push(`/room/${newRoute}`);
 	};
 	return (
 		<div>

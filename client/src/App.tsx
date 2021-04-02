@@ -5,6 +5,7 @@ import './App.css';
 // Components
 import Room from './components/Room/Room';
 import Modal from './components/Modal/Modal';
+import Routes from './routes/Routes';
 
 // Helpers
 import { generateName } from './utils/nameGenerator';
@@ -20,7 +21,6 @@ import EnterRoomForm from './components/EnterRoomForm/EnterRoomForm';
 
 const vertical = 'top';
 const horizontal = 'center';
-const ENDPOINT = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 
 interface ErrorTypes {
 	open: boolean;
@@ -69,11 +69,11 @@ function App() {
 						</Alert>
 					</Snackbar>
 					{room ? (
-						<Room
-							setErrors={setErrors}
-							ENDPOINT={ENDPOINT}
-							toggleModal={toggleModal}
-						/>
+						<>
+							{/* <Room setErrors={setErrors} toggleModal={toggleModal} /> */}
+							<Room />
+							<Routes />
+						</>
 					) : (
 						<Modal content={<EnterRoomForm />} onDismiss={toggleModal} />
 					)}

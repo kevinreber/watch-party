@@ -9,6 +9,7 @@ import SideList from '../SideList/SideList';
 
 // Helpers
 import { isValidYTLink, loadYTScript } from '../../helpers';
+import { useParams } from 'react-router-dom';
 
 // MUI
 import { Grid } from '@material-ui/core';
@@ -16,17 +17,26 @@ import { Grid } from '@material-ui/core';
 // Providers
 import { UserContext } from '../../store/UserContext';
 
-interface RoomTypes {
-	setErrors: Function;
-	ENDPOINT: string;
-	toggleModal: Function;
-}
+const ENDPOINT = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 
-const Room = ({ setErrors, ENDPOINT, toggleModal }: RoomTypes): JSX.Element => {
+// interface RoomTypes {
+// 	setErrors: Function;
+// 	toggleModal: Function;
+// }
+
+const Room = (): JSX.Element => {
 	// const userData = useMemo(() => ({ user, setUser }), [user, setUser]);
 
-	const { user } = useContext<any>(UserContext);
+	const [errors, setErrors] = useState({
+		open: false,
+		message: '',
+	});
 
+	// const toggleModal = () => setModal((st) => ({ ...st, isOpen: !st.isOpen }));
+
+	const { user } = useContext<any>(UserContext);
+	// @ts-ignore
+	const { roomId } = useParams();
 	const [videos, setVideos] = useState<string[] | []>([]);
 	const [messages, setMessages] = useState([]);
 	const [socket, setSocket] = useState<any>();
