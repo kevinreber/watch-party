@@ -10,7 +10,8 @@
 
 - [x] When user inputs YouTube link, get video id
 - [x] Sync player with video playback
-- [z] Validate YT link before YT id
+- [x] Validate YT link before YT id
+- [ ] Disable play bar if no video is loaded
 - [ ] Create list of queued videos
 - [ ] Users can re-arrange queued videos
 - [ ] Chat interface
