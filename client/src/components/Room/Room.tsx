@@ -50,6 +50,8 @@ const Room = (): JSX.Element => {
 				console.log('client connected to websocket server');
 			});
 			console.log(newSocket);
+			console.log(user, roomId);
+			newSocket.emit('join-room', user, roomId);
 			// @ts-ignore
 			setSocket(newSocket);
 		};
@@ -115,7 +117,7 @@ const Room = (): JSX.Element => {
 		// @ts-ignore
 		setMessages((m) => [...m, messageData]);
 		// @ts-ignore
-		socket.emit('send-message', messageData);
+		socket.emit('send-message', messageData, roomId);
 	};
 
 	const appendMessage = (message: string) => {

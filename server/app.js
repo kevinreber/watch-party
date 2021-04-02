@@ -46,7 +46,10 @@ app.get('/api/youtube', async (req, res) => {
 });
 
 io.on('connection', (socket) => {
-	console.log('Client connected to:', socket.id);
+	socket.on('join-room', (username, room) => {
+		socket.join(room);
+		console.log(`${username} connected to: Room-${room}, Socket-${socket.id}`);
+	});
 	// Get the last 10 messages from the database.
 	// Message.find()
 	// 	.sort({ createdAt: -1 })
@@ -58,16 +61,16 @@ io.on('connection', (socket) => {
 	// 		socket.emit('init', messages);
 	// 	});
 
-	socket.on('user-update', (data) => {
+	socket.on('user-update', (data, room) => {
 		console.log(data);
 		// needs to be io where we emit message to all users
-		io.emit('user-updated', data);
+		io.to(room).emit('user-updated', data);
 	});
 
-	socket.on('username-change', (user, username) => {
+	socket.on('username-change', (user, username, room) => {
 		console.log(user, username);
 		// needs to be io where we emit message to all users
-		io.emit('username-changed', user, username);
+		io.to(room).emit('username-changed', user, username);
 	});
 
 	socket.on('event', (data) => {
@@ -83,7 +86,7 @@ io.on('connection', (socket) => {
 	});
 
 	// Listen to connected users for a new message.
-	socket.on('send-message', (msg) => {
+	socket.on('send-message', (msg, room) => {
 		console.log(msg);
 		// Create a message with the content and the name of the user.
 		// const message = new Message({
@@ -97,7 +100,8 @@ io.on('connection', (socket) => {
 		// });
 
 		// Notify all other users about a new message.
-		socket.broadcast.emit('receive-message', msg);
+		// socket.broadcast.emit('receive-message', msg);
+		io.to(room).emit('receive-message', msg);
 	});
 });
 
