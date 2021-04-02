@@ -40,6 +40,7 @@ function App() {
 	const [modal, setModal] = useState(MODAL_INITIAL_VALUES);
 	const modalValues = useMemo(() => ({ modal, setModal }), [modal, setModal]);
 
+	// TODO: Make Context Provider for Errors
 	const [errors, setErrors] = useState<ErrorTypes>({
 		open: false,
 		message: '',
@@ -50,7 +51,6 @@ function App() {
 	const closeErrorMessage = () => {
 		setErrors((st) => ({ ...st, open: false, message: '' }));
 	};
-
 	return (
 		<div className="App">
 			<ModalContext.Provider value={modalValues}>
@@ -68,15 +68,15 @@ function App() {
 							{errors.message}
 						</Alert>
 					</Snackbar>
-					{room ? (
+					{/* {room ? (
 						<>
-							{/* <Room setErrors={setErrors} toggleModal={toggleModal} /> */}
-							<Room />
-							<Routes />
-						</>
+						<Room setErrors={setErrors} toggleModal={toggleModal} /> 
+							<Room /> */}
+					<Routes />
+					{/* </>
 					) : (
 						<Modal content={<EnterRoomForm />} onDismiss={toggleModal} />
-					)}
+					)} */}
 				</UserContext.Provider>
 			</ModalContext.Provider>
 		</div>
