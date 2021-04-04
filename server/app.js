@@ -73,16 +73,18 @@ io.on('connection', (socket) => {
 		io.to(room).emit('username-changed', user, username);
 	});
 
-	socket.on('event', (data) => {
+	socket.on('event', (data, room) => {
 		//  data.state : 'play' | 'pause' | 'seek'
 		console.log(data.state, data);
-		socket.broadcast.emit('receive-event', data);
+		// socket.broadcast.emit('receive-event', data);
+		io.to(room).emit('receive-event', data);
 	});
 
-	socket.on('video-list-event', (data) => {
+	socket.on('video-list-event', (data, room) => {
 		// data.state : 'add-video' | 'remove-video'
 		console.log(data.state, data.video);
-		socket.broadcast.emit('update-video-list', data);
+		// socket.broadcast.emit('update-video-list', data);
+		io.to(room).emit('update-video-list', data);
 	});
 
 	// Listen to connected users for a new message.

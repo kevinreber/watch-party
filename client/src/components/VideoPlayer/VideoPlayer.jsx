@@ -4,6 +4,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { VideoPlayerControls } from '../VideoPlayerControls/VideoPlayerControls';
 import { getFormattedTime } from '../../helpers';
 
+// Helpers
+import { useParams } from 'react-router-dom';
+
 // * get-youtube-id: https://www.npmjs.com/package/get-youtube-id
 
 /**
@@ -41,6 +44,9 @@ let player;
 
 // ! NOTE: Avoided using typescript b/c opts passed into YouTube component gives too many errors
 const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
+	// @ts-ignore
+	const { roomId } = useParams();
+
 	const [playerStatus, setPlayerStatus] = useState(-1);
 	const [playerTimeline, setPlayerTimeline] = useState(0);
 	const [playerTime, setPlayerTime] = useState({
@@ -119,7 +125,7 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
 	const onPlayerReady = (e) => {
 		// access to player in all event handlers via event.target
 		e.target.pauseVideo();
-		socket.emit('event', { state: 'load-video', videoId: curVideo });
+		socket.emit('event', { state: 'load-video', videoId: curVideo }, roomId);
 		console.log(e.target.getVideoData());
 	};
 
@@ -134,7 +140,7 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
 					username,
 					created_at: new Date().getTime(),
 				};
-				socket.emit('event', data);
+				socket.emit('event', data, roomId);
 			}
 		},
 		[socket]
@@ -151,7 +157,7 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
 					username,
 					created_at: new Date().getTime(),
 				};
-				socket.emit('event', data);
+				socket.emit('event', data, roomId);
 			}
 		},
 		[socket]
@@ -176,7 +182,7 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
 					username,
 					created_at: new Date().getTime(),
 				};
-				socket.emit('event', data);
+				socket.emit('event', data, roomId);
 			}
 
 			// Format current and remaining times into string, ex: "01:00"

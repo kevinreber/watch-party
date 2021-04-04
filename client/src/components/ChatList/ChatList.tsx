@@ -6,6 +6,9 @@ import ChatBody from '../ChatBody/ChatBody';
 import MessageFooter from '../MessageFooter/MessageFooter';
 import LoginFooter from '../LoginFooter/LoginFooter';
 
+// Helpers
+import { useParams } from 'react-router-dom';
+
 // MUI
 import { List } from '@material-ui/core';
 
@@ -22,14 +25,21 @@ const ChatList = ({
 }: ChatListTypes): JSX.Element => {
 	// @ts-ignore
 	const { user, setUser } = useContext(UserContext);
+	// @ts-ignore
+	const { roomId } = useParams();
+
 	const login = (username: string) => {
 		const type = user ? 'username-updated' : 'user-join';
 
-		socket.emit('user-update', {
-			type,
-			user,
-			username,
-		});
+		socket.emit(
+			'user-update',
+			{
+				type,
+				user,
+				username,
+			},
+			roomId
+		);
 
 		setUser(username);
 	};

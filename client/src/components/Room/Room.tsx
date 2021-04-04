@@ -80,6 +80,7 @@ const Room = (): JSX.Element => {
 				socket.emit('video-list-event', {
 					type: 'add-video',
 					videos: updatedVideos,
+					roomId,
 				});
 			} else
 				setErrors((st: any) => ({
@@ -103,6 +104,7 @@ const Room = (): JSX.Element => {
 		socket.emit('video-list-event', {
 			type: 'remove-video',
 			videos: filteredVideos,
+			roomId,
 		});
 	};
 
