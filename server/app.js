@@ -64,27 +64,27 @@ io.on('connection', (socket) => {
 	socket.on('user-update', (data, room) => {
 		console.log(data);
 		// needs to be io where we emit message to all users
-		io.to(room).emit('user-updated', data);
+		socket.to(room).broadcast.emit('user-updated', data);
 	});
 
 	socket.on('username-change', (user, username, room) => {
 		console.log(user, username);
 		// needs to be io where we emit message to all users
-		io.to(room).emit('username-changed', user, username);
+		socket.to(room).broadcast.emit('username-changed', user, username);
 	});
 
 	socket.on('event', (data, room) => {
 		//  data.state : 'play' | 'pause' | 'seek'
 		console.log(data.state, data);
 		// socket.broadcast.emit('receive-event', data);
-		io.to(room).emit('receive-event', data);
+		socket.to(room).broadcast.emit('receive-event', data);
 	});
 
 	socket.on('video-list-event', (data, room) => {
 		// data.state : 'add-video' | 'remove-video'
 		console.log(data.state, data.video);
 		// socket.broadcast.emit('update-video-list', data);
-		io.to(room).emit('update-video-list', data);
+		socket.to(room).broadcast.emit('update-video-list', data);
 	});
 
 	// Listen to connected users for a new message.
@@ -103,7 +103,7 @@ io.on('connection', (socket) => {
 
 		// Notify all other users about a new message.
 		// socket.broadcast.emit('receive-message', msg);
-		io.to(room).emit('receive-message', msg);
+		socket.to(room).broadcast.emit('receive-message', msg);
 	});
 });
 
