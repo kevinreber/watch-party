@@ -143,7 +143,7 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
 				socket.emit('event', data, roomId);
 			}
 		},
-		[socket]
+		[socket, roomId]
 	);
 
 	const handlePause = useCallback(
@@ -160,7 +160,7 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
 				socket.emit('event', data, roomId);
 			}
 		},
-		[socket]
+		[socket, roomId]
 	);
 
 	// MUI passes value through 2nd paramter, DO NOT remove 'e'
@@ -192,7 +192,7 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
 				remaining: getFormattedTime(remainingTime, true),
 			}));
 		},
-		[socket]
+		[socket, roomId]
 	);
 
 	// MUI passes value through 2nd paramter, DO NOT remove 'e'

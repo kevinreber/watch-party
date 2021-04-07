@@ -58,7 +58,7 @@ const Room = (): JSX.Element => {
 		if (!socket) {
 			setUpNewSocket();
 		}
-	}, [socket, ENDPOINT]);
+	}, [socket, ENDPOINT, roomId]);
 
 	// Load YT IFrame Player script into html
 	useEffect(() => {
