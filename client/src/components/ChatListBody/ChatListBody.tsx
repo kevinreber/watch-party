@@ -7,13 +7,13 @@ import { UserContext } from '../../store/UserContext';
 
 // MUI
 import { ListItem, ListItemText } from '@material-ui/core';
-interface ChatBodyTypes {
+interface ChatListBodyTypes {
 	messages: any[];
 	setRef: Function;
 }
 
 /** Display receiver and user's chat */
-const ChatBody = ({ messages, setRef }: ChatBodyTypes): JSX.Element => {
+const ChatListBody = ({ messages, setRef }: ChatListBodyTypes): JSX.Element => {
 	// @ts-ignore
 	const { user } = useContext(UserContext);
 
@@ -39,4 +39,4 @@ const ChatBody = ({ messages, setRef }: ChatBodyTypes): JSX.Element => {
 	return <>{Body} </>;
 };
 
-export default ChatBody;
+export default ChatListBody;

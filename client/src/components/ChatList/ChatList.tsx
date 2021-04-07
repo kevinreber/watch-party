@@ -2,7 +2,7 @@ import React, { useContext, useCallback } from 'react';
 import { UserContext } from '../../store/UserContext';
 
 // components
-import ChatBody from '../ChatBody/ChatBody';
+import ChatListBody from '../ChatListBody/ChatListBody';
 import MessageFooter from '../MessageFooter/MessageFooter';
 import LoginFooter from '../LoginFooter/LoginFooter';
 
@@ -54,7 +54,7 @@ const ChatList = ({
 	return (
 		<div className="MessageChat">
 			<List>
-				<ChatBody messages={messages} setRef={setRef} />
+				<ChatListBody messages={messages} setRef={setRef} />
 			</List>
 			<div className="MessageChat__Footer">
 				<MessageFooter sendMessage={sendMessage} />
