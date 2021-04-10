@@ -11,10 +11,7 @@ const { searchYoutube } = require('./utils/youtube');
 
 // mongo/mongoose
 const Message = require('./models/Message');
-const RoomsModel = require('./models/Room');
-const Room = RoomsModel.Room;
-const ROOMS = RoomsModel.ROOMS;
-// import { ROOMS, Room } from './models/Room';
+const { Room, ROOMS } = require('./models/Room');
 const User = require('./models/User');
 const mongoose = require('mongoose');
 

@@ -134,6 +134,5 @@ class Room {
 	//     }
 	//   }
 }
-module.exports.Room = Room;
-module.exports.ROOMS = ROOMS;
-// module.export = { ROOMS: ROOMS, Room: Room };
+
+module.exports = { ROOMS, Room };
