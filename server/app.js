@@ -11,7 +11,10 @@ const { searchYoutube } = require('./utils/youtube');
 
 // mongo/mongoose
 const Message = require('./models/Message');
-const Room = require('./models/Room');
+const RoomsModel = require('./models/Room');
+const Room = RoomsModel.Room;
+const ROOMS = RoomsModel.ROOMS;
+// import { ROOMS, Room } from './models/Room';
 const User = require('./models/User');
 const mongoose = require('mongoose');
 
@@ -49,6 +52,12 @@ io.on('connection', (socket) => {
 	socket.on('join-room', (username, room) => {
 		socket.join(room);
 		console.log(`${username} connected to: Room-${room}, Socket-${socket.id}`);
+		if (!ROOMS.has(room)) {
+			ROOMS.set(room, new Room(room));
+		}
+		const ROOM = ROOMS.get(room);
+		ROOM.join(username);
+		console.log(ROOM, ROOMS);
 	});
 	// Get the last 10 messages from the database.
 	// Message.find()
