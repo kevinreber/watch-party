@@ -35,8 +35,7 @@ const Room = (): JSX.Element => {
 	// const toggleModal = () => setModal((st) => ({ ...st, isOpen: !st.isOpen }));
 
 	const { user } = useContext<any>(UserContext);
-	// @ts-ignore
-	const { roomId } = useParams();
+	const { roomId } = useParams<any>();
 	const [videos, setVideos] = useState<string[] | []>([]);
 	const [messages, setMessages] = useState([]);
 	const [socket, setSocket] = useState<any>();
@@ -76,12 +75,12 @@ const Room = (): JSX.Element => {
 				const updatedVideos = [...videos, video];
 				setVideos(updatedVideos);
 
-				// emit event
-				socket.emit('video-list-event', {
+				const data = {
 					type: 'add-video',
 					videos: updatedVideos,
-					roomId,
-				});
+				};
+				// emit event
+				socket.emit('video-list-event', data, roomId);
 			} else
 				setErrors((st: any) => ({
 					...st,
@@ -99,13 +98,13 @@ const Room = (): JSX.Element => {
 	const removeVideoFromList = (video: string) => {
 		const filteredVideos = videos.filter((vid) => vid !== video);
 		setVideos(filteredVideos);
-
-		// emit event
-		socket.emit('video-list-event', {
+		const data = {
 			type: 'remove-video',
 			videos: filteredVideos,
-			roomId,
-		});
+		};
+
+		// emit event
+		socket.emit('video-list-event', data, roomId);
 	};
 
 	const sendMessage = (data: any) => {
@@ -144,6 +143,8 @@ const Room = (): JSX.Element => {
 		if (!socket) return;
 		// @ts-ignore
 		socket.on('update-video-list', (data) => {
+			console.log(data);
+
 			if (data.type === 'add-video') {
 				setVideos(data.videos);
 			} else if (data.type === 'remove-video') {

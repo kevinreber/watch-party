@@ -91,7 +91,7 @@ io.on('connection', (socket) => {
 
 	socket.on('video-list-event', (data, room) => {
 		// data.state : 'add-video' | 'remove-video'
-		console.log(data.state, data.video);
+		console.log(data.type, data.videos, room);
 		// socket.broadcast.emit('update-video-list', data);
 		socket.to(room).broadcast.emit('update-video-list', data);
 	});
