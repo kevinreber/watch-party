@@ -87,8 +87,15 @@ io.on('connection', (socket) => {
 	});
 
 	socket.on('video-list-event', (data, room) => {
-		// data.state : 'add-video' | 'remove-video'
-		console.log(data.type, data.videos, room);
+		// data.type : 'add-video' | 'remove-video'
+		console.log(data.type, data.video, room);
+
+		const ROOM = ROOMS.get(room);
+
+		if (data.type === 'add-video') ROOM.addVideo(data.video);
+		else if (data.type === 'remove-video') ROOM.removeVideo(data.video);
+
+		data.videos = ROOM.videos;
 		// socket.broadcast.emit('update-video-list', data);
 		socket.to(room).broadcast.emit('update-video-list', data);
 	});
@@ -96,6 +103,9 @@ io.on('connection', (socket) => {
 	// Listen to connected users for a new message.
 	socket.on('send-message', (msg, room) => {
 		console.log(msg);
+		const ROOM = ROOMS.get(room);
+		ROOM.addMessage(msg);
+
 		// Create a message with the content and the name of the user.
 		// const message = new Message({
 		// 	content: msg.content,

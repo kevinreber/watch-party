@@ -109,7 +109,7 @@ class Room {
 
 	/** remove video from videos list. */
 	removeVideo(videoId) {
-		const filteredVideos = this.videos.filter((video) => video.id !== videoId);
+		const filteredVideos = this.videos.filter((video) => video !== videoId);
 		this.videos = filteredVideos;
 	}
 

@@ -77,7 +77,7 @@ const Room = (): JSX.Element => {
 
 				const data = {
 					type: 'add-video',
-					videos: updatedVideos,
+					video,
 				};
 				// emit event
 				socket.emit('video-list-event', data, roomId);
@@ -100,7 +100,7 @@ const Room = (): JSX.Element => {
 		setVideos(filteredVideos);
 		const data = {
 			type: 'remove-video',
-			videos: filteredVideos,
+			video,
 		};
 
 		// emit event
