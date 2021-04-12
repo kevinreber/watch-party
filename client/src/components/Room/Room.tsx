@@ -39,6 +39,7 @@ const Room = (): JSX.Element => {
 	const [videos, setVideos] = useState<string[] | []>([]);
 	const [messages, setMessages] = useState([]);
 	const [socket, setSocket] = useState<any>();
+	const [usersCount, setUsersCount] = useState(1);
 
 	// Initialize WebSocket connection
 	useEffect(() => {
@@ -156,6 +157,16 @@ const Room = (): JSX.Element => {
 	}, [socket]);
 
 	// * Socket Event Listener
+	useEffect(() => {
+		if (!socket) return;
+		socket.on('update-user-count', (count: number) => {
+			setUsersCount(count);
+		});
+		// @ts-ignore
+		return () => socket.off('update-user-count');
+	}, [socket]);
+
+	// * Socket Event Listener
 	// * When new user joins chat
 	useEffect(() => {
 		if (!socket) return;
@@ -200,6 +211,7 @@ const Room = (): JSX.Element => {
 					messages={messages}
 					sendMessage={sendMessage}
 					socket={socket}
+					usersCount={usersCount}
 				/>
 			</Grid>
 		</>
