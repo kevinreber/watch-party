@@ -7,6 +7,7 @@ import ChatList from '../ChatList/ChatList';
 // MUI
 import { Grid, Button } from '@material-ui/core';
 import './SideList.css';
+import WatchCount from '../WatchCount/WatchCount';
 
 interface SideListTypes {
 	videos: any;
@@ -14,6 +15,7 @@ interface SideListTypes {
 	messages: any;
 	sendMessage: Function;
 	socket: any;
+	usersCount: number;
 }
 
 const SideList = ({
@@ -22,6 +24,7 @@ const SideList = ({
 	messages,
 	sendMessage,
 	socket,
+	usersCount,
 }: SideListTypes): JSX.Element => {
 	const [activeList, setActiveList] = useState('videos');
 
@@ -45,6 +48,7 @@ const SideList = ({
 						socket={socket}
 					/>
 				)}
+				<WatchCount usersCount={usersCount} />
 			</Grid>
 		</>
 	);
