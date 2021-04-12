@@ -35,6 +35,7 @@
 
 // const Room = mongoose.model('Room', roomSchema);
 
+const { USERS } = require('./User');
 const ROOMS = new Map();
 
 /** Room is a collection of listening members; this becomes a "chat room"
@@ -62,7 +63,7 @@ class Room {
 	constructor(roomName, privateRoom = false) {
 		this.name = roomName;
 		this.private = privateRoom;
-		this.users = new Set();
+		this.users = new Map();
 		this.videos = [];
 		this.messages = [];
 	}
@@ -81,24 +82,27 @@ class Room {
 	}
 
 	/** user joining a room. */
-	join(username) {
-		if (this.users.has(username)) {
+	join(socketId) {
+		console.log('joining room...');
+		if (this.users.has(socketId)) {
 			throw new Error(
-				`Username "${username}" already exists in room "${this.name}`
+				`Socket ID: "${socketId}" already exists in room "${this.name}"`
 			);
 		}
-		this.users.add(username);
+		const USER = USERS.get(socketId);
+		this.users.set(socketId, USER);
 		return this.users;
 	}
 
 	/** user leaving a room. */
-	leave(username) {
-		if (!this.users.has(username)) {
+	leave(socketId) {
+		if (!this.users.has(socketId)) {
 			throw new Error(
-				`Username "${username}" does not exists in room "${this.name}"`
+				`Socket ID: "${socketId}" does not exist in Room: "${this.name}"`
 			);
 		}
-		this.users.delete(username);
+		this.users.delete(socketId); // Remove from Room users set
+		USERS.delete(socketId); // Remove from all USERS set
 		return this.users;
 	}
 
