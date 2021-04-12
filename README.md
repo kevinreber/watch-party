@@ -37,9 +37,11 @@
 - [x] Manage time state of video
 - [x] Setup backend servers for chat w/ Socket.io
 - [x] Sync state with YouTube API
-- [ ] Setup Rooms
-- [ ] Setup Users
+- [x] Setup Rooms
+- [x] Setup Users
 - [ ] Setup action when User joins room
+- [ ] When new users log in, they need updated Video List
+- [ ] When new users log in, they need current Playlist state
 
 ### DB
 
