@@ -46,15 +46,29 @@ app.get('/api/youtube', async (req, res) => {
 });
 
 io.on('connection', (socket) => {
+	const _id = socket.id;
 	socket.on('join-room', (username, room) => {
 		socket.join(room);
-		console.log(`${username} connected to: Room-${room}, Socket-${socket.id}`);
+		console.log(`Socket ID:${_id}-"${username}" connected to: Room-${room}`);
 		if (!ROOMS.has(room)) {
 			ROOMS.set(room, new Room(room));
 		}
 		const ROOM = ROOMS.get(room);
-		ROOM.join(username);
-		console.log(ROOM, ROOMS);
+
+		// add new user to USERS set
+		USERS.set(_id, new User(_id, ROOM, username));
+		const USER = USERS.get(_id);
+		ROOM.join(_id);
+
+		const content = `${USER.name} has joined the room`;
+		const message = {
+			type: 'admin',
+			content,
+			created_at: new Date().getTime(),
+			username: 'admin',
+		};
+
+		socket.to(ROOM.name).emit('receive-message', message);
 	});
 	// Get the last 10 messages from the database.
 	// Message.find()
