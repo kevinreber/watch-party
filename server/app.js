@@ -67,8 +67,8 @@ io.on('connection', (socket) => {
 			created_at: new Date().getTime(),
 			username: 'admin',
 		};
-
 		socket.to(ROOM.name).emit('receive-message', message);
+		io.in(ROOM.name).emit('update-user-count', ROOM.users.size);
 	});
 	// Get the last 10 messages from the database.
 	// Message.find()
@@ -148,8 +148,10 @@ io.on('connection', (socket) => {
 			username: 'admin',
 		};
 		console.log(serverMsg);
-		socket.to(USER.room.name).emit('receive-message', message);
+		const ROOM = ROOMS.get(USER.room.name);
+		socket.to(ROOM.name).emit('receive-message', message);
 		USER.room.leave(_id);
+		socket.to(ROOM.name).emit('update-user-count', ROOM.users.size);
 	});
 });
 
