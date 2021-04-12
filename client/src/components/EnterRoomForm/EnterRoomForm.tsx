@@ -1,5 +1,9 @@
+// Dependencies
 import { useState, useContext } from 'react';
 import { useHistory } from 'react-router-dom';
+
+// Components
+import Button from '../Button/Button';
 
 // Helpers
 import { generateName } from '../../utils/nameGenerator';
@@ -46,8 +50,8 @@ const EnterRoomForm = () => {
 				onChange={handleRoomChange}
 				placeholder="Room Name"
 			/>
-			<button onClick={() => handleNewRoom()}>Create Room</button>
-			<button onClick={() => handleNewRoom(true)}>Get Random Room</button>
+			<Button onClick={() => handleNewRoom()}>Create Room</Button>
+			<Button onClick={() => handleNewRoom(true)}>Get Random Room</Button>
 		</div>
 	);
 };
