@@ -12,7 +12,7 @@ const { searchYoutube } = require('./utils/youtube');
 // mongo/mongoose
 const Message = require('./models/Message');
 const { Room, ROOMS } = require('./models/Room');
-const User = require('./models/User');
+const { User, USERS } = require('./models/User');
 const mongoose = require('mongoose');
 
 mongoose
@@ -134,6 +134,22 @@ io.on('connection', (socket) => {
 		// Notify all other users about a new message.
 		// socket.broadcast.emit('receive-message', msg);
 		socket.to(room).broadcast.emit('receive-message', msg);
+	});
+
+	socket.on('disconnect', () => {
+		const USER = USERS.get(_id);
+		console.log('DISCONNECTING-------------------');
+		const serverMsg = `SOCKET ID: ${_id}-${USER.name} disconnected from and Room: ${USER.room.name}`;
+		const content = `${USER.name} has left the room`;
+		const message = {
+			type: 'admin',
+			content,
+			created_at: new Date().getTime(),
+			username: 'admin',
+		};
+		console.log(serverMsg);
+		socket.to(USER.room.name).emit('receive-message', message);
+		USER.room.leave(_id);
 	});
 });
 
