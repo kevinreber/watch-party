@@ -119,7 +119,7 @@ class Room {
 
 	/** add message to messages list. */
 	addMessage(message) {
-		this.videos.push(message);
+		this.messages.push(message);
 	}
 
 	/** remove message from messages list. */
@@ -127,7 +127,7 @@ class Room {
 		const filteredMessages = this.messages.filter(
 			(message) => message.id !== messageId
 		);
-		this.filteredMessages = filteredMessages;
+		this.messages = filteredMessages;
 	}
 
 	/** send message to all members in a room. */
