@@ -1,4 +1,4 @@
-// import React from 'react';
+import React from 'react';
 
 // MUI
 import {
@@ -22,8 +22,8 @@ const WatchList = ({ videos, removeVideo }: Props): JSX.Element => {
 		<List dense={false}>
 			{videos.length > 0 ? (
 				videos.map((video: string) => (
-					<>
-						<ListItem key={video}>
+					<React.Fragment key={video}>
+						<ListItem>
 							<ListItemAvatar>
 								<Avatar>
 									<FolderIcon />
@@ -39,7 +39,7 @@ const WatchList = ({ videos, removeVideo }: Props): JSX.Element => {
 								</IconButton>
 							</ListItemSecondaryAction>
 						</ListItem>
-					</>
+					</React.Fragment>
 				))
 			) : (
 				<ListItem>
