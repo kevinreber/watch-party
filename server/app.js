@@ -47,13 +47,14 @@ app.get('/api/youtube', async (req, res) => {
 
 io.on('connection', (socket) => {
 	const _id = socket.id;
+	let ROOM;
 	socket.on('join-room', (username, room) => {
 		socket.join(room);
 		console.log(`Socket ID:${_id}-"${username}" connected to: Room-${room}`);
 		if (!ROOMS.has(room)) {
 			ROOMS.set(room, new Room(room));
 		}
-		const ROOM = ROOMS.get(room);
+		ROOM = ROOMS.get(room);
 
 		// add new user to USERS set
 		USERS.set(_id, new User(_id, ROOM, username));
@@ -84,40 +85,40 @@ io.on('connection', (socket) => {
 	socket.on('user-update', (data, room) => {
 		console.log(data);
 		// needs to be io where we emit message to all users
-		socket.to(room).broadcast.emit('user-updated', data);
+		socket.to(ROOM.name).broadcast.emit('user-updated', data);
 	});
 
 	socket.on('username-change', (user, username, room) => {
 		console.log(user, username);
 		// needs to be io where we emit message to all users
-		socket.to(room).broadcast.emit('username-changed', user, username);
+		socket.to(ROOM.name).broadcast.emit('username-changed', user, username);
 	});
 
 	socket.on('event', (data, room) => {
 		//  data.state : 'play' | 'pause' | 'seek'
 		console.log(data.state, data);
 		// socket.broadcast.emit('receive-event', data);
-		socket.to(room).broadcast.emit('receive-event', data);
+		socket.to(ROOM.name).broadcast.emit('receive-event', data);
 	});
 
 	socket.on('video-list-event', (data, room) => {
 		// data.type : 'add-video' | 'remove-video'
 		console.log(data.type, data.video, room);
 
-		const ROOM = ROOMS.get(room);
+		// const ROOM = ROOMS.get(room);
 
 		if (data.type === 'add-video') ROOM.addVideo(data.video);
 		else if (data.type === 'remove-video') ROOM.removeVideo(data.video);
 
 		data.videos = ROOM.videos;
 		// socket.broadcast.emit('update-video-list', data);
-		socket.to(room).broadcast.emit('update-video-list', data);
+		socket.to(ROOM.name).broadcast.emit('update-video-list', data);
 	});
 
 	// Listen to connected users for a new message.
 	socket.on('send-message', (msg, room) => {
 		console.log(msg);
-		const ROOM = ROOMS.get(room);
+		// const ROOM = ROOMS.get(room);
 		ROOM.addMessage(msg);
 
 		// Create a message with the content and the name of the user.
@@ -133,25 +134,29 @@ io.on('connection', (socket) => {
 
 		// Notify all other users about a new message.
 		// socket.broadcast.emit('receive-message', msg);
-		socket.to(room).broadcast.emit('receive-message', msg);
+		socket.to(ROOM.name).broadcast.emit('receive-message', msg);
 	});
 
 	socket.on('disconnect', () => {
 		const USER = USERS.get(_id);
+		// const ROOM = ROOMS.get(USER.room.name);
 		console.log('DISCONNECTING-------------------');
-		const serverMsg = `SOCKET ID: ${_id}-${USER.name} disconnected from and Room: ${USER.room.name}`;
-		const content = `${USER.name} has left the room`;
-		const message = {
-			type: 'admin',
-			content,
-			created_at: new Date().getTime(),
-			username: 'admin',
-		};
-		console.log(serverMsg);
-		const ROOM = ROOMS.get(USER.room.name);
-		socket.to(ROOM.name).emit('receive-message', message);
-		USER.room.leave(_id);
-		socket.to(ROOM.name).emit('update-user-count', ROOM.users.size);
+		// To avoid edge case where all a user loses their websocket connection and
+		// tries to refresh their browser. Their socket will be undefined and not exist in USERS.
+		if (USER) {
+			const serverMsg = `SOCKET ID: ${_id}-${USER.name} disconnected from and Room: ${ROOM.name}`;
+			const content = `${USER.name} has left the room`;
+			const message = {
+				type: 'admin',
+				content,
+				created_at: new Date().getTime(),
+				username: 'admin',
+			};
+			console.log(serverMsg);
+			socket.to(ROOM.name).emit('receive-message', message);
+			USER.room.leave(_id);
+			socket.to(ROOM.name).emit('update-user-count', ROOM.users.size);
+		}
 	});
 });
 
