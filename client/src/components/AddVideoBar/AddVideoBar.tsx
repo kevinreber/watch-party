@@ -11,6 +11,17 @@ import { debounce } from '../../utils';
 import { IconButton, Avatar, ListItemText } from '@material-ui/core';
 import { AddToQueue } from '@material-ui/icons';
 
+// ! TEMP: For testing
+const WORKING_VIDEO_INITIAL_STATE = {
+	videoId: 'OHviieMFY0c',
+	channel: 'Joma Tech',
+	description:
+		'Learn how to code with Python 3 for Data Science and Software Engineering. High-quality video courses: https://python.jomaclass.com/ ▻ Chat with me on ...',
+	url: 'https://www.youtube.com/watch?v=OHviieMFY0c',
+	name: 'Cool Kids Code In Javascript (PART 3)',
+	img: 'https://i.ytimg.com/vi/OHviieMFY0c/default.jpg',
+};
+
 const VIDEO_INITIAL_STATE = {
 	videoId: '',
 	channel: '',
@@ -33,10 +44,8 @@ interface BarTypes {
 }
 
 const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
-	const [search, setSearch] = useState(
-		'https://www.youtube.com/watch?v=OHviieMFY0c'
-	);
-	const [video, setVideo] = useState(VIDEO_INITIAL_STATE);
+	const [search, setSearch] = useState(WORKING_VIDEO_INITIAL_STATE.url);
+	const [video, setVideo] = useState(WORKING_VIDEO_INITIAL_STATE);
 
 	const [options, setOptions] = useState([]);
 	const [showOptions, setShowOptions] = useState(false);
@@ -66,7 +75,7 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
 		(e: any) => {
 			if (e.keyCode === 13 || e.type === 'submit') {
 				e.preventDefault();
-				addVideoToList(search);
+				addVideoToList(video);
 				setSearch('');
 				setVideo(VIDEO_INITIAL_STATE);
 			}
@@ -78,6 +87,7 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
 		setSearch(option.url);
 		setVideo(option);
 		setShowOptions(false);
+		setOptions([]);
 	};
 
 	return (
