@@ -89,7 +89,7 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
 		if (curVideo) {
 			// TODO: Find better way to emit event
 			// Sometimes video will load, but not start on other users browsers
-			loadVideo(curVideo);
+			loadVideo(curVideo.videoId);
 		}
 	}, [curVideo, player]);
 

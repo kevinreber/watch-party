@@ -21,15 +21,18 @@ const WatchList = ({ videos, removeVideo }: Props): JSX.Element => {
 	return (
 		<List dense={false}>
 			{videos.length > 0 ? (
-				videos.map((video: string) => (
-					<React.Fragment key={video}>
+				videos.map((video: any) => (
+					<React.Fragment key={video.videoId}>
 						<ListItem>
 							<ListItemAvatar>
-								<Avatar>
-									<FolderIcon />
+								<Avatar src={video.img} alt={video.name}>
+									{/* <FolderIcon /> */}
 								</Avatar>
 							</ListItemAvatar>
-							<ListItemText primary={video} secondary={'Secondary text'} />
+							<ListItemText
+								primary={video.name}
+								secondary={video.description}
+							/>
 							<ListItemSecondaryAction>
 								<IconButton
 									edge="end"
