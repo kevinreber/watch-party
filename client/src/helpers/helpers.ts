@@ -2,9 +2,11 @@ import getYouTubeID from 'get-youtube-id';
 
 export const isValidYTLink = (url: string) => getYouTubeID(url);
 
-export const ifArrayContains = (arr: [], data: {}) => {
-	for (let obj of arr) {
-		if (obj === data) return true;
+export const ifArrayContains = (arr: any, data: any) => {
+	if (arr.length) {
+		for (let obj of arr) {
+			if (obj.videoId === data.videoId) return true;
+		}
 	}
 	return false;
 };
