@@ -2,6 +2,13 @@ import getYouTubeID from 'get-youtube-id';
 
 export const isValidYTLink = (url: string) => getYouTubeID(url);
 
+export const ifArrayContains = (arr: [], data: {}) => {
+	for (let obj of arr) {
+		if (obj === data) return true;
+	}
+	return false;
+};
+
 export const appendZero = (num: any): number | string =>
 	num < 10 ? `0${num}` : num;
 
