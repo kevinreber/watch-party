@@ -1,5 +1,4 @@
 import { useState, useEffect, useContext } from 'react';
-import getYouTubeID from 'get-youtube-id';
 import io from 'socket.io-client';
 
 // Components
@@ -8,7 +7,7 @@ import AddVideoBar from '../AddVideoBar/AddVideoBar';
 import SideList from '../SideList/SideList';
 
 // Helpers
-import { isValidYTLink, loadYTScript } from '../../helpers';
+import { isValidYTLink, ifArrayContains, loadYTScript } from '../../helpers';
 import { useParams } from 'react-router-dom';
 
 // MUI
@@ -69,10 +68,10 @@ const Room = (): JSX.Element => {
 		}
 	}, []);
 
-	const addVideoToList = (video: string) => {
-		if (isValidYTLink(video)) {
+	const addVideoToList = (video: any) => {
+		if (isValidYTLink(video.url)) {
 			// @ts-ignore
-			if (!videos.includes(video)) {
+			if (!ifArrayContains(videos, video)) {
 				const updatedVideos = [...videos, video];
 				setVideos(updatedVideos);
 
@@ -199,7 +198,7 @@ const Room = (): JSX.Element => {
 			<Grid container direction="row" justify="space-evenly">
 				<Grid item={true}>
 					<VideoPlayer
-						curVideo={getYouTubeID(videos[0])}
+						curVideo={videos[0]}
 						socket={socket}
 						addMessage={appendMessage}
 						username={user}
