@@ -149,7 +149,7 @@ const Room = (): JSX.Element => {
 				setVideos(data.videos);
 			} else if (data.type === 'remove-video') {
 				setVideos(data.videos);
-			}
+			} else setVideos(data.videos);
 		});
 		// @ts-ignore
 		return () => socket.off('update-video-list');
