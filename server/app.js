@@ -68,7 +68,16 @@ io.on('connection', (socket) => {
 			created_at: new Date().getTime(),
 			username: 'admin',
 		};
+
+		const videos = {
+			type: 'get-current-video-list',
+			videos: ROOM.videos,
+		};
+
 		socket.to(ROOM.name).emit('receive-message', message);
+		// get current videos list
+		io.to(_id).emit('update-video-list', videos);
+		// update room size
 		io.in(ROOM.name).emit('update-user-count', ROOM.users.size);
 	});
 	// Get the last 10 messages from the database.
@@ -105,8 +114,7 @@ io.on('connection', (socket) => {
 		// data.type : 'add-video' | 'remove-video'
 		console.log(data.type, data.video, room);
 
-		// const ROOM = ROOMS.get(room);
-
+		// TODO: Revisit "remove-video"
 		if (data.type === 'add-video') ROOM.addVideo(data.video);
 		else if (data.type === 'remove-video') ROOM.removeVideo(data.video);
 
