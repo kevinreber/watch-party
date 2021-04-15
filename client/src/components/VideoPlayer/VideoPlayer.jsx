@@ -59,21 +59,27 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
 	// Create player
 	const loadVideo = (videoId) => {
 		if (!player) {
-			player = new window.YT.Player('player', {
-				videoId,
-				height: '480',
-				width: '854',
-				playerVars: {
-					// https://developers.google.com/youtube/player_parameters
-					autoplay: 1,
-					disablekb: 0,
-					// hides controllers
-					controls: 0,
-				},
-				events: {
-					onReady: onPlayerReady,
-					onStateChange: handleStateChange,
-				},
+			/**
+			 * Need to wait until Youtube Player is ready!
+			 * https://stackoverflow.com/questions/52062169/uncaught-typeerror-yt-player-is-not-a-constructor
+			 */
+			window.YT.ready(() => {
+				player = new window.YT.Player('player', {
+					videoId,
+					height: '480',
+					width: '854',
+					playerVars: {
+						// https://developers.google.com/youtube/player_parameters
+						autoplay: 1,
+						disablekb: 0,
+						// hides controllers
+						controls: 0,
+					},
+					events: {
+						onReady: onPlayerReady,
+						onStateChange: handleStateChange,
+					},
+				});
 			});
 			console.log('player created', videoId);
 		} else {
