@@ -91,28 +91,28 @@ io.on('connection', (socket) => {
 	// 		socket.emit('init', messages);
 	// 	});
 
-	socket.on('user-update', (data, room) => {
+	socket.on('user-update', (data) => {
 		console.log(data);
 		// needs to be io where we emit message to all users
 		socket.to(ROOM.name).broadcast.emit('user-updated', data);
 	});
 
-	socket.on('username-change', (user, username, room) => {
+	socket.on('username-change', (user, username) => {
 		console.log(user, username);
 		// needs to be io where we emit message to all users
 		socket.to(ROOM.name).broadcast.emit('username-changed', user, username);
 	});
 
-	socket.on('event', (data, room) => {
+	socket.on('event', (data) => {
 		//  data.state : 'play' | 'pause' | 'seek'
 		console.log(data.state, data);
 		// socket.broadcast.emit('receive-event', data);
 		socket.to(ROOM.name).broadcast.emit('receive-event', data);
 	});
 
-	socket.on('video-list-event', (data, room) => {
+	socket.on('video-list-event', (data) => {
 		// data.type : 'add-video' | 'remove-video'
-		console.log(data.type, data.video, room);
+		console.log(data.type, data.video);
 
 		// TODO: Revisit "remove-video"
 		if (data.type === 'add-video') ROOM.addVideo(data.video);
@@ -124,9 +124,8 @@ io.on('connection', (socket) => {
 	});
 
 	// Listen to connected users for a new message.
-	socket.on('send-message', (msg, room) => {
+	socket.on('send-message', (msg) => {
 		console.log(msg);
-		// const ROOM = ROOMS.get(room);
 		ROOM.addMessage(msg);
 
 		// Create a message with the content and the name of the user.

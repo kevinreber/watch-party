@@ -50,7 +50,7 @@ const Room = (): JSX.Element => {
 			});
 			console.log(newSocket);
 			console.log(user, roomId);
-			newSocket.emit('join-room', user, roomId);
+			newSocket.emit('join-room', user);
 			// @ts-ignore
 			setSocket(newSocket);
 		};
@@ -80,7 +80,7 @@ const Room = (): JSX.Element => {
 					video,
 				};
 				// emit event
-				socket.emit('video-list-event', data, roomId);
+				socket.emit('video-list-event', data);
 			} else
 				setErrors((st: any) => ({
 					...st,
@@ -104,7 +104,7 @@ const Room = (): JSX.Element => {
 		};
 
 		// emit event
-		socket.emit('video-list-event', data, roomId);
+		socket.emit('video-list-event', data);
 	};
 
 	const sendMessage = (data: any) => {
@@ -118,7 +118,7 @@ const Room = (): JSX.Element => {
 		// @ts-ignore
 		setMessages((m) => [...m, messageData]);
 		// @ts-ignore
-		socket.emit('send-message', messageData, roomId);
+		socket.emit('send-message', messageData);
 	};
 
 	const appendMessage = (message: string) => {
