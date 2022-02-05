@@ -15,7 +15,7 @@
 		"express": "^4.17.1",
 		"express-ws": "^4.0.0",
 		"mongoose": "^5.11.16",
-		"socket.io": "2.3.0",
+		"socket.io": "^2.4.1",
 		"youtube-api": "^3.0.1"
 	},
 	"devDependencies": {
