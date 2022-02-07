@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 // Components & Helpers
-import { VideoPlayerTimeline, VolumeControls } from "../";
+import { VideoPlayerTimeline, VolumeControls } from "@components";
 
 // MUI
 import {

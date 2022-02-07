@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 // Components & Helpers
-import { VideoPlayerControls } from "../";
-import { getFormattedTime } from "../../helpers";
+import { VideoPlayerControls } from "@components";
+import { getFormattedTime } from "@helpers";
 
 // Helpers
 import { useParams } from "react-router-dom";

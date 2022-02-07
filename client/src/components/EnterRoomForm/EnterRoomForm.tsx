@@ -3,7 +3,7 @@ import React, { useState, useContext } from "react";
 import { useHistory } from "react-router-dom";
 
 // Components
-import Button from "../Button/Button";
+import { Button } from "@components";
 
 // Helpers
 import { generateName } from "../../utils/nameGenerator";

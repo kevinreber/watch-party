@@ -5,7 +5,7 @@ import io from "socket.io-client";
 import { VideoPlayer, AddVideoBar, SideList } from "..";
 
 // Helpers
-import { isValidYTLink, ifArrayContains, loadYTScript } from "../../helpers";
+import { isValidYTLink, ifArrayContains, loadYTScript } from "@helpers";
 import { useParams } from "react-router-dom";
 
 // MUI

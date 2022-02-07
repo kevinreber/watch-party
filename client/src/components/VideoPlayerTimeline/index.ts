@@ -1,1 +1,1 @@
-export { default as VideoPlayerTimeline } from "./VideoPlayerTimeline";
+export { default } from "./VideoPlayerTimeline";
