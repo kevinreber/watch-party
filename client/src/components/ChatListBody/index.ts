@@ -1,1 +1,1 @@
-export { default as ChatListBody } from "./ChatListBody";
+export { default } from "./ChatListBody";

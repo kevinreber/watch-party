@@ -4,7 +4,7 @@ import React from "react";
 import { Switch, Route, Redirect } from "react-router-dom";
 
 // Components
-import { Room, EnterRoomForm } from "../components/";
+import { Room, EnterRoomForm } from "@components";
 
 const Routes = () => {
   return (

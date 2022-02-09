@@ -1,1 +1,1 @@
-export { default as VideoPlayerControls } from "./VideoPlayerControls";
+export { default } from "./VideoPlayerControls";

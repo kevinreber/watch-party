@@ -1,1 +1,1 @@
-export { default as SideList } from "./SideList";
+export { default } from "./SideList";
