@@ -75,24 +75,31 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
 	const handleSubmit = useCallback(
 		(e: any) => {
 			if (e.keyCode === 13 || e.type === 'submit') {
+				console.log(e);
+
 				e.preventDefault();
 				addVideoToList(video);
-				setSearch('');
+				// setSearch('');
 				setVideo(VIDEO_INITIAL_STATE);
+				setShowOptions(false);
 			}
 		},
 		[search, addVideoToList]
 	);
 
 	const handleClick = (option: VideoTypes) => {
-		setSearch(option.url);
-		setVideo(option);
+		// setSearch(option.url);
+		// setVideo(option);
+		addVideoToList(option);
 		setShowOptions(false);
-		setOptions([]);
+		// setOptions([]);
 	};
 
 	return (
-		<form className="Add-Video-Form" onSubmit={handleSubmit}>
+		<form
+			className="Add-Video-Form"
+			// onSubmit={handleSubmit}
+			style={{ width: '100%', marginBottom: '3rem' }}>
 			<TextField
 				name="id"
 				id="video-id"
@@ -100,6 +107,7 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
 				onChange={handleChange}
 				onKeyDown={handleSubmit}
 				className="form-input"
+				size="small"
 			/>
 			{showOptions && (
 				<OptionsList
@@ -108,9 +116,14 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
 					isLoading={isLoadingOptions}
 				/>
 			)}
-			{video.img && (
-				<div className="Video-Add__Preview">
-					<Avatar variant="square" alt={video.img} src={video.img} />
+			{/* {video.img && (
+				<div className="Add-Video__Preview">
+					<Avatar
+						style={{ width: '80px', height: '100%', objectFit: 'contain' }}
+						variant="square"
+						alt={video.img}
+						src={video.img}
+					/>
 					<ListItemText primary={video.name} secondary={video.description} />
 				</div>
 			)}
@@ -120,7 +133,7 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
 				aria-label="add to queue"
 				className="form-btn-icon">
 				<AddToQueue />
-			</IconButton>
+			</IconButton> */}
 		</form>
 	);
 };

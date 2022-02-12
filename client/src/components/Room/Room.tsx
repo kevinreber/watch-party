@@ -193,31 +193,32 @@ const Room = () => {
 
 	return (
 		<PageContainer>
-			<AddVideoBar addVideoToList={addVideoToList} />
-			<Box sx={{ flexGrow: 1 }}>
-				<Grid container spacing={2}>
-					{/* <Grid container direction="row" justify="space-evenly"> */}
-					<Grid container spacing={8}>
-						<VideoPlayer
-							curVideo={videos[0]}
-							socket={socket}
-							addMessage={appendMessage}
-							username={user}
-						/>
+			<React.Fragment>
+				<AddVideoBar addVideoToList={addVideoToList} />
+				<Box sx={{ flexGrow: 1 }}>
+					<Grid container spacing={2} style={{ width: '100%' }}>
+						{/* <Grid container direction="row" justify="space-evenly"> */}
+						<Grid style={{ width: '70%' }}>
+							<VideoPlayer
+								curVideo={videos[0]}
+								socket={socket}
+								addMessage={appendMessage}
+								username={user}
+							/>
+						</Grid>
+						<Grid style={{ width: '30%' }}>
+							<SideList
+								videos={videos}
+								removeVideoFromList={removeVideoFromList}
+								messages={messages}
+								sendMessage={sendMessage}
+								socket={socket}
+								usersCount={usersCount}
+							/>
+						</Grid>
 					</Grid>
-					<Grid container xs={4}>
-						<SideList
-							videos={videos}
-							removeVideoFromList={removeVideoFromList}
-							messages={messages}
-							sendMessage={sendMessage}
-							socket={socket}
-							usersCount={usersCount}
-						/>
-					</Grid>
-				</Grid>
-				{/* </Grid> */}
-			</Box>
+				</Box>
+			</React.Fragment>
 		</PageContainer>
 	);
 };
