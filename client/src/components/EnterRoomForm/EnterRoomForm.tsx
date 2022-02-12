@@ -1,59 +1,87 @@
 // Dependencies
-import React, { useState, useContext } from "react";
-import { useHistory } from "react-router-dom";
+import React, { useState, useContext } from 'react';
+import { useHistory } from 'react-router-dom';
+import { Box, TextField } from '@mui/material/';
 
 // Components
-import { Button } from "@components";
+import { Button } from '@components';
 
 // Helpers
-import { generateName } from "../../utils/nameGenerator";
+import { generateName } from '../../utils/nameGenerator';
 
 // Providers
-import { UserContext } from "../../store/UserContext";
+import { UserContext } from '../../store/UserContext';
 
 const EnterRoomForm = () => {
-  const history = useHistory();
-  const [roomName, setRoomName] = useState("");
-  const { user, setUser } = useContext<any>(UserContext);
+	const history = useHistory();
+	const [roomName, setRoomName] = useState('');
+	const { user, setUser } = useContext<any>(UserContext);
 
-  const handleRoomChange = (e: any) => {
-    setRoomName(e.target.value);
-  };
+	const handleRoomChange = (e: any) => {
+		setRoomName(e.target.value);
+	};
 
-  const handleUserChange = (e: any) => {
-    setUser(e.target.value);
-  };
+	const handleUserChange = (e: any) => {
+		setUser(e.target.value);
+	};
 
-  const handleNewRoom = (random: boolean = false) => {
-    let newRoom;
-    if (random) {
-      newRoom = generateName();
-      setRoomName(newRoom);
-    } else newRoom = roomName;
-    const newRoute = newRoom.toLowerCase().split(" ").join("-");
-    const encoded = encodeURIComponent(newRoom);
-    console.log(encoded, newRoute);
-    history.push(`/room/${newRoute}`);
-  };
-  return (
-    <div>
-      Create a Room
-      <input
-        type='text'
-        value={user}
-        onChange={handleUserChange}
-        placeholder='User Name'
-      />
-      <input
-        type='text'
-        value={roomName}
-        onChange={handleRoomChange}
-        placeholder='Room Name'
-      />
-      <Button onClick={() => handleNewRoom()}>Create Room</Button>
-      <Button onClick={() => handleNewRoom(true)}>Get Random Room</Button>
-    </div>
-  );
+	const handleNewRoom = (random: boolean = false) => {
+		let newRoom;
+		if (random) {
+			newRoom = generateName();
+			setRoomName(newRoom);
+		} else newRoom = roomName;
+		const newRoute = newRoom.toLowerCase().split(' ').join('-');
+		const encoded = encodeURIComponent(newRoom);
+		console.log(encoded, newRoute);
+		history.push(`/room/${newRoute}`);
+	};
+	return (
+		<Box
+			component="form"
+			style={{
+				width: '45%',
+				maxWidth: '600px',
+				margin: '5rem auto auto auto',
+			}}>
+			<h3>Create a Room</h3>
+			<div style={{ display: 'flex', flexDirection: 'column' }}>
+				<TextField
+					label="Enter User Name"
+					value={user}
+					onChange={handleUserChange}
+					placeholder="User Name"
+					size="small"
+					margin="normal"
+				/>
+				<TextField
+					label="Enter Room Name"
+					value={roomName}
+					onChange={handleRoomChange}
+					placeholder="Room Name"
+					size="small"
+					margin="normal"
+				/>
+			</div>
+			<div
+				style={{
+					width: '100%',
+					display: 'flex',
+					justifyContent: 'space-between',
+				}}>
+				<Button
+					style={{ width: '150px', height: '40px' }}
+					onClick={() => handleNewRoom()}>
+					Create Room
+				</Button>
+				<Button
+					style={{ width: '150px', height: '40px' }}
+					onClick={() => handleNewRoom(true)}>
+					Get Random Room
+				</Button>
+			</div>
+		</Box>
+	);
 };
 
 export default EnterRoomForm;
