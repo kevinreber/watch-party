@@ -104,6 +104,7 @@ io.on('connection', (socket) => {
 	});
 
 	socket.on('event', (data) => {
+		// TODO: Need to store Player state and timestamps
 		//  data.state : 'play' | 'pause' | 'seek'
 		console.log(data.state, data);
 		// socket.broadcast.emit('receive-event', data);
@@ -121,6 +122,18 @@ io.on('connection', (socket) => {
 		data.videos = ROOM.videos;
 		// socket.broadcast.emit('update-video-list', data);
 		socket.to(ROOM.name).broadcast.emit('update-video-list', data);
+	});
+
+	// Listen to if a user is typing.
+	// TODO: Handle if multiple users in a room are typing vs only two users in a room
+	socket.on('typing', (data) => {
+		let message;
+		if (ROOM.users.size <= 2) {
+			message = `${data.username} `;
+		} else message = 'Someone ';
+		message += 'is typing a message...';
+		data.message = message;
+		socket.to(ROOM.name).broadcast.emit('typing', data);
 	});
 
 	// Listen to connected users for a new message.

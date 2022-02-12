@@ -5,7 +5,7 @@ import WatchList from '../WatchList/WatchList';
 import ChatList from '../ChatList/ChatList';
 
 // MUI
-import { Grid, Button } from '@material-ui/core';
+import { Button } from '@material-ui/core';
 import './SideList.css';
 import WatchCount from '../WatchCount/WatchCount';
 
@@ -34,22 +34,20 @@ const SideList = ({
 
 	return (
 		<>
-			<Grid item={true} className="Side-List">
-				<div className="Side-List-Header">
-					<Button onClick={() => toggleActiveList('videos')}>Videos</Button>
-					<Button onClick={() => toggleActiveList('chats')}>Chat</Button>
-				</div>
-				{activeList === 'videos' ? (
-					<WatchList videos={videos} removeVideo={removeVideoFromList} />
-				) : (
-					<ChatList
-						messages={messages}
-						sendMessage={sendMessage}
-						socket={socket}
-					/>
-				)}
-				<WatchCount usersCount={usersCount} />
-			</Grid>
+			<div className="Side-List-Header">
+				<Button onClick={() => toggleActiveList('videos')}>Videos</Button>
+				<Button onClick={() => toggleActiveList('chats')}>Chat</Button>
+			</div>
+			{activeList === 'videos' ? (
+				<WatchList videos={videos} removeVideo={removeVideoFromList} />
+			) : (
+				<ChatList
+					messages={messages}
+					sendMessage={sendMessage}
+					socket={socket}
+				/>
+			)}
+			<WatchCount usersCount={usersCount} />
 		</>
 	);
 };

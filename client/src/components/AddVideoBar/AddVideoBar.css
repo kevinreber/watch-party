@@ -1,8 +1,8 @@
 .Add-Video-Form {
 	position: relative;
-	width: 80%;
 	display: flex;
-	margin: 2rem 1rem;
+	margin: auto;
+	align-items: center;
 }
 
 .Add-Video-Form > .form-input {
@@ -19,4 +19,10 @@
 	top: 0;
 	bottom: 0;
 	right: 0;
+}
+
+.Add-Video__Preview {
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
