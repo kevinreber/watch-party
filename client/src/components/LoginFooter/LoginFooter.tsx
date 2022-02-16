@@ -7,6 +7,7 @@ import useFields from '../../hooks/useFields';
 
 /** MUI */
 import { Button } from '@material-ui/core';
+import { TextField } from '@mui/material';
 
 const isValid = (data: string) => {
 	return data && data.trim() !== '';
@@ -32,13 +33,14 @@ const LoginFooter = ({ login, username }: LoginTypes): JSX.Element => {
 	return (
 		<>
 			<form onSubmit={handleSubmit}>
-				<input
+				<TextField
 					name="username"
 					onChange={handleChange}
 					value={formData.username}
 					type="text"
 					placeholder="Create Username"
-					required={true}
+					size="small"
+					required
 				/>
 				{/* @ts-ignore */}
 				<Button type="submit" disabled={!formData.username} variant="contained">

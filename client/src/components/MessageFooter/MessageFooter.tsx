@@ -8,6 +8,7 @@ import useFields from '../../hooks/useFields';
 
 /** MUI */
 import IconButton from '@material-ui/core/IconButton';
+import { TextField } from '@mui/material';
 import {
 	Send as SendIcon,
 	InsertEmoticon as InsertEmoticonIcon,
@@ -54,13 +55,14 @@ const MessageFooter = ({ sendMessage }: MessageTypes): JSX.Element => {
 	return (
 		<>
 			<form onSubmit={handleSubmit}>
-				<input
+				<TextField
 					name="content"
 					onChange={handleChange}
 					value={formData.content}
 					type="text"
 					placeholder="Type message here..."
-					required={true}
+					size="small"
+					required
 				/>
 				{/* @ts-ignore */}
 				<IconButton
