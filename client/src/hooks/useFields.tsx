@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 /** useFields handles the state of the form data */
-function useFields(INITIAL_STATE: any) {
+const useFields = (INITIAL_STATE: any) => {
 	const [formData, setFormData] = useState(INITIAL_STATE);
 
 	/** Update state in formData */
@@ -16,6 +16,6 @@ function useFields(INITIAL_STATE: any) {
 	const resetFormData = () => setFormData(INITIAL_STATE);
 
 	return [formData, handleChange, resetFormData];
-}
+};
 
 export default useFields;
