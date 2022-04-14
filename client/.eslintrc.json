@@ -18,5 +18,12 @@
 	"plugins": ["react"],
 	"rules": {
 		"no-undef": 1
+	},
+	"settings": {
+		"import/resolver": {
+			"node": {
+				"extensions": [".js", ".jsx", ".ts", ".tsx"]
+			}
+		}
 	}
 }
