@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react';
-import io from 'socket.io-client';
 
 // Components
 import { VideoPlayer, AddVideoBar, SideList, PageContainer } from '@components';
 
-// Helpers
+// Helpers & Hooks
 import { isValidYTLink, ifArrayContains, loadYTScript } from '@helpers';
 import { useParams } from 'react-router-dom';
+
+import { useSetupNewSocket } from '@hooks';
 
 // MUI
 // import { Grid, Box } from '@material-ui/core';
@@ -14,8 +15,6 @@ import { Box, Grid } from '@mui/material';
 
 // Providers
 import { UserContext } from '../../store/UserContext';
-
-const ENDPOINT = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 
 // interface RoomTypes {
 // 	setErrors: Function;
@@ -36,27 +35,9 @@ const Room = () => {
 	const { roomId } = useParams<any>();
 	const [videos, setVideos] = useState<string[] | []>([]);
 	const [messages, setMessages] = useState([]);
-	const [socket, setSocket] = useState<any>();
 	const [usersCount, setUsersCount] = useState(1);
 
-	// Initialize WebSocket connection
-	useEffect(() => {
-		const setUpNewSocket = () => {
-			const newSocket = io(ENDPOINT);
-			newSocket.on('connection', (socket: any) => {
-				console.log(socket, socket.id);
-				console.log('client connected to websocket server');
-			});
-			console.log(newSocket);
-			console.log(user, roomId);
-			newSocket.emit('join-room', user);
-			// @ts-ignore
-			setSocket(newSocket);
-		};
-		if (!socket) {
-			setUpNewSocket();
-		}
-	}, [socket, ENDPOINT, roomId]);
+	const { socket } = useSetupNewSocket({ user, roomId });
 
 	// Load YT IFrame Player script into html
 	useEffect(() => {
