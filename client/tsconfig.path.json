@@ -1,10 +1,11 @@
 {
-  "compilerOptions": {
-    "baseUrl": "./src",
-    "paths": {
-      "@components": ["./components"],
-      "@helpers": ["./helpers"],
-      "@utils": ["./utils"]
-    }
-  }
+	"compilerOptions": {
+		"baseUrl": "./src",
+		"paths": {
+			"@components": ["./components"],
+			"@helpers": ["./helpers"],
+			"@utils": ["./utils"],
+			"@hooks": ["./hooks"]
+		}
+	}
 }
