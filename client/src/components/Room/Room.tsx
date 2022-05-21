@@ -7,7 +7,11 @@ import { VideoPlayer, AddVideoBar, SideList, PageContainer } from '@components';
 import { loadYTScript } from '@helpers';
 import { useParams } from 'react-router-dom';
 
-import { useSetupNewSocket, useUpdateVideoList } from '@hooks';
+import {
+	useSetupNewSocket,
+	useUpdateVideoList,
+	useGetCurrentUserCount,
+} from '@hooks';
 
 // MUI
 // import { Grid, Box } from '@material-ui/core';
@@ -29,7 +33,6 @@ const Room = () => {
 	const { user } = useContext<any>(UserContext);
 	const { roomId } = useParams<any>();
 	const [messages, setMessages] = useState([]);
-	const [usersCount, setUsersCount] = useState(1);
 
 	const { socket } = useSetupNewSocket({ user, roomId });
 	const { videos, addVideoToList, removeVideoFromList, errors } =
@@ -37,6 +40,9 @@ const Room = () => {
 			socket,
 		});
 
+	const { usersCount } = useGetCurrentUserCount({ socket });
+
+	console.log(usersCount);
 	// Load YT IFrame Player script into html
 	useEffect(() => {
 		// @ts-ignore
@@ -78,16 +84,6 @@ const Room = () => {
 	}, [socket]);
 
 	// * Socket Event Listener
-	useEffect(() => {
-		if (!socket) return;
-		socket.on('update-user-count', (count: number) => {
-			setUsersCount(count);
-		});
-		// @ts-ignore
-		return () => socket.off('update-user-count');
-	}, [socket]);
-
-	// * Socket Event Listener
 	// * When new user joins chat
 	useEffect(() => {
 		if (!socket) return;
@@ -106,7 +102,6 @@ const Room = () => {
 					username: data.username,
 				};
 				// @ts-ignore
-				// setMessages((m) => [...m, message]);
 				appendMessage(message);
 			}
 		);

@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import React from 'react';
 
 /** useFields handles the state of the form data */
 const useFields = (INITIAL_STATE: any) => {
-	const [formData, setFormData] = useState(INITIAL_STATE);
+	const [formData, setFormData] = React.useState(INITIAL_STATE);
 
 	/** Update state in formData */
 	const handleChange = (e: any) => {
