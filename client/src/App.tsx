@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useMemo } from 'react';
 
 import './App.css';

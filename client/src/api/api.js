@@ -26,7 +26,7 @@ class Api {
 
 	// static async search
 	static async searchForYoutubeVideos(query) {
-		return this.request('youtube?q=' + encodeURIComponent(query));
+		return this.request(`youtube?q=${encodeURIComponent(query)}`);
 	}
 }
 

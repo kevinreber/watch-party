@@ -1,3 +1,4 @@
+/* eslint-disable */
 // Dependencies
 import React, { useState, useCallback, memo } from 'react';
 import Api from '../../api/api';
