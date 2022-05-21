@@ -1,5 +1,4 @@
 import React, { useContext, useCallback } from "react";
-import { UserContext } from "../../store/UserContext";
 
 // components
 import { ChatListBody, MessageFooter, LoginFooter } from "@components";
@@ -9,6 +8,8 @@ import { useParams } from "react-router-dom";
 
 // MUI
 import { List } from "@material-ui/core";
+
+import { UserContext } from "../../store/UserContext";
 
 interface ChatListTypes {
   messages: string[];

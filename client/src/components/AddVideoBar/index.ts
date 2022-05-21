@@ -1,1 +1,1 @@
-export { default } from "./AddVideoBar";
+export { default as AddVideoBar } from "./AddVideoBar";
