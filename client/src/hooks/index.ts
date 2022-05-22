@@ -1,2 +1,2 @@
-export { default as useFields } from './useFields';
-export { default as useModal } from './useModal';
+export { useFields } from './useFields';
+export { useModal } from './useModal';
