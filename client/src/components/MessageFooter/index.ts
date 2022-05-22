@@ -1,1 +1,1 @@
-export { default } from "./MessageFooter";
+export { default as MessageFooter } from './MessageFooter';

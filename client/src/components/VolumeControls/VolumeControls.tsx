@@ -1,16 +1,16 @@
-import React from "react";
+import React from 'react';
 
 // MUI
-import { VolumeUp, VolumeOff } from "@material-ui/icons";
-import { Slider, Paper, IconButton } from "@material-ui/core";
+import { VolumeUp, VolumeOff } from '@material-ui/icons';
+import { Slider, Paper, IconButton } from '@material-ui/core';
 
 interface VolumeControlsTypes {
   muted: boolean;
-  handleMute: Function;
+  handleMute: any;
   volumeSlider: boolean;
   volumeControlContainer: any;
   volumeLevel: number;
-  handleVolume: Function;
+  handleVolume: any;
 }
 
 const VolumeControls = ({
@@ -24,13 +24,13 @@ const VolumeControls = ({
   return (
     <>
       <IconButton onClick={() => handleMute()}>
-        {muted ? <VolumeOff fontSize='large' /> : <VolumeUp fontSize='large' />}
+        {muted ? <VolumeOff fontSize="large" /> : <VolumeUp fontSize="large" />}
       </IconButton>
       {volumeSlider && (
         <Paper className={volumeControlContainer}>
           <Slider
-            orientation='vertical'
-            aria-labelledby='volume-control'
+            orientation="vertical"
+            aria-labelledby="volume-control"
             value={volumeLevel}
             // @ts-ignore
             onChange={handleVolume}

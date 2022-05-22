@@ -1,1 +1,1 @@
-export { default } from "./WatchList";
+export { default as WatchList } from './WatchList';

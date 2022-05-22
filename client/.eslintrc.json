@@ -1,22 +1,87 @@
 {
-	"env": {
-		"browser": true,
-		"es6": true
-	},
-	"extends": ["plugin:react/recommended", "airbnb", "airbnb/hooks", "prettier"],
-	"globals": {
-		"Atomics": "readonly",
-		"SharedArrayBuffer": "readonly"
-	},
-	"parserOptions": {
-		"ecmaFeatures": {
-			"jsx": true
-		},
-		"ecmaVersion": 11,
-		"sourceType": "module"
-	},
-	"plugins": ["react"],
-	"rules": {
-		"no-undef": 1
-	}
+  "ignorePatterns": ["**/node_modules/**"],
+  "env": {
+    "browser": true,
+    "es6": true,
+    "es2021": true,
+    "jest": true
+  },
+  "extends": [
+    "react-app",
+    "airbnb",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:import/errors",
+    "plugin:import/warnings",
+    "plugin:prettier/recommended"
+  ],
+  "globals": {
+    "Atomics": "readonly",
+    "SharedArrayBuffer": "readonly"
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "plugins": ["import", "@typescript-eslint", "prettier", "react"],
+  "rules": {
+    "@typescript-eslint/ban-ts-comment": "off",
+    "react/no-unused-prop-types": "off",
+    "react/prop-types": "off",
+    "no-else-return": "off",
+    "@typescript-eslint/no-var-requires": "off",
+    "global-require": "off",
+    "no-template-curly-in-string": "off",
+    "no-unneeded-ternary": "off",
+    "prettier/prettier": 2,
+    "no-param-reassign": "off",
+    "react/jsx-boolean-value": "off",
+    "react/destructuring-assignment": "off",
+    "consistent-return": "off",
+    "no-console": "off",
+    "no-shadow": "off",
+    "no-use-before-define": "off",
+    "@typescript-eslint/no-empty-function": "off", // To add an empty function as a default prop
+    "func-names": 0,
+    "space-before-function-paren": 0,
+    "new-cap": 0,
+    "react/jsx-filename-extension": [0],
+    "import/extensions": "off",
+    "import/prefer-default-export": "off",
+    "import/no-extraneous-dependencies": ["error", { "devDependencies": true }],
+    "react/require-default-props": "off",
+    "import/no-unresolved": 0,
+    "arrow-body-style": 0,
+    "func-style": ["error", "expression"],
+    "prefer-arrow-callback": ["error"],
+    "prefer-destructuring": "off",
+    "no-underscore-dangle": "off",
+    "lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
+    "no-restricted-syntax": "off",
+    "react/jsx-uses-react": "off", // no longer needed when using React 17+
+    "react/react-in-jsx-scope": "off", // no longer needed when using React 17+
+    "padding-line-between-statements": [
+      "error",
+      { "blankLine": "always", "prev": "*", "next": "return" },
+      { "blankLine": "always", "prev": ["const", "let", "var"], "next": "*" },
+      {
+        "blankLine": "any",
+        "prev": ["const", "let", "var"],
+        "next": ["const", "let", "var"]
+      },
+      { "blankLine": "always", "prev": ["case", "default"], "next": "*" }
+    ]
+  },
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [".js", ".jsx", ".ts", ".tsx"],
+        "paths": ["./src"]
+      }
+    }
+  }
 }

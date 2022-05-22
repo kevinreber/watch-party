@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from 'react';
 
 // Components & Helpers
-import { VideoPlayerControls } from "@components";
-import { getFormattedTime } from "@helpers";
+import { VideoPlayerControls } from '@components';
+import { getFormattedTime } from '@helpers';
 
 // Helpers
-import { useParams } from "react-router-dom";
+import { useParams } from 'react-router-dom';
 
 // * get-youtube-id: https://www.npmjs.com/package/get-youtube-id
 
@@ -64,10 +64,10 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
        * https://stackoverflow.com/questions/52062169/uncaught-typeerror-yt-player-is-not-a-constructor
        */
       window.YT.ready(() => {
-        player = new window.YT.Player("player", {
+        player = new window.YT.Player('player', {
           videoId,
-          height: "480",
-          width: "854",
+          height: '480',
+          width: '854',
           playerVars: {
             // https://developers.google.com/youtube/player_parameters
             autoplay: 1,
@@ -81,10 +81,10 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
           },
         });
       });
-      console.log("player created", videoId);
+      console.log('player created', videoId);
     } else {
       player.loadVideoById(videoId);
-      console.log("loaded", videoId, player);
+      console.log('loaded', videoId, player);
     }
     console.log(player);
     console.log(window.YT);
@@ -117,6 +117,7 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
   // Timeline Player
   useEffect(() => {
     let interval = null;
+
     if (playerStatus === 1) {
       interval = setInterval(() => {
         updateTimelineState();
@@ -124,6 +125,7 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
     } else if (playerStatus !== 1 && playerTimeline !== 0) {
       clearInterval(interval);
     }
+
     return () => clearInterval(interval);
   }, [playerStatus, playerTimeline]);
 
@@ -131,42 +133,44 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
   const onPlayerReady = (e) => {
     // access to player in all event handlers via event.target
     e.target.pauseVideo();
-    socket.emit("event", { state: "load-video", videoId: curVideo }, roomId);
+    socket.emit('event', { state: 'load-video', videoId: curVideo }, roomId);
     console.log(e.target.getVideoData());
   };
 
   const handlePlay = useCallback(
     (emit = true) => {
       player.playVideo();
-      console.log("play", player.getCurrentTime(), player.getDuration());
+      console.log('play', player.getCurrentTime(), player.getDuration());
       if (emit) {
         const data = {
           currentTime: player.getCurrentTime(),
-          state: "play",
+          state: 'play',
           username,
           created_at: new Date().getTime(),
         };
-        socket.emit("event", data, roomId);
+
+        socket.emit('event', data, roomId);
       }
     },
-    [socket, roomId]
+    [socket, roomId],
   );
 
   const handlePause = useCallback(
     (emit = true) => {
       player.pauseVideo();
-      console.log("pause", player.getCurrentTime(), player.getDuration());
+      console.log('pause', player.getCurrentTime(), player.getDuration());
       if (emit) {
         const data = {
           currentTime: player.getCurrentTime(),
-          state: "pause",
+          state: 'pause',
           username,
           created_at: new Date().getTime(),
         };
-        socket.emit("event", data, roomId);
+
+        socket.emit('event', data, roomId);
       }
     },
-    [socket, roomId]
+    [socket, roomId],
   );
 
   // MUI passes value through 2nd paramter, DO NOT remove 'e'
@@ -184,11 +188,12 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
         const data = {
           value,
           newTime,
-          state: "seek",
+          state: 'seek',
           username,
           created_at: new Date().getTime(),
         };
-        socket.emit("event", data, roomId);
+
+        socket.emit('event', data, roomId);
       }
 
       // Format current and remaining times into string, ex: "01:00"
@@ -198,7 +203,7 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
         remaining: getFormattedTime(remainingTime, true),
       }));
     },
-    [socket, roomId]
+    [socket, roomId],
   );
 
   // MUI passes value through 2nd paramter, DO NOT remove 'e'
@@ -210,7 +215,7 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
     }
     setVolumeLevel(value);
     player.setVolume(value);
-    console.log("volume", value);
+    console.log('volume', value);
   };
 
   const handleMute = () => {
@@ -221,54 +226,58 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
       setIsMuted(true);
       player.mute();
     }
-    console.log("muting", player.isMuted());
+    console.log('muting', player.isMuted());
   };
 
   const handleStateChange = (e) => {
-    console.log("state", e.data);
+    console.log('state', e.data);
     setPlayerStatus(e.data);
   };
 
   // * Socket Event Listener
   useEffect(() => {
     if (!socket) return;
-    socket.on("receive-event", (data) => {
+    socket.on('receive-event', (data) => {
       console.log(data);
       let message;
-      if (data.state === "load-video") {
+
+      if (data.state === 'load-video') {
         // loadVideo(data.videoId);
-      } else if (data.state === "play") {
-        console.log("play function...");
+      } else if (data.state === 'play') {
+        console.log('play function...');
         message = `${data.username} resumed video`;
         handlePlay(false);
-      } else if (data.state === "pause") {
-        console.log("pause function...");
+      } else if (data.state === 'pause') {
+        console.log('pause function...');
         message = `${data.username} paused video`;
         handlePause(false);
       } else {
         const duration = player.getDuration();
         const newTime = (data.value / 100) * duration;
-        console.log("seeking...");
+
+        console.log('seeking...');
         message = `${data.username} jumped to ${getFormattedTime(newTime)}`;
         // message = `${data.username} jumped to ${playerTime.current}`;
         handleTimelineChange(null, data.value, false);
       }
       if (message) {
         const messageData = {
-          type: "player-change",
+          type: 'player-change',
           username: data.username,
           content: message,
           created_at: data.created_at,
         };
+
         addMessage(messageData);
       }
     });
-    return () => socket.off("receive-event");
+
+    return () => socket.off('receive-event');
   }, [socket, handlePlay, handlePause, handleTimelineChange]);
 
   return (
-    <div id='primary'>
-      <div id='player'>
+    <div id="primary">
+      <div id="player">
         <h3>No Video Found</h3>
       </div>
       <VideoPlayerControls
