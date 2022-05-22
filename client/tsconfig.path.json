@@ -5,7 +5,8 @@
       "@components": ["./components"],
       "@helpers": ["./helpers"],
       "@utils": ["./utils"],
-      "@hooks": ["./hooks"]
+      "@hooks": ["./hooks"],
+      "@api": ["./api"]
     }
   }
 }

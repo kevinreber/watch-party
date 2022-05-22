@@ -1,17 +1,12 @@
 /* eslint-disable */
-// Dependencies
-import React, { useState, useCallback } from 'react';
-import Api from '../../api/api';
-import './AddVideoBar.css';
-
-// Components
-import { OptionsList } from '@components';
-import { debounce } from '@utils';
-
-// MUI
+import React from 'react';
 import { IconButton, Avatar, ListItemText } from '@material-ui/core';
 import { TextField } from '@mui/material';
 import { AddToQueue } from '@material-ui/icons';
+import { getSearchForYoutubeVideos } from '@api';
+import { OptionsList } from '@components';
+import { debounce } from '@utils';
+import './AddVideoBar.css';
 
 // ! TEMP: For testing
 const WORKING_VIDEO_INITIAL_STATE = {
@@ -46,12 +41,12 @@ interface BarTypes {
 }
 
 const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
-  const [search, setSearch] = useState(WORKING_VIDEO_INITIAL_STATE.url);
-  const [video, setVideo] = useState(WORKING_VIDEO_INITIAL_STATE);
+  const [search, setSearch] = React.useState(WORKING_VIDEO_INITIAL_STATE.url);
+  const [video, setVideo] = React.useState(WORKING_VIDEO_INITIAL_STATE);
 
-  const [options, setOptions] = useState([]);
-  const [showOptions, setShowOptions] = useState(false);
-  const [isLoadingOptions, setIsLoadingOptions] = useState(false);
+  const [options, setOptions] = React.useState([]);
+  const [showOptions, setShowOptions] = React.useState(false);
+  const [isLoadingOptions, setIsLoadingOptions] = React.useState(false);
 
   let debounced: any = null;
 
@@ -64,7 +59,7 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
     if (!debounced) {
       debounced = debounce(async () => {
         setIsLoadingOptions(true);
-        await Api.searchForYoutubeVideos(e.target.value)
+        await getSearchForYoutubeVideos(e.target.value)
           .then((data) => setOptions(data))
           .catch((err) => console.error(err))
           .finally(() => setIsLoadingOptions(false));
@@ -73,7 +68,7 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
     debounced();
   };
 
-  const handleSubmit = useCallback(
+  const handleSubmit = React.useCallback(
     (e: any) => {
       if (e.keyCode === 13 || e.type === 'submit') {
         console.log(e);
