@@ -3,9 +3,8 @@ import React from 'react';
 import { IconButton, Avatar, ListItemText } from '@material-ui/core';
 import { TextField } from '@mui/material';
 import { AddToQueue } from '@material-ui/icons';
-import { getSearchForYoutubeVideos } from '@api';
+import { useDebounce, useGetSearchForYoutubeVideos } from '@hooks';
 import { OptionsList } from '@components';
-import { debounce } from '@utils';
 import './AddVideoBar.css';
 
 // ! TEMP: For testing
@@ -46,26 +45,25 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
 
   const [options, setOptions] = React.useState([]);
   const [showOptions, setShowOptions] = React.useState(false);
-  const [isLoadingOptions, setIsLoadingOptions] = React.useState(false);
 
-  let debounced: any = null;
+  const debouncedSearchQuery = useDebounce(search);
+
+  const youtubeVideosSearchResults = useGetSearchForYoutubeVideos({
+    searchTerm: debouncedSearchQuery,
+    configOptions: {
+      onSuccess: (data: any) => {
+        setOptions(data);
+        setShowOptions(true);
+      },
+      onError: (error: any) => {
+        console.error(`[useGetSearchForYoutubeVideos]: `, error);
+        console.error(error.message);
+      },
+    },
+  });
 
   const handleChange = (e: any) => {
-    // if value is not empty
-    if (e.target.value) setShowOptions(true);
-    else setShowOptions(false);
-
     setSearch(e.target.value);
-    if (!debounced) {
-      debounced = debounce(async () => {
-        setIsLoadingOptions(true);
-        await getSearchForYoutubeVideos(e.target.value)
-          .then((data) => setOptions(data))
-          .catch((err) => console.error(err))
-          .finally(() => setIsLoadingOptions(false));
-      }, 500);
-    }
-    debounced();
   };
 
   const handleSubmit = React.useCallback(
@@ -106,7 +104,9 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
         className="form-input"
         size="small"
       />
-      {showOptions && <OptionsList options={options} handleClick={handleClick} isLoading={isLoadingOptions} />}
+      {showOptions && (
+        <OptionsList options={options} handleClick={handleClick} isLoading={youtubeVideosSearchResults.isLoading} />
+      )}
       {/* {video.img && (
 				<div className="Add-Video__Preview">
 					<Avatar
