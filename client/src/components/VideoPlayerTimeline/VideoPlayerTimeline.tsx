@@ -1,10 +1,10 @@
-import React from "react";
+import React from 'react';
 
-import { Grid, Slider, Typography } from "@material-ui/core";
+import { Grid, Slider, Typography } from '@material-ui/core';
 
 interface PlayerTimelineTypes {
   playerTimeline: number;
-  handleTimelineChange: Function;
+  handleTimelineChange: any;
   playerTime: { current: string; remaining: string };
   sliderContainer: any;
 }
@@ -29,22 +29,18 @@ const VideoPlayerTimeline = ({
   return (
     <>
       <Grid item={true}>
-        <Typography>
-          {playerTime?.current ? playerTime.current : "00:00"}
-        </Typography>
+        <Typography>{playerTime?.current ? playerTime.current : '00:00'}</Typography>
       </Grid>
       <Grid item={true} className={sliderContainer}>
         <Slider
           value={playerTimeline}
           // @ts-ignore
           onChange={handleTimelineChange}
-          aria-labelledby='video-slider'
+          aria-labelledby="video-slider"
         />
       </Grid>
       <Grid item={true}>
-        <Typography>
-          {playerTime?.remaining ? playerTime.remaining : "00:00"}
-        </Typography>
+        <Typography>{playerTime?.remaining ? playerTime.remaining : '00:00'}</Typography>
       </Grid>
     </>
   );

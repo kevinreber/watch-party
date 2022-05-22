@@ -1,1 +1,1 @@
-export { default } from "./WatchCount";
+export { default as WatchCount } from './WatchCount';

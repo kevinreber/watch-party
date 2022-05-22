@@ -1,21 +1,21 @@
 // dependencies
-import React, { FormEvent } from "react";
-import "emoji-mart/css/emoji-mart.css";
-
-// hooks
-import { useFields } from "@hooks";
+import React, { FormEvent } from 'react';
+import 'emoji-mart/css/emoji-mart.css';
 
 /** MUI */
-import { Button } from "@material-ui/core";
-import { TextField } from "@mui/material";
+import { Button } from '@material-ui/core';
+import { TextField } from '@mui/material';
+
+// hooks
+import { useFields } from '@hooks';
 
 const isValid = (data: string) => {
-  return data && data.trim() !== "";
+  return data && data.trim() !== '';
 };
 
 interface LoginTypes {
-  login: Function;
-  username: String;
+  login: any;
+  username: string;
 }
 
 const LoginFooter = ({ login, username }: LoginTypes): JSX.Element => {
@@ -34,16 +34,16 @@ const LoginFooter = ({ login, username }: LoginTypes): JSX.Element => {
     <>
       <form onSubmit={handleSubmit}>
         <TextField
-          name='username'
+          name="username"
           onChange={handleChange}
           value={formData.username}
-          type='text'
-          placeholder='Create Username'
-          size='small'
+          type="text"
+          placeholder="Create Username"
+          size="small"
           required
         />
         {/* @ts-ignore */}
-        <Button type='submit' disabled={!formData.username} variant='contained'>
+        <Button type="submit" disabled={!formData.username} variant="contained">
           Submit
         </Button>
       </form>

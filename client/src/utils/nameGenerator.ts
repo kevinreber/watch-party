@@ -1,4 +1,4 @@
-import { NAME_1, NAME_2 } from "./constants";
+import { NAME_1, NAME_2 } from './constants';
 
 const capFirst = (string: string): string => {
   return string.charAt(0).toUpperCase() + string.slice(1);

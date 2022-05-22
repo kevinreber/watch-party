@@ -1,0 +1,6 @@
+package.json
+product-spec.json
+node_modules/
+build/
+static/
+dist/

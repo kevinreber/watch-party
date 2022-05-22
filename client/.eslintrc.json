@@ -29,6 +29,7 @@
   },
   "plugins": ["import", "@typescript-eslint", "prettier", "react"],
   "rules": {
+    "@typescript-eslint/ban-ts-comment": "off",
     "react/no-unused-prop-types": "off",
     "react/prop-types": "off",
     "no-else-return": "off",
@@ -59,11 +60,7 @@
     "prefer-arrow-callback": ["error"],
     "prefer-destructuring": "off",
     "no-underscore-dangle": "off",
-    "lines-between-class-members": [
-      "error",
-      "always",
-      { "exceptAfterSingleLine": true }
-    ],
+    "lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
     "no-restricted-syntax": "off",
     "react/jsx-uses-react": "off", // no longer needed when using React 17+
     "react/react-in-jsx-scope": "off", // no longer needed when using React 17+

@@ -1,6 +1,1 @@
-export {
-	getFormattedTime,
-	ifArrayContains,
-	isValidYTLink,
-	loadYTScript,
-} from './helpers';
+export { getFormattedTime, ifArrayContains, isValidYTLink, loadYTScript } from './helpers';

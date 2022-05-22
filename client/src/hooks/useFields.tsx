@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 
 /** useFields handles the state of the form data */
 const useFields = (INITIAL_STATE: any) => {
@@ -7,6 +7,7 @@ const useFields = (INITIAL_STATE: any) => {
   /** Update state in formData */
   const handleChange = (e: any) => {
     const { name, value } = e.target;
+
     setFormData((fData: any) => ({
       ...fData,
       [name]: value,

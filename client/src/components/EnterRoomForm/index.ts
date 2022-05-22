@@ -1,1 +1,1 @@
-export { default } from "./EnterRoomForm";
+export { default as EnterRoomForm } from './EnterRoomForm';

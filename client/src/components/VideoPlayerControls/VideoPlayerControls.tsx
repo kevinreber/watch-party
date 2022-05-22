@@ -1,59 +1,56 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 
 // Components & Helpers
-import { VideoPlayerTimeline, VolumeControls } from "@components";
+import { VideoPlayerTimeline, VolumeControls } from '@components';
 
 // MUI
-import {
-  PlayArrow as PlayArrowIcon,
-  Pause as PauseIcon,
-} from "@material-ui/icons";
-import { Grid, IconButton, makeStyles } from "@material-ui/core";
+import { PlayArrow as PlayArrowIcon, Pause as PauseIcon } from '@material-ui/icons';
+import { Grid, IconButton, makeStyles } from '@material-ui/core';
 
 // @ts-ignore
 const useStyles = makeStyles((theme: any) => ({
   volumeIconContainer: {
-    position: "relative",
-    flex: "0 0 auto",
-    "&:hover": {
-      cursor: "pointer",
+    position: 'relative',
+    flex: '0 0 auto',
+    '&:hover': {
+      cursor: 'pointer',
     },
   },
   volumeControlContainer: {
-    position: "absolute",
-    display: "none",
-    zIndex: "100",
-    right: "10px",
-    [theme.breakpoints.up("sm")]: {
-      display: "flex",
-      height: "60px",
+    position: 'absolute',
+    display: 'none',
+    zIndex: '100',
+    right: '10px',
+    [theme.breakpoints.up('sm')]: {
+      display: 'flex',
+      height: '60px',
     },
-    padding: "10px 5px",
-    "&:hover": {
-      cursor: "pointer",
+    padding: '10px 5px',
+    '&:hover': {
+      cursor: 'pointer',
     },
   },
   sliderContainerWrapper: {
-    width: "auto",
-    flex: "1 1 auto",
-    display: "flex",
-    boxSizing: "border-box",
+    width: 'auto',
+    flex: '1 1 auto',
+    display: 'flex',
+    boxSizing: 'border-box',
   },
   sliderContainer: {
-    flex: "1 1 auto",
+    flex: '1 1 auto',
   },
 }));
 
 interface PlayerControlProps {
   status: number;
   muted: boolean;
-  handlePause: Function;
-  handlePlay: Function;
+  handlePause: any;
+  handlePlay: any;
   volumeLevel: number;
-  handleVolume: Function;
-  handleMute: Function;
+  handleVolume: any;
+  handleMute: any;
   playerTimeline: number;
-  handleTimelineChange: Function;
+  handleTimelineChange: any;
   playerTime: { current: string; remaining: string };
 }
 
@@ -95,25 +92,26 @@ const VideoPlayerControls = ({
   const ButtonStatus =
     status === 1 ? (
       //  @ts-ignore
-      <IconButton aria-label='pause' onClick={handlePause}>
-        <PauseIcon fontSize='large' />
+      <IconButton aria-label="pause" onClick={handlePause}>
+        <PauseIcon fontSize="large" />
       </IconButton>
     ) : (
       //  @ts-ignore
-      <IconButton aria-label='play' onClick={handlePlay}>
-        <PlayArrowIcon fontSize='large' />
+      <IconButton aria-label="play" onClick={handlePlay}>
+        <PlayArrowIcon fontSize="large" />
       </IconButton>
     );
+
   return (
     <>
       {/* @ts-ignore */}
       <Grid
         container={true}
-        className='Video-Controls'
+        className="Video-Controls"
         // component={Paper}
-        alignItems='center'
+        alignItems="center"
       >
-        <Grid item={true} className='Player-Controls'>
+        <Grid item={true} className="Player-Controls">
           {ButtonStatus}
           {/* <IconButton aria-label="previous">
 						<SkipPrevious fontSize="large" />
@@ -137,12 +135,7 @@ const VideoPlayerControls = ({
             handleVolume={handleVolume}
           />
         </Grid>
-        <Grid
-          item={true}
-          container={true}
-          spacing={2}
-          className={classes.sliderContainerWrapper}
-        >
+        <Grid item={true} container={true} spacing={2} className={classes.sliderContainerWrapper}>
           <VideoPlayerTimeline
             playerTime={playerTime}
             playerTimeline={playerTimeline}

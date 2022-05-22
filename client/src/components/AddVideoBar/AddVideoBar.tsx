@@ -1,36 +1,36 @@
 /* eslint-disable */
 // Dependencies
-import React, { useState, useCallback } from "react";
-import Api from "../../api/api";
-import "./AddVideoBar.css";
+import React, { useState, useCallback } from 'react';
+import Api from '../../api/api';
+import './AddVideoBar.css';
 
 // Components
-import { OptionsList } from "@components";
-import { debounce } from "@utils";
+import { OptionsList } from '@components';
+import { debounce } from '@utils';
 
 // MUI
-import { IconButton, Avatar, ListItemText } from "@material-ui/core";
-import { TextField } from "@mui/material";
-import { AddToQueue } from "@material-ui/icons";
+import { IconButton, Avatar, ListItemText } from '@material-ui/core';
+import { TextField } from '@mui/material';
+import { AddToQueue } from '@material-ui/icons';
 
 // ! TEMP: For testing
 const WORKING_VIDEO_INITIAL_STATE = {
-  videoId: "OHviieMFY0c",
-  channel: "Joma Tech",
+  videoId: 'OHviieMFY0c',
+  channel: 'Joma Tech',
   description:
-    "Learn how to code with Python 3 for Data Science and Software Engineering. High-quality video courses: https://python.jomaclass.com/ ▻ Chat with me on ...",
-  url: "https://www.youtube.com/watch?v=OHviieMFY0c",
-  name: "Cool Kids Code In Javascript (PART 3)",
-  img: "https://i.ytimg.com/vi/OHviieMFY0c/default.jpg",
+    'Learn how to code with Python 3 for Data Science and Software Engineering. High-quality video courses: https://python.jomaclass.com/ ▻ Chat with me on ...',
+  url: 'https://www.youtube.com/watch?v=OHviieMFY0c',
+  name: 'Cool Kids Code In Javascript (PART 3)',
+  img: 'https://i.ytimg.com/vi/OHviieMFY0c/default.jpg',
 };
 
 const VIDEO_INITIAL_STATE = {
-  videoId: "",
-  channel: "",
-  description: "",
-  url: "",
-  name: "",
-  img: "",
+  videoId: '',
+  channel: '',
+  description: '',
+  url: '',
+  name: '',
+  img: '',
 };
 
 interface VideoTypes {
@@ -42,7 +42,7 @@ interface VideoTypes {
   img: string;
 }
 interface BarTypes {
-  addVideoToList: Function;
+  addVideoToList: any;
 }
 
 const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
@@ -75,7 +75,7 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
 
   const handleSubmit = useCallback(
     (e: any) => {
-      if (e.keyCode === 13 || e.type === "submit") {
+      if (e.keyCode === 13 || e.type === 'submit') {
         console.log(e);
 
         e.preventDefault();
@@ -85,7 +85,7 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
         setShowOptions(false);
       }
     },
-    [search, addVideoToList]
+    [search, addVideoToList],
   );
 
   const handleClick = (option: VideoTypes) => {
@@ -98,26 +98,20 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
 
   return (
     <form
-      className='Add-Video-Form'
+      className="Add-Video-Form"
       // onSubmit={handleSubmit}
-      style={{ width: "100%", marginBottom: "3rem" }}
+      style={{ width: '100%', marginBottom: '3rem' }}
     >
       <TextField
-        name='id'
-        id='video-id'
+        name="id"
+        id="video-id"
         value={search}
         onChange={handleChange}
         onKeyDown={handleSubmit}
-        className='form-input'
-        size='small'
+        className="form-input"
+        size="small"
       />
-      {showOptions && (
-        <OptionsList
-          options={options}
-          handleClick={handleClick}
-          isLoading={isLoadingOptions}
-        />
-      )}
+      {showOptions && <OptionsList options={options} handleClick={handleClick} isLoading={isLoadingOptions} />}
       {/* {video.img && (
 				<div className="Add-Video__Preview">
 					<Avatar
