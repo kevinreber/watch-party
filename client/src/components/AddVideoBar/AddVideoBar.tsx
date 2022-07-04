@@ -1,8 +1,9 @@
 /* eslint-disable */
 import React from 'react';
-import { IconButton, Avatar, ListItemText } from '@material-ui/core';
-import { TextField } from '@mui/material';
+import { IconButton, Avatar, ListItemText, Snackbar } from '@material-ui/core';
+import { Alert, TextField } from '@mui/material';
 import { AddToQueue } from '@material-ui/icons';
+import { useSnackbar } from 'notistack';
 import { useDebounce, useGetSearchForYoutubeVideos } from '@hooks';
 import { OptionsList } from '@components';
 import './AddVideoBar.css';
@@ -40,6 +41,8 @@ interface BarTypes {
 }
 
 const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
+  const { enqueueSnackbar } = useSnackbar();
+
   const [search, setSearch] = React.useState(WORKING_VIDEO_INITIAL_STATE.url);
   const [video, setVideo] = React.useState(WORKING_VIDEO_INITIAL_STATE);
 
@@ -52,12 +55,15 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
     searchTerm: debouncedSearchQuery,
     configOptions: {
       onSuccess: (data: any) => {
+        console.log(data);
+
         setOptions(data);
         setShowOptions(true);
       },
       onError: (error: any) => {
         console.error(`[useGetSearchForYoutubeVideos]: `, error);
-        console.error(error.message);
+        console.error(error);
+        enqueueSnackbar(error, { variant: 'error' });
       },
     },
   });

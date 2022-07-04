@@ -8,5 +8,6 @@ module.exports = override(
     '@utils': path.resolve(__dirname, 'src/utils'),
     '@hooks': path.resolve(__dirname, 'src/hooks'),
     '@api': path.resolve(__dirname, 'src/api'),
+    '@context': path.resolve(__dirname, 'src/context'),
   }),
 );

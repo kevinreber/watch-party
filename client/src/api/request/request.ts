@@ -12,9 +12,6 @@ interface RequestTypes {
 const request = async ({ endpoint, paramsOrData = {}, verb = 'GET' }: RequestTypes) => {
   console.debug('API Call:', endpoint, paramsOrData, verb);
 
-  console.log('fetching......');
-  console.log(endpoint);
-
   try {
     return (
       await axios({

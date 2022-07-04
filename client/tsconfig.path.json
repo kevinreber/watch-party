@@ -6,7 +6,8 @@
       "@helpers": ["./helpers"],
       "@utils": ["./utils"],
       "@hooks": ["./hooks"],
-      "@api": ["./api"]
+      "@api": ["./api"],
+      "@context": ["./context"]
     }
   }
 }

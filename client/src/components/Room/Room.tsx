@@ -13,7 +13,7 @@ import { useParams } from 'react-router-dom';
 import { Box, Grid } from '@mui/material';
 
 // Providers
-import { UserContext } from '../../store/UserContext';
+import { UserContext } from '@context';
 
 const ENDPOINT = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 
