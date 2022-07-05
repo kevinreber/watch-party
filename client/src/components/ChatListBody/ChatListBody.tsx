@@ -4,7 +4,7 @@ import moment from 'moment';
 import { ListItem, ListItemText } from '@material-ui/core';
 
 // Providers
-import { UserContext } from '../../store/UserContext';
+import { UserContext } from '@context';
 
 interface ChatListBodyTypes {
   messages: any[];

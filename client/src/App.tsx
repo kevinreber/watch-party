@@ -1,24 +1,22 @@
 /* eslint-disable */
-import { useState, useMemo } from 'react';
+import React from 'react';
+import { SnackbarProvider } from 'notistack';
 
 import './App.css';
 
 // Components
-import Room from './components/Room/Room';
-import Modal from './components/Modal/Modal';
-import Routes from './routes/Routes';
+import { Room, Modal, EnterRoomForm } from '@components';
+import { Routes } from './routes';
 
 // Helpers
-import { generateName } from './utils/nameGenerator';
+import { generateName } from '@utils';
 
 // MUI
 import { Snackbar } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 
 // Providers
-import { UserContext } from './store/UserContext';
-import { ModalContext } from './store/ModalContext';
-import EnterRoomForm from './components/EnterRoomForm/EnterRoomForm';
+import { UserContext, ModalContext } from '@context';
 
 const vertical = 'top';
 const horizontal = 'center';
@@ -34,15 +32,15 @@ const MODAL_INITIAL_VALUES = {
 };
 
 const App = () => {
-  const [user, setUser] = useState<any>(generateName());
-  const userData = useMemo(() => ({ user, setUser }), [user, setUser]);
-  const [room, setRoom] = useState<string>('');
+  const [user, setUser] = React.useState<any>(generateName());
+  const userData = React.useMemo(() => ({ user, setUser }), [user, setUser]);
+  const [room, setRoom] = React.useState<string>('');
 
-  const [modal, setModal] = useState(MODAL_INITIAL_VALUES);
-  const modalValues = useMemo(() => ({ modal, setModal }), [modal, setModal]);
+  const [modal, setModal] = React.useState(MODAL_INITIAL_VALUES);
+  const modalValues = React.useMemo(() => ({ modal, setModal }), [modal, setModal]);
 
   // TODO: Make Context Provider for Errors
-  const [errors, setErrors] = useState<ErrorTypes>({
+  const [errors, setErrors] = React.useState<ErrorTypes>({
     open: false,
     message: '',
   });
@@ -60,25 +58,17 @@ const App = () => {
 						<Modal content={'hello world'} onDismiss={toggleModal} />
 					)} */}
           <button onClick={toggleModal}>Show Modal</button>
-          <Snackbar
-            anchorOrigin={{ vertical, horizontal }}
-            open={errors.open}
-            onClose={closeErrorMessage}
-            autoHideDuration={3000}
-          >
-            <Alert onClose={closeErrorMessage} severity="error">
-              {errors.message}
-            </Alert>
-          </Snackbar>
-          {/* {room ? (
+          <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical, horizontal }} autoHideDuration={10000}>
+            {/* {room ? (
 						<>
 						<Room setErrors={setErrors} toggleModal={toggleModal} />
 							<Room /> */}
-          <Routes />
-          {/* </>
+            <Routes />
+            {/* </>
 					) : (
 						<Modal content={<EnterRoomForm />} onDismiss={toggleModal} />
 					)} */}
+          </SnackbarProvider>
         </UserContext.Provider>
       </ModalContext.Provider>
     </div>

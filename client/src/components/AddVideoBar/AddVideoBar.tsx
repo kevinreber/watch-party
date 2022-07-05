@@ -1,17 +1,12 @@
 /* eslint-disable */
-// Dependencies
-import React, { useState, useCallback } from 'react';
-import Api from '../../api/api';
-import './AddVideoBar.css';
-
-// Components
-import { OptionsList } from '@components';
-import { debounce } from '@utils';
-
-// MUI
-import { IconButton, Avatar, ListItemText } from '@material-ui/core';
-import { TextField } from '@mui/material';
+import React from 'react';
+import { IconButton, Avatar, ListItemText, Snackbar } from '@material-ui/core';
+import { Alert, TextField } from '@mui/material';
 import { AddToQueue } from '@material-ui/icons';
+import { useSnackbar } from 'notistack';
+import { useDebounce, useGetSearchForYoutubeVideos } from '@hooks';
+import { OptionsList } from '@components';
+import './AddVideoBar.css';
 
 // ! TEMP: For testing
 const WORKING_VIDEO_INITIAL_STATE = {
@@ -46,34 +41,38 @@ interface BarTypes {
 }
 
 const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
-  const [search, setSearch] = useState(WORKING_VIDEO_INITIAL_STATE.url);
-  const [video, setVideo] = useState(WORKING_VIDEO_INITIAL_STATE);
+  const { enqueueSnackbar } = useSnackbar();
 
-  const [options, setOptions] = useState([]);
-  const [showOptions, setShowOptions] = useState(false);
-  const [isLoadingOptions, setIsLoadingOptions] = useState(false);
+  const [search, setSearch] = React.useState(WORKING_VIDEO_INITIAL_STATE.url);
+  const [video, setVideo] = React.useState(WORKING_VIDEO_INITIAL_STATE);
 
-  let debounced: any = null;
+  const [options, setOptions] = React.useState([]);
+  const [showOptions, setShowOptions] = React.useState(false);
+
+  const debouncedSearchQuery = useDebounce(search);
+
+  const youtubeVideosSearchResults = useGetSearchForYoutubeVideos({
+    searchTerm: debouncedSearchQuery,
+    configOptions: {
+      onSuccess: (data: any) => {
+        console.log(data);
+
+        setOptions(data);
+        setShowOptions(true);
+      },
+      onError: (error: any) => {
+        console.error(`[useGetSearchForYoutubeVideos]: `, error);
+        console.error(error);
+        enqueueSnackbar(error, { variant: 'error' });
+      },
+    },
+  });
 
   const handleChange = (e: any) => {
-    // if value is not empty
-    if (e.target.value) setShowOptions(true);
-    else setShowOptions(false);
-
     setSearch(e.target.value);
-    if (!debounced) {
-      debounced = debounce(async () => {
-        setIsLoadingOptions(true);
-        await Api.searchForYoutubeVideos(e.target.value)
-          .then((data) => setOptions(data))
-          .catch((err) => console.error(err))
-          .finally(() => setIsLoadingOptions(false));
-      }, 500);
-    }
-    debounced();
   };
 
-  const handleSubmit = useCallback(
+  const handleSubmit = React.useCallback(
     (e: any) => {
       if (e.keyCode === 13 || e.type === 'submit') {
         console.log(e);
@@ -111,7 +110,9 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
         className="form-input"
         size="small"
       />
-      {showOptions && <OptionsList options={options} handleClick={handleClick} isLoading={isLoadingOptions} />}
+      {showOptions && (
+        <OptionsList options={options} handleClick={handleClick} isLoading={youtubeVideosSearchResults.isLoading} />
+      )}
       {/* {video.img && (
 				<div className="Add-Video__Preview">
 					<Avatar

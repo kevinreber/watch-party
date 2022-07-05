@@ -9,7 +9,7 @@ import { useParams } from 'react-router-dom';
 // MUI
 import { List } from '@material-ui/core';
 
-import { UserContext } from '../../store/UserContext';
+import { UserContext } from '@context';
 
 interface ChatListTypes {
   messages: string[];

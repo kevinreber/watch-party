@@ -3,11 +3,11 @@ import React, { useState, useContext } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Box, TextField, Button } from '@mui/material/';
 
-// Helpers
-import { generateName } from '../../utils/nameGenerator';
-
 // Providers
-import { UserContext } from '../../store/UserContext';
+import { UserContext } from '@context';
+
+// Helpers
+import { generateName } from '@utils';
 
 const EnterRoomForm = () => {
   const history = useHistory();
