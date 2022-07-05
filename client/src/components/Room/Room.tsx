@@ -3,7 +3,7 @@ import { Box, Grid } from '@mui/material';
 import { VideoPlayer, AddVideoBar, SideList, PageContainer } from '@components';
 import { isValidYTLink, ifArrayContains, loadYTScript } from '@helpers';
 import { UserContext } from '@context';
-import { useGetWebSocket } from '@hooks';
+import { useGetWebSocket, useGetUserCount } from '@hooks';
 import { useSnackbar } from 'notistack';
 
 const Room = () => {
@@ -13,8 +13,7 @@ const Room = () => {
   const [videos, setVideos] = React.useState<string[] | []>([]);
   const [messages, setMessages] = React.useState([]);
   const { socket, roomId } = useGetWebSocket(user);
-
-  const [usersCount, setUsersCount] = React.useState(1);
+  const { usersCount } = useGetUserCount(socket);
 
   // Load YT IFrame Player script into html
   React.useEffect(() => {
@@ -110,17 +109,6 @@ const Room = () => {
     // @ts-ignore
 
     return () => socket.off('update-video-list');
-  }, [socket]);
-
-  // * Socket Event Listener
-  React.useEffect(() => {
-    if (!socket) return;
-    socket.on('update-user-count', (count: number) => {
-      setUsersCount(count);
-    });
-
-    // @ts-ignore
-    return () => socket.off('update-user-count');
   }, [socket]);
 
   // * Socket Event Listener
