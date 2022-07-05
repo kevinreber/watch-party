@@ -1,21 +1,9 @@
 import React from 'react';
-import io from 'socket.io-client';
-
-// Components
-import { VideoPlayer, AddVideoBar, SideList, PageContainer } from '@components';
-
-// Helpers
-import { isValidYTLink, ifArrayContains, loadYTScript } from '@helpers';
-import { useParams } from 'react-router-dom';
-
-// MUI
-// import { Grid, Box } from '@material-ui/core';
 import { Box, Grid } from '@mui/material';
-
-// Providers
+import { VideoPlayer, AddVideoBar, SideList, PageContainer } from '@components';
+import { isValidYTLink, ifArrayContains, loadYTScript } from '@helpers';
 import { UserContext } from '@context';
-
-const ENDPOINT = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
+import { useGetWebSocket } from '@hooks';
 
 // interface RoomTypes {
 // 	setErrors: Function;
@@ -23,8 +11,6 @@ const ENDPOINT = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 // }
 
 const Room = () => {
-  // const userData = useMemo(() => ({ user, setUser }), [user, setUser]);
-
   const [errors, setErrors] = React.useState({
     open: false,
     message: '',
@@ -33,32 +19,11 @@ const Room = () => {
   // const toggleModal = () => setModal((st) => ({ ...st, isOpen: !st.isOpen }));
 
   const { user } = React.useContext<any>(UserContext);
-  const { roomId } = useParams<any>();
   const [videos, setVideos] = React.useState<string[] | []>([]);
   const [messages, setMessages] = React.useState([]);
-  const [socket, setSocket] = React.useState<any>();
+  const { socket, roomId } = useGetWebSocket(user);
+
   const [usersCount, setUsersCount] = React.useState(1);
-
-  // Initialize WebSocket connection
-  React.useEffect(() => {
-    const setUpNewSocket = () => {
-      const newSocket = io(ENDPOINT);
-
-      newSocket.on('connection', (socket: any) => {
-        console.log(socket, socket.id);
-        console.log('client connected to websocket server');
-      });
-      console.log(newSocket);
-      console.log(user, roomId);
-      newSocket.emit('join-room', user);
-      // @ts-ignore
-      setSocket(newSocket);
-    };
-
-    if (!socket) {
-      setUpNewSocket();
-    }
-  }, [socket, ENDPOINT, roomId]);
 
   // Load YT IFrame Player script into html
   React.useEffect(() => {
