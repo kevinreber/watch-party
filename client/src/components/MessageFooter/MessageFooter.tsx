@@ -28,8 +28,10 @@ const MessageFooter = ({ sendMessage }: MessageTypes): JSX.Element => {
 
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
+    const isFormDataValid = isValid(formData.content);
+
     // Check if field is empty or white space
-    if (!isValid(formData.content)) return;
+    if (!isFormDataValid) return;
 
     sendMessage(formData);
     resetFormData();
