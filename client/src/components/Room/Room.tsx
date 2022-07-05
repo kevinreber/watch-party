@@ -4,19 +4,10 @@ import { VideoPlayer, AddVideoBar, SideList, PageContainer } from '@components';
 import { isValidYTLink, ifArrayContains, loadYTScript } from '@helpers';
 import { UserContext } from '@context';
 import { useGetWebSocket } from '@hooks';
-
-// interface RoomTypes {
-// 	setErrors: Function;
-// 	toggleModal: Function;
-// }
+import { useSnackbar } from 'notistack';
 
 const Room = () => {
-  const [errors, setErrors] = React.useState({
-    open: false,
-    message: '',
-  });
-
-  // const toggleModal = () => setModal((st) => ({ ...st, isOpen: !st.isOpen }));
+  const { enqueueSnackbar } = useSnackbar();
 
   const { user } = React.useContext<any>(UserContext);
   const [videos, setVideos] = React.useState<string[] | []>([]);
@@ -46,21 +37,15 @@ const Room = () => {
           type: 'add-video',
           video,
         };
-        // emit event
 
         socket.emit('video-list-event', data);
-      } else
-        setErrors((st: any) => ({
-          ...st,
-          open: true,
-          message: 'video already in queue',
-        }));
-    } else
-      setErrors((st: any) => ({
-        ...st,
-        open: true,
-        message: 'invalid URL',
-      }));
+        enqueueSnackbar('Video added to Video Queue', { variant: 'success' });
+      } else {
+        enqueueSnackbar('Video already in Video Queue', { variant: 'warning' });
+      }
+    } else {
+      enqueueSnackbar('Invalid URL', { variant: 'warning' });
+    }
   };
 
   const removeVideoFromList = (video: string) => {

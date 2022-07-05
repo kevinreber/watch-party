@@ -11,15 +11,11 @@ import { Routes } from './routes';
 // Helpers
 import { generateName } from '@utils';
 
-// MUI
-import { Snackbar } from '@material-ui/core';
-import Alert from '@material-ui/lab/Alert';
-
 // Providers
 import { UserContext, ModalContext } from '@context';
 
-const vertical = 'top';
-const horizontal = 'center';
+const SNACKBAR_POSITION_VERTICAL = 'bottom';
+const SNACKBAR_POSITION_HORIZONTAL = 'left';
 
 interface ErrorTypes {
   open: boolean;
@@ -58,7 +54,11 @@ const App = () => {
 						<Modal content={'hello world'} onDismiss={toggleModal} />
 					)} */}
           <button onClick={toggleModal}>Show Modal</button>
-          <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical, horizontal }} autoHideDuration={10000}>
+          <SnackbarProvider
+            maxSnack={5}
+            anchorOrigin={{ vertical: SNACKBAR_POSITION_VERTICAL, horizontal: SNACKBAR_POSITION_HORIZONTAL }}
+            autoHideDuration={10000}
+          >
             {/* {room ? (
 						<>
 						<Room setErrors={setErrors} toggleModal={toggleModal} />
