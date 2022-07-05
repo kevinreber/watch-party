@@ -1,13 +1,14 @@
-import React, { useContext, useCallback } from 'react';
+import React from 'react';
+import moment from 'moment';
 
 // components
-import { ChatListBody, MessageFooter, LoginFooter } from '@components';
+import { MessageFooter, LoginFooter } from '@components';
 
 // Helpers
 import { useParams } from 'react-router-dom';
 
 // MUI
-import { List } from '@material-ui/core';
+import { List, ListItem, ListItemText } from '@material-ui/core';
 
 import { UserContext } from '@context';
 
@@ -19,7 +20,7 @@ interface ChatListTypes {
 
 const ChatList = ({ messages, sendMessage, socket }: ChatListTypes): JSX.Element => {
   // @ts-ignore
-  const { user, setUser } = useContext(UserContext);
+  const { user, setUser } = React.useContext(UserContext);
   // @ts-ignore
   const { roomId } = useParams();
 
@@ -40,7 +41,7 @@ const ChatList = ({ messages, sendMessage, socket }: ChatListTypes): JSX.Element
   };
 
   /** Scroll to Bottom of Chat */
-  const setRef = useCallback((node): void => {
+  const setRef = React.useCallback((node): void => {
     if (node) {
       node.scrollIntoView({ smooth: true });
     }
@@ -49,7 +50,22 @@ const ChatList = ({ messages, sendMessage, socket }: ChatListTypes): JSX.Element
   return (
     <div className="MessageChat">
       <List>
-        <ChatListBody messages={messages} setRef={setRef} />
+        {messages.map((message: any, index: number) => {
+          const lastMessage = messages.length - 1 === index;
+
+          return (
+            <ListItem
+              alignItems={message.username === user ? 'flex-start' : 'center'}
+              key={message.created_at}
+              ref={lastMessage ? setRef : null}
+            >
+              <ListItemText
+                primary={message.content}
+                secondary={`${message.username}-${moment(message.created_at).calendar()}`}
+              />
+            </ListItem>
+          );
+        })}
       </List>
       <div className="MessageChat__Footer">
         <MessageFooter sendMessage={sendMessage} />

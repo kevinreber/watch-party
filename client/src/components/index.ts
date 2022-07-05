@@ -1,6 +1,5 @@
 export { AddVideoBar } from './AddVideoBar';
 export { ChatList } from './ChatList';
-export { ChatListBody } from './ChatListBody';
 export { EnterRoomForm } from './EnterRoomForm';
 export { LoginFooter } from './LoginFooter';
 export { MessageFooter } from './MessageFooter';
