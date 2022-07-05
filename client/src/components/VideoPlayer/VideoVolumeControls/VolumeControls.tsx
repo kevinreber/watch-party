@@ -4,7 +4,7 @@ import React from 'react';
 import { VolumeUp, VolumeOff } from '@material-ui/icons';
 import { Slider, Paper, IconButton } from '@material-ui/core';
 
-interface VolumeControlsTypes {
+interface VideoVolumeControlsTypes {
   muted: boolean;
   handleMute: any;
   volumeSlider: boolean;
@@ -13,14 +13,14 @@ interface VolumeControlsTypes {
   handleVolume: any;
 }
 
-const VolumeControls = ({
+const VideoVolumeControls = ({
   muted,
   handleMute,
   volumeSlider,
   volumeControlContainer,
   volumeLevel,
   handleVolume,
-}: VolumeControlsTypes): JSX.Element => {
+}: VideoVolumeControlsTypes): JSX.Element => {
   return (
     <>
       <IconButton onClick={() => handleMute()}>
@@ -41,4 +41,4 @@ const VolumeControls = ({
   );
 };
 
-export default VolumeControls;
+export default VideoVolumeControls;

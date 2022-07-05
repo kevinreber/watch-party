@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 
 // Components & Helpers
-import { VideoPlayerControls } from '@components';
 import { getFormattedTime } from '@helpers';
 
-// Helpers
-import { useParams } from 'react-router-dom';
+import { VideoPlayerControls } from './VideoPlayerControls';
 
 // * get-youtube-id: https://www.npmjs.com/package/get-youtube-id
 
