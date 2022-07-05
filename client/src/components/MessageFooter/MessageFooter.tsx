@@ -1,5 +1,5 @@
 // dependencies
-import React, { useState, FormEvent } from 'react';
+import React from 'react';
 import { Picker } from 'emoji-mart';
 import 'emoji-mart/css/emoji-mart.css';
 
@@ -24,9 +24,9 @@ interface MessageTypes {
 
 const MessageFooter = ({ sendMessage }: MessageTypes): JSX.Element => {
   const [formData, handleChange, resetFormData] = useFields(INITIAL_STATE);
-  const [showEmojis, setShowEmojis] = useState(false);
+  const [showEmojis, setShowEmojis] = React.useState(false);
 
-  const handleSubmit = (e: FormEvent): void => {
+  const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
     // Check if field is empty or white space
     if (!isValid(formData.content)) return;
