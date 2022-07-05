@@ -35,17 +35,8 @@ const App = () => {
   const [modal, setModal] = React.useState(MODAL_INITIAL_VALUES);
   const modalValues = React.useMemo(() => ({ modal, setModal }), [modal, setModal]);
 
-  // TODO: Make Context Provider for Errors
-  const [errors, setErrors] = React.useState<ErrorTypes>({
-    open: false,
-    message: '',
-  });
-
   const toggleModal = () => setModal((st) => ({ ...st, isOpen: !st.isOpen }));
 
-  const closeErrorMessage = () => {
-    setErrors((st) => ({ ...st, open: false, message: '' }));
-  };
   return (
     <div className="App">
       <ModalContext.Provider value={modalValues}>
@@ -59,15 +50,7 @@ const App = () => {
             anchorOrigin={{ vertical: SNACKBAR_POSITION_VERTICAL, horizontal: SNACKBAR_POSITION_HORIZONTAL }}
             autoHideDuration={10000}
           >
-            {/* {room ? (
-						<>
-						<Room setErrors={setErrors} toggleModal={toggleModal} />
-							<Room /> */}
             <Routes />
-            {/* </>
-					) : (
-						<Modal content={<EnterRoomForm />} onDismiss={toggleModal} />
-					)} */}
           </SnackbarProvider>
         </UserContext.Provider>
       </ModalContext.Provider>
