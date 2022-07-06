@@ -1,5 +1,5 @@
 // Dependencies
-import React, { useState, useContext } from 'react';
+import React from 'react';
 import { useHistory } from 'react-router-dom';
 import { Box, TextField, Button } from '@mui/material/';
 
@@ -11,8 +11,8 @@ import { generateName } from '@utils';
 
 const EnterRoomForm = () => {
   const history = useHistory();
-  const [roomName, setRoomName] = useState('');
-  const { user, setUser } = useContext<any>(UserContext);
+  const [roomName, setRoomName] = React.useState('');
+  const { user, setUser } = React.useContext<any>(UserContext);
 
   const handleRoomChange = (e: any) => {
     setRoomName(e.target.value);

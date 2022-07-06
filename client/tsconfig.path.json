@@ -7,7 +7,8 @@
       "@utils": ["./utils"],
       "@hooks": ["./hooks"],
       "@api": ["./api"],
-      "@context": ["./context"]
+      "@context": ["./context"],
+      "@socket-client": ["./socket-client"]
     }
   }
 }

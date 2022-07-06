@@ -1,6 +1,5 @@
 export { AddVideoBar } from './AddVideoBar';
 export { ChatList } from './ChatList';
-export { ChatListBody } from './ChatListBody';
 export { EnterRoomForm } from './EnterRoomForm';
 export { LoginFooter } from './LoginFooter';
 export { MessageFooter } from './MessageFooter';
@@ -9,9 +8,6 @@ export { OptionsList } from './OptionsList';
 export { Room } from './Room';
 export { SideList } from './SideList';
 export { VideoPlayer } from './VideoPlayer';
-export { VideoPlayerControls } from './VideoPlayerControls';
-export { VideoPlayerTimeline } from './VideoPlayerTimeline';
-export { VolumeControls } from './VolumeControls';
 export { WatchCount } from './WatchCount';
 export { WatchList } from './WatchList';
 export { PageContainer } from './PageContainer';

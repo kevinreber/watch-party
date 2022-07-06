@@ -1,11 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
-
-// Components & Helpers
-import { VideoPlayerControls } from '@components';
-import { getFormattedTime } from '@helpers';
-
-// Helpers
+import React from 'react';
 import { useParams } from 'react-router-dom';
+import { getFormattedTime } from '@helpers';
+import { VideoPlayerControls } from './VideoPlayerControls';
 
 // * get-youtube-id: https://www.npmjs.com/package/get-youtube-id
 
@@ -44,17 +40,16 @@ let player;
 
 // ! NOTE: Avoided using typescript b/c opts passed into YouTube component gives too many errors
 const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
-  // @ts-ignore
   const { roomId } = useParams();
 
-  const [playerStatus, setPlayerStatus] = useState(-1);
-  const [playerTimeline, setPlayerTimeline] = useState(0);
-  const [playerTime, setPlayerTime] = useState({
+  const [playerStatus, setPlayerStatus] = React.useState(-1);
+  const [playerTimeline, setPlayerTimeline] = React.useState(0);
+  const [playerTime, setPlayerTime] = React.useState({
     current: null,
     remaining: null,
   });
-  const [volumeLevel, setVolumeLevel] = useState(100);
-  const [muted, setIsMuted] = useState(false);
+  const [volumeLevel, setVolumeLevel] = React.useState(100);
+  const [muted, setIsMuted] = React.useState(false);
 
   // Create player
   const loadVideo = (videoId) => {
@@ -91,7 +86,7 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
   };
 
   // Load YT IFrame Player script into html
-  useEffect(() => {
+  React.useEffect(() => {
     if (curVideo) {
       // TODO: Find better way to emit event
       // Sometimes video will load, but not start on other users browsers
@@ -115,7 +110,7 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
   };
 
   // Timeline Player
-  useEffect(() => {
+  React.useEffect(() => {
     let interval = null;
 
     if (playerStatus === 1) {
@@ -137,7 +132,7 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
     console.log(e.target.getVideoData());
   };
 
-  const handlePlay = useCallback(
+  const handlePlay = React.useCallback(
     (emit = true) => {
       player.playVideo();
       console.log('play', player.getCurrentTime(), player.getDuration());
@@ -155,7 +150,7 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
     [socket, roomId],
   );
 
-  const handlePause = useCallback(
+  const handlePause = React.useCallback(
     (emit = true) => {
       player.pauseVideo();
       console.log('pause', player.getCurrentTime(), player.getDuration());
@@ -174,7 +169,7 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
   );
 
   // MUI passes value through 2nd paramter, DO NOT remove 'e'
-  const handleTimelineChange = useCallback(
+  const handleTimelineChange = React.useCallback(
     (e, value, emit = true) => {
       const duration = player.getDuration();
       const newTime = (value / 100) * duration;
@@ -235,7 +230,7 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
   };
 
   // * Socket Event Listener
-  useEffect(() => {
+  React.useEffect(() => {
     if (!socket) return;
     socket.on('receive-event', (data) => {
       console.log(data);

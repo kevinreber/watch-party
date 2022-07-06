@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-
-// Components & Helpers
-import { VideoPlayerTimeline, VolumeControls } from '@components';
+import React from 'react';
 
 // MUI
 import { PlayArrow as PlayArrowIcon, Pause as PauseIcon } from '@material-ui/icons';
 import { Grid, IconButton, makeStyles } from '@material-ui/core';
+
+// Components & Helpers
+import { VideoPlayerTimeline } from '../VideoPlayerTimeline';
+import { VideoVolumeControls } from '../VideoVolumeControls';
 
 // @ts-ignore
 const useStyles = makeStyles((theme: any) => ({
@@ -85,18 +86,16 @@ const VideoPlayerControls = ({
   // @ts-ignore
   const classes = useStyles();
 
-  const [volumeSlider, openVolumeSlider] = useState(false);
+  const [volumeSlider, openVolumeSlider] = React.useState(false);
   const toggleVolumeSlider = () => {
     openVolumeSlider((value) => !value);
   };
   const ButtonStatus =
     status === 1 ? (
-      //  @ts-ignore
       <IconButton aria-label="pause" onClick={handlePause}>
         <PauseIcon fontSize="large" />
       </IconButton>
     ) : (
-      //  @ts-ignore
       <IconButton aria-label="play" onClick={handlePlay}>
         <PlayArrowIcon fontSize="large" />
       </IconButton>
@@ -104,13 +103,7 @@ const VideoPlayerControls = ({
 
   return (
     <>
-      {/* @ts-ignore */}
-      <Grid
-        container={true}
-        className="Video-Controls"
-        // component={Paper}
-        alignItems="center"
-      >
+      <Grid container={true} className="Video-Controls" alignItems="center">
         <Grid item={true} className="Player-Controls">
           {ButtonStatus}
           {/* <IconButton aria-label="previous">
@@ -126,7 +119,7 @@ const VideoPlayerControls = ({
           onMouseEnter={toggleVolumeSlider}
           onMouseLeave={toggleVolumeSlider}
         >
-          <VolumeControls
+          <VideoVolumeControls
             muted={muted}
             handleMute={handleMute}
             volumeSlider={volumeSlider}
