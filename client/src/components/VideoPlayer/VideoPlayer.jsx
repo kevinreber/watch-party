@@ -1,9 +1,6 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-
-// Components & Helpers
 import { getFormattedTime } from '@helpers';
-
 import { VideoPlayerControls } from './VideoPlayerControls';
 
 // * get-youtube-id: https://www.npmjs.com/package/get-youtube-id
@@ -43,7 +40,6 @@ let player;
 
 // ! NOTE: Avoided using typescript b/c opts passed into YouTube component gives too many errors
 const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
-  // @ts-ignore
   const { roomId } = useParams();
 
   const [playerStatus, setPlayerStatus] = React.useState(-1);
