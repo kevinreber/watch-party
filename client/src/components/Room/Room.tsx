@@ -4,7 +4,7 @@ import { useSnackbar } from 'notistack';
 import { VideoPlayer, AddVideoBar, SideList, PageContainer } from '@components';
 import { isValidYTLink, ifArrayContains, loadYTScript } from '@helpers';
 import { UserContext } from '@context';
-import { useGetWebSocket, useGetUserCount } from '@hooks';
+import { useGetWebSocket, useGetUserCount, useHandleMessages } from '@hooks';
 import { SOCKET_CLIENT_EMITTER, SOCKET_CLIENT_LISTENER } from '@socket-client';
 
 const Room = () => {
@@ -12,9 +12,9 @@ const Room = () => {
 
   const { user } = React.useContext<any>(UserContext);
   const [videos, setVideos] = React.useState<string[] | []>([]);
-  const [messages, setMessages] = React.useState([]);
   const { socket, roomId } = useGetWebSocket(user);
   const { usersCount } = useGetUserCount(socket);
+  const { messages, appendMessage, sendMessage } = useHandleMessages(socket, user);
 
   // Load YT IFrame Player script into html
   React.useEffect(() => {
@@ -61,38 +61,6 @@ const Room = () => {
     socket.emit(SOCKET_CLIENT_EMITTER.videoListEvent, data);
   };
 
-  const sendMessage = (data: any) => {
-    const { content } = data;
-    const messageData = {
-      type: 'chat',
-      content,
-      created_at: new Date().getTime(),
-      username: user,
-    };
-
-    // @ts-ignore
-    setMessages((m) => [...m, messageData]);
-    socket.emit(SOCKET_CLIENT_EMITTER.sendMessage, messageData);
-  };
-
-  const appendMessage = (message: string) => {
-    // @ts-ignore
-    setMessages((m) => [...m, message]);
-  };
-
-  // * Socket Event Listener
-  React.useEffect(() => {
-    if (!socket) return;
-    // @ts-ignore
-    socket.on(SOCKET_CLIENT_LISTENER.receiveMessage, (data) => {
-      // @ts-ignore
-      setMessages((m) => [...m, data]);
-    });
-
-    // @ts-ignore
-    return () => socket.off(SOCKET_CLIENT_LISTENER.receiveMessage);
-  }, [socket]);
-
   // * Socket Event Listener
   React.useEffect(() => {
     if (!socket) return;
@@ -127,7 +95,6 @@ const Room = () => {
       };
 
       // @ts-ignore
-      // setMessages((m) => [...m, message]);
       appendMessage(message);
     });
 
