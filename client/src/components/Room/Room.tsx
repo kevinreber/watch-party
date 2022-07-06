@@ -1,10 +1,8 @@
 import React from 'react';
 import { Box, Grid } from '@mui/material';
 import { VideoPlayer, AddVideoBar, SideList, PageContainer } from '@components';
-import { loadYTScript } from '@helpers';
 import { UserContext } from '@context';
-import { useGetWebSocket, useGetUserCount, useHandleMessages, useHandleVideoList } from '@hooks';
-import { SOCKET_CLIENT_LISTENER } from '@socket-client';
+import { useGetWebSocket, useGetUserCount, useHandleMessages, useHandleVideoList, useLoadYouTubeScript } from '@hooks';
 
 const Room = () => {
   const { user } = React.useContext<any>(UserContext);
@@ -13,38 +11,7 @@ const Room = () => {
   const { messages, appendMessage, sendMessage } = useHandleMessages(socket, user);
   const { videos, addVideoToList, removeVideoFromList } = useHandleVideoList(socket);
 
-  // Load YT IFrame Player script into html
-  React.useEffect(() => {
-    // @ts-ignore
-    if (!window.YT) {
-      // @ts-ignore
-      loadYTScript();
-    }
-  }, []);
-
-  // * Socket Event Listener
-  // * When new user joins chat
-  React.useEffect(() => {
-    if (!socket) return;
-
-    // @ts-ignore
-    socket.on(SOCKET_CLIENT_LISTENER.userUpdated, (data: { type: string; user: string; username: string }) => {
-      const content =
-        data.type === 'user-join' ? `${data.username} has joined` : `${data.user} changed name to ${data.username}`;
-      const message = {
-        type: data.type,
-        content,
-        created_at: new Date().getTime(),
-        username: data.username,
-      };
-
-      // @ts-ignore
-      appendMessage(message);
-    });
-
-    // @ts-ignore
-    return () => socket.off(SOCKET_CLIENT_LISTENER.userUpdated);
-  }, [socket]);
+  useLoadYouTubeScript();
 
   return (
     <PageContainer>

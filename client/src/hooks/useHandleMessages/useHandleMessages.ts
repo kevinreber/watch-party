@@ -63,5 +63,30 @@ export const useHandleMessages = (socket: SocketIOClient.Socket, user: string) =
     return () => socket.off(SOCKET_CLIENT_LISTENER.userUpdated);
   }, [socket]);
 
+  // * Socket Event Listener
+  // * When new user joins chat
+  // @ts-ignore
+  React.useEffect(() => {
+    if (!socket) return;
+
+    // @ts-ignore
+    socket.on(SOCKET_CLIENT_LISTENER.userUpdated, (data: { type: string; user: string; username: string }) => {
+      const content =
+        data.type === 'user-join' ? `${data.username} has joined` : `${data.user} changed name to ${data.username}`;
+      const message = {
+        type: data.type,
+        content,
+        created_at: new Date().getTime(),
+        username: data.username,
+      };
+
+      // @ts-ignore
+      appendMessage(message);
+    });
+
+    // @ts-ignore
+    return () => socket.off(SOCKET_CLIENT_LISTENER.userUpdated);
+  }, [socket]);
+
   return { messages, appendMessage, sendMessage };
 };

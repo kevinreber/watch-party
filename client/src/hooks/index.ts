@@ -6,3 +6,4 @@ export * from './useGetWebSocket';
 export * from './useGetUserCount';
 export * from './useHandleMessages';
 export * from './useHandleVideoList';
+export * from './useLoadYouTubeScript';
