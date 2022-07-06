@@ -1,10 +1,11 @@
 import React from 'react';
 import { Box, Grid } from '@mui/material';
+import { useSnackbar } from 'notistack';
 import { VideoPlayer, AddVideoBar, SideList, PageContainer } from '@components';
 import { isValidYTLink, ifArrayContains, loadYTScript } from '@helpers';
 import { UserContext } from '@context';
 import { useGetWebSocket, useGetUserCount } from '@hooks';
-import { useSnackbar } from 'notistack';
+import { SOCKET_CLIENT_EMITTER, SOCKET_CLIENT_LISTENER } from '@socket-client';
 
 const Room = () => {
   const { enqueueSnackbar } = useSnackbar();
@@ -37,7 +38,7 @@ const Room = () => {
           video,
         };
 
-        socket.emit('video-list-event', data);
+        socket.emit(SOCKET_CLIENT_EMITTER.videoListEvent, data);
         enqueueSnackbar('Video added to Video Queue', { variant: 'success' });
       } else {
         enqueueSnackbar('Video already in Video Queue', { variant: 'warning' });
@@ -57,7 +58,7 @@ const Room = () => {
     };
 
     // emit event
-    socket.emit('video-list-event', data);
+    socket.emit(SOCKET_CLIENT_EMITTER.videoListEvent, data);
   };
 
   const sendMessage = (data: any) => {
@@ -71,8 +72,7 @@ const Room = () => {
 
     // @ts-ignore
     setMessages((m) => [...m, messageData]);
-    // @ts-ignore
-    socket.emit('send-message', messageData);
+    socket.emit(SOCKET_CLIENT_EMITTER.sendMessage, messageData);
   };
 
   const appendMessage = (message: string) => {
@@ -84,20 +84,20 @@ const Room = () => {
   React.useEffect(() => {
     if (!socket) return;
     // @ts-ignore
-    socket.on('receive-message', (data) => {
+    socket.on(SOCKET_CLIENT_LISTENER.receiveMessage, (data) => {
       // @ts-ignore
       setMessages((m) => [...m, data]);
     });
 
     // @ts-ignore
-    return () => socket.off('receive-message');
+    return () => socket.off(SOCKET_CLIENT_LISTENER.receiveMessage);
   }, [socket]);
 
   // * Socket Event Listener
   React.useEffect(() => {
     if (!socket) return;
     // @ts-ignore
-    socket.on('update-video-list', (data) => {
+    socket.on(SOCKET_CLIENT_LISTENER.updateVideoList, (data) => {
       console.log(data);
 
       if (data.type === 'add-video') {
@@ -106,9 +106,8 @@ const Room = () => {
         setVideos(data.videos);
       } else setVideos(data.videos);
     });
-    // @ts-ignore
 
-    return () => socket.off('update-video-list');
+    return () => socket.off(SOCKET_CLIENT_LISTENER.updateVideoList);
   }, [socket]);
 
   // * Socket Event Listener
@@ -117,7 +116,7 @@ const Room = () => {
     if (!socket) return;
 
     // @ts-ignore
-    socket.on('user-updated', (data: { type: string; user: string; username: string }) => {
+    socket.on(SOCKET_CLIENT_LISTENER.userUpdated, (data: { type: string; user: string; username: string }) => {
       const content =
         data.type === 'user-join' ? `${data.username} has joined` : `${data.user} changed name to ${data.username}`;
       const message = {
@@ -131,8 +130,9 @@ const Room = () => {
       // setMessages((m) => [...m, message]);
       appendMessage(message);
     });
+
     // @ts-ignore
-    // return () => socket.off('user-join');
+    return () => socket.off(SOCKET_CLIENT_LISTENER.userUpdated);
   }, [socket]);
 
   return (
