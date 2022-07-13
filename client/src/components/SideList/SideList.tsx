@@ -11,8 +11,6 @@ import './SideList.css';
 interface SideListTypes {
   videos: any;
   removeVideoFromList: any;
-  messages: any;
-  sendMessage: any;
   socket: any;
   usersCount: number;
 }
@@ -20,8 +18,7 @@ interface SideListTypes {
 const SideList = ({
   videos,
   removeVideoFromList,
-  messages,
-  sendMessage,
+
   socket,
   usersCount,
 }: SideListTypes): JSX.Element => {
@@ -40,7 +37,7 @@ const SideList = ({
       {activeList === 'videos' ? (
         <WatchList videos={videos} removeVideo={removeVideoFromList} />
       ) : (
-        <ChatList messages={messages} sendMessage={sendMessage} socket={socket} />
+        <ChatList socket={socket} />
       )}
       <WatchCount usersCount={usersCount} />
     </>

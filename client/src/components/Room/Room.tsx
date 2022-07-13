@@ -8,7 +8,7 @@ const Room = () => {
   const { user } = React.useContext<any>(UserContext);
   const { socket, roomId } = useGetWebSocket(user);
   const { usersCount } = useGetUserCount(socket);
-  const { messages, appendMessage, sendMessage } = useHandleMessages(socket, user);
+  const { appendMessage } = useHandleMessages(socket, user);
   const { videos, addVideoToList, removeVideoFromList } = useHandleVideoList(socket);
 
   useLoadYouTubeScript();
@@ -27,8 +27,6 @@ const Room = () => {
               <SideList
                 videos={videos}
                 removeVideoFromList={removeVideoFromList}
-                messages={messages}
-                sendMessage={sendMessage}
                 socket={socket}
                 usersCount={usersCount}
               />
