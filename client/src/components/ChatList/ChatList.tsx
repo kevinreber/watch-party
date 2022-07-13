@@ -1,20 +1,17 @@
 import React from 'react';
 import moment from 'moment';
-
-// components
-import { MessageFooter, LoginFooter } from '@components';
-
-// Helpers
 import { useParams } from 'react-router-dom';
+import { Picker } from 'emoji-mart';
+import { List, ListItem, ListItemText, TextField, IconButton } from '@material-ui/core';
+import { Send as SendIcon, InsertEmoticon as InsertEmoticonIcon } from '@material-ui/icons';
 
-// MUI
-import { List, ListItem, ListItemText } from '@material-ui/core';
-
+import { LoginFooter } from '@components';
 import { UserContext } from '@context';
+import { useChatList } from '@hooks';
 
 interface ChatListTypes {
   messages: string[];
-  sendMessage: () => void;
+  sendMessage: (message: any) => void;
   socket: any;
 }
 
@@ -23,6 +20,9 @@ const ChatList = ({ messages, sendMessage, socket }: ChatListTypes): JSX.Element
   const { user, setUser } = React.useContext(UserContext);
   // @ts-ignore
   const { roomId } = useParams();
+
+  const { formData, handleChange, handleSubmitMessage, toggleShowEmojis, showEmojis, handleEmoji } =
+    useChatList(sendMessage);
 
   const login = (username: string) => {
     const type = user ? 'username-updated' : 'user-join';
@@ -68,7 +68,25 @@ const ChatList = ({ messages, sendMessage, socket }: ChatListTypes): JSX.Element
         })}
       </List>
       <div className="MessageChat__Footer">
-        <MessageFooter sendMessage={sendMessage} />
+        <form onSubmit={handleSubmitMessage}>
+          <TextField
+            name="content"
+            onChange={handleChange}
+            value={formData.content}
+            type="text"
+            placeholder="Type message here..."
+            size="small"
+            required
+          />
+          {/* @ts-ignore */}
+          <IconButton type="submit" disabled={!formData.content} variant="contained">
+            <SendIcon />
+          </IconButton>
+          <IconButton type="button" onClick={toggleShowEmojis}>
+            <InsertEmoticonIcon />
+          </IconButton>
+          {showEmojis && <Picker onSelect={handleEmoji} native={true} theme="auto" />}
+        </form>
         <LoginFooter login={login} username={user} />
       </div>
     </div>
