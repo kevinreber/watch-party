@@ -30,19 +30,19 @@
 
 // const User = mongoose.model('User', userSchema);
 
-const { ROOMS } = require('./Room');
-const USERS = new Map();
+// const { ROOMS } = require('./Room.js');
+export const USERS = new Map();
 
 /** User is a individual connection from client -> server to chat. */
 
-class User {
-	/** make chat: store connection-device, room */
+export class User {
+  /** make chat: store connection-device, room */
 
-	constructor(socketId, room, username) {
-		this.id = socketId;
-		this.room = room; // room user will be in
-		this.name = username; // becomes the username of the visitor
-	}
+  constructor(socketId, room, username) {
+    this.id = socketId;
+    this.room = room; // room user will be in
+    this.name = username; // becomes the username of the visitor
+  }
 }
 
-module.exports = { USERS, User };
+// module.exports = { USERS, User };

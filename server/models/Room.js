@@ -35,108 +35,108 @@
 
 // const Room = mongoose.model('Room', roomSchema);
 
-const { USERS } = require('./User');
-const ROOMS = new Map();
+import { USERS } from "./User.js";
+export const ROOMS = new Map();
 
 /** Room is a collection of listening members; this becomes a "chat room"
  *   where individual users can join/leave/broadcast to.
  */
 
-class Room {
-	/** get room by that name, creating if nonexistent
-	 *
-	 * This uses a programming pattern often called a "registry" ---
-	 * users of this class only need to .get to find a room; they don't
-	 * need to know about the ROOMS variable that holds the rooms. To
-	 * them, the Room class manages all of this stuff for them.
-	 **/
+export class Room {
+  /** get room by that name, creating if nonexistent
+   *
+   * This uses a programming pattern often called a "registry" ---
+   * users of this class only need to .get to find a room; they don't
+   * need to know about the ROOMS variable that holds the rooms. To
+   * them, the Room class manages all of this stuff for them.
+   **/
 
-	getRoom(roomName) {
-		if (!ROOMS.has(roomName)) {
-			ROOMS.set(roomName, new Room(roomName));
-		}
+  getRoom(roomName) {
+    if (!ROOMS.has(roomName)) {
+      ROOMS.set(roomName, new Room(roomName));
+    }
 
-		return ROOMS.get(roomName);
-	}
+    return ROOMS.get(roomName);
+  }
 
-	/** make a new room, starting with empty set of listeners */
-	constructor(roomName, privateRoom = false) {
-		this.name = roomName;
-		this.private = privateRoom;
-		this.users = new Map();
-		this.videos = [];
-		this.messages = [];
-	}
+  /** make a new room, starting with empty set of listeners */
+  constructor(roomName, privateRoom = false) {
+    this.name = roomName;
+    this.private = privateRoom;
+    this.users = new Map();
+    this.videos = [];
+    this.messages = [];
+  }
 
-	getUser(username) {
-		if (!this.users.has(username)) {
-			throw new Error(`${username} not in room: ${this.name}`);
-		}
+  getUser(username) {
+    if (!this.users.has(username)) {
+      throw new Error(`${username} not in room: ${this.name}`);
+    }
 
-		return this.users.get(username);
-	}
+    return this.users.get(username);
+  }
 
-	/** toggle privacy of room. */
-	toggleRoomPrivacy() {
-		this.private = !this.private;
-	}
+  /** toggle privacy of room. */
+  toggleRoomPrivacy() {
+    this.private = !this.private;
+  }
 
-	/** user joining a room. */
-	join(socketId) {
-		console.log('joining room...');
-		if (this.users.has(socketId)) {
-			throw new Error(
-				`Socket ID: "${socketId}" already exists in room "${this.name}"`
-			);
-		}
-		const USER = USERS.get(socketId);
-		this.users.set(socketId, USER);
-		return this.users;
-	}
+  /** user joining a room. */
+  join(socketId) {
+    console.log("joining room...");
+    if (this.users.has(socketId)) {
+      throw new Error(
+        `Socket ID: "${socketId}" already exists in room "${this.name}"`
+      );
+    }
+    const USER = USERS.get(socketId);
+    this.users.set(socketId, USER);
+    return this.users;
+  }
 
-	/** user leaving a room. */
-	leave(socketId) {
-		if (!this.users.has(socketId)) {
-			throw new Error(
-				`Socket ID: "${socketId}" does not exist in Room: "${this.name}"`
-			);
-		}
-		this.users.delete(socketId); // Remove from Room users set
-		USERS.delete(socketId); // Remove from all USERS set
-		return this.users;
-	}
+  /** user leaving a room. */
+  leave(socketId) {
+    if (!this.users.has(socketId)) {
+      throw new Error(
+        `Socket ID: "${socketId}" does not exist in Room: "${this.name}"`
+      );
+    }
+    this.users.delete(socketId); // Remove from Room users set
+    USERS.delete(socketId); // Remove from all USERS set
+    return this.users;
+  }
 
-	/** add video to videos list. */
-	addVideo(video) {
-		this.videos.push(video);
-	}
+  /** add video to videos list. */
+  addVideo(video) {
+    this.videos.push(video);
+  }
 
-	/** remove video from videos list. */
-	removeVideo(videoId) {
-		const filteredVideos = this.videos.filter((video) => video !== videoId);
-		this.videos = filteredVideos;
-	}
+  /** remove video from videos list. */
+  removeVideo(videoId) {
+    const filteredVideos = this.videos.filter((video) => video !== videoId);
+    this.videos = filteredVideos;
+  }
 
-	/** add message to messages list. */
-	addMessage(message) {
-		this.messages.push(message);
-	}
+  /** add message to messages list. */
+  addMessage(message) {
+    this.messages.push(message);
+  }
 
-	/** remove message from messages list. */
-	removeMessage(messageId) {
-		const filteredMessages = this.messages.filter(
-			(message) => message.id !== messageId
-		);
-		this.messages = filteredMessages;
-	}
+  /** remove message from messages list. */
+  removeMessage(messageId) {
+    const filteredMessages = this.messages.filter(
+      (message) => message.id !== messageId
+    );
+    this.messages = filteredMessages;
+  }
 
-	/** send message to all members in a room. */
+  /** send message to all members in a room. */
 
-	//   broadcast(data) {
-	//     for (let member of this.members) {
-	//       member.send(JSON.stringify(data));
-	//     }
-	//   }
+  //   broadcast(data) {
+  //     for (let member of this.members) {
+  //       member.send(JSON.stringify(data));
+  //     }
+  //   }
 }
 
-module.exports = { ROOMS, Room };
+// module.exports = { ROOMS, Room };

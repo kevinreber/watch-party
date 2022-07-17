@@ -1,29 +1,66 @@
 /** app for watch party */
 
-const config = require("./config");
-const express = require("express");
-const app = express();
-const server = require("http").Server(app);
-const cors = require("cors");
-const io = require("socket.io")(server);
+// const config = require("./config");
+// const express = require("express");
+// const cors = require("cors");
+import express from "express";
+import cors from "cors";
+// import http from "http";
+// import socketIo from "socket.io";
 
-const { searchYoutube } = require("./utils/youtube");
+import { createServer } from "http";
+import { Server } from "socket.io";
+
+const app = express();
+
+export const httpServer = createServer(app);
+const io = new Server(httpServer);
+
+import { searchYoutube } from "./utils/youtube.js";
+
+// const app = express();
+// export const server = http.Server(app);
+// const io = socketIo(server);
+
+// const express = require("express");
+// const app = express();
+// const http = require("http");
+// const { Server } = require("socket.io");
+// const cors = require("cors");
+
+// app.use(cors());
+
+// const server = http.createServer(app);
+
+// const io = new Server(server, {
+//   cors: {
+//     origin: "http://localhost:3000",
+//     methods: ["GET", "POST"],
+//   },
+// });
+
+import { SOCKET_SERVER } from "./constants.js";
+
+const { EVENTS, EMITTER, LISTENER } = SOCKET_SERVER;
 
 // mongo/mongoose
-const Message = require("./models/Message");
-const { Room, ROOMS } = require("./models/Room");
-const { User, USERS } = require("./models/User");
-const mongoose = require("mongoose");
+// const Message = require("./models/Message");
+// const { ROOMS, Room } = require("./models/Room");
+// const { USERS, User } = require("./models/User");
 
-mongoose
-  .connect(config.DB_URI, {
-    useUnifiedTopology: true,
-    useNewUrlParser: true,
-    useCreateIndex: true,
-    useFindAndModify: false,
-  })
-  .then(() => console.log("SUCCESS - Connected to DB"))
-  .catch((err) => console.error("ERROR connecting to DB:", err));
+import { ROOMS, Room } from "./models/Room.js";
+import { USERS, User } from "./models/User.js";
+// const mongoose = require("mongoose");
+
+// mongoose
+//   .connect(config.DB_URI, {
+//     useUnifiedTopology: true,
+//     useNewUrlParser: true,
+//     useCreateIndex: true,
+//     useFindAndModify: false,
+//   })
+//   .then(() => console.log("SUCCESS - Connected to DB"))
+//   .catch((err) => console.error("ERROR connecting to DB:", err));
 
 app.use(express.json());
 app.use(cors());
@@ -51,16 +88,26 @@ app.get("/api/youtube", async (req, res) => {
   }
 });
 
-io.on("connection", (socket) => {
+io.on(EVENTS.CONNECTION, (socket) => {
+  // console.log("CONNECTING TO SOCKET");
+  // console.log(socket);
+  // console.log("CONNECTED TO SOCKET///");
+
   const _id = socket.id;
   let ROOM;
-  socket.on("join-room", (username, room) => {
+  socket.on(LISTENER.JOIN_ROOM, (username, room) => {
+    console.log("CONNECTING TO SOCKET");
+    console.log(socket);
+    console.log(username, room);
+    console.log("CONNECTED TO SOCKET///");
     socket.join(room);
     console.log(`Socket ID:${_id}-"${username}" connected to: Room-${room}`);
-    if (!ROOMS.has(room)) {
-      ROOMS.set(room, new Room(room));
-    }
-    ROOM = ROOMS.get(room);
+    // if (!ROOMS.has(room)) {
+    //   ROOMS.set(room, new Room(room));
+    // }
+    // ROOM = ROOMS.get(room);
+
+    ROOM = Room.get;
 
     // add new user to USERS set
     USERS.set(_id, new User(_id, ROOM, username));
@@ -117,7 +164,7 @@ io.on("connection", (socket) => {
     socket.to(ROOM.name).broadcast.emit("receive-event", data);
   });
 
-  socket.on("video-list-event", (data) => {
+  socket.on(EMITTER.VIDEO_LIST_EVENT, (data) => {
     // data.type : 'add-video' | 'remove-video'
     console.log(data.type, data.video);
 
@@ -143,7 +190,7 @@ io.on("connection", (socket) => {
   });
 
   // Listen to connected users for a new message.
-  socket.on("send-message", (msg) => {
+  socket.on(EMITTER.SEND_MESSAGE, (msg) => {
     console.log(msg);
     ROOM.addMessage(msg);
 
@@ -163,7 +210,7 @@ io.on("connection", (socket) => {
     socket.to(ROOM.name).broadcast.emit("receive-message", msg);
   });
 
-  socket.on("disconnect", () => {
+  socket.on(EVENTS.DISCONNECT, () => {
     const USER = USERS.get(_id);
     // const ROOM = ROOMS.get(USER.room.name);
     console.log("DISCONNECTING-------------------");
@@ -186,4 +233,4 @@ io.on("connection", (socket) => {
   });
 });
 
-module.exports = server;
+// export server;

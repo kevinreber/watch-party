@@ -1,11 +1,14 @@
-require('dotenv').config();
+import dotenv from "dotenv";
+dotenv.config();
+
+// require("dotenv").config();
 
 const defaults = {
-	DB_URI: '', // MongoDB URI
-	YOUTUBE_API_KEY: '', // YouTube API Key
+  DB_URI: "", // MongoDB URI
+  YOUTUBE_API_KEY: "", // YouTube API Key
 };
 
-module.exports = {
-	...defaults,
-	...process.env,
+export default {
+  ...defaults,
+  ...process.env,
 };
