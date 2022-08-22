@@ -2,11 +2,12 @@ import React from 'react';
 import { Box, Grid } from '@mui/material';
 import { VideoPlayer, AddVideoBar, SideList, PageContainer } from '@components';
 import { UserContext } from '@context';
-import { useGetWebSocket, useGetUserCount, useHandleMessages, useHandleVideoList, useLoadYouTubeScript } from '@hooks';
+import { useGetUserCount, useGetWebSocket, useHandleMessages, useHandleVideoList, useLoadYouTubeScript } from '@hooks';
 
 const Room = () => {
   const { user } = React.useContext<any>(UserContext);
-  const { socket, roomId } = useGetWebSocket(user);
+
+  const { socket } = useGetWebSocket(user);
   const { usersCount } = useGetUserCount(socket);
   const { appendMessage } = useHandleMessages(socket, user);
   const { videos, addVideoToList, removeVideoFromList } = useHandleVideoList(socket);

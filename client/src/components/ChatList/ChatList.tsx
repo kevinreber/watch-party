@@ -4,21 +4,22 @@ import { useParams } from 'react-router-dom';
 import { Picker } from 'emoji-mart';
 import { List, ListItem, ListItemText, TextField, IconButton } from '@material-ui/core';
 import { Send as SendIcon, InsertEmoticon as InsertEmoticonIcon } from '@material-ui/icons';
-import { useChatList, useHandleMessages } from '@hooks';
+import { useChatList } from '@hooks';
 import { LoginFooter } from '@components';
 import { UserContext } from '@context';
+import { MessageTypes } from '@types';
 
 interface ChatListTypes {
   socket: any;
+  messages: MessageTypes[];
+  sendMessage: (data: any) => void;
 }
 
-const ChatList = ({ socket }: ChatListTypes): JSX.Element => {
-  // @ts-ignore
-  const { user, setUser } = React.useContext(UserContext);
+const ChatList = ({ socket, messages, sendMessage }: ChatListTypes): JSX.Element => {
   // @ts-ignore
   const { roomId } = useParams();
-
-  const { messages, sendMessage } = useHandleMessages(socket, user);
+  // @ts-ignore
+  const { user, setUser } = React.useContext(UserContext);
 
   const { formData, handleChange, handleSubmitMessage, toggleShowEmojis, showEmojis, handleEmoji } =
     useChatList(sendMessage);
