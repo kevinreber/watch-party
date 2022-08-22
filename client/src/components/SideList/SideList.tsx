@@ -1,10 +1,9 @@
 import React from 'react';
 import { Button } from '@material-ui/core';
+import { UserContext } from '@context';
+import { useHandleMessages } from '@hooks';
 
-// Components
-import WatchList from '../WatchList/WatchList';
-import ChatList from '../ChatList/ChatList';
-import WatchCount from '../WatchCount/WatchCount';
+import { WatchList, ChatList, WatchCount } from '@components';
 
 import './SideList.css';
 
@@ -15,14 +14,12 @@ interface SideListTypes {
   usersCount: number;
 }
 
-const SideList = ({
-  videos,
-  removeVideoFromList,
+const SideList = ({ videos, removeVideoFromList, socket, usersCount }: SideListTypes): JSX.Element => {
+  // @ts-ignore
+  const { user } = React.useContext(UserContext);
 
-  socket,
-  usersCount,
-}: SideListTypes): JSX.Element => {
   const [activeList, setActiveList] = React.useState('videos');
+  const { messages, sendMessage } = useHandleMessages(socket, user);
 
   const toggleActiveList = (active: string) => {
     setActiveList(active);
@@ -37,7 +34,7 @@ const SideList = ({
       {activeList === 'videos' ? (
         <WatchList videos={videos} removeVideo={removeVideoFromList} />
       ) : (
-        <ChatList socket={socket} />
+        <ChatList socket={socket} messages={messages} sendMessage={sendMessage} />
       )}
       <WatchCount usersCount={usersCount} />
     </>

@@ -9,6 +9,7 @@ module.exports = override(
     '@hooks': path.resolve(__dirname, 'src/hooks'),
     '@api': path.resolve(__dirname, 'src/api'),
     '@context': path.resolve(__dirname, 'src/context'),
+    '@types': path.resolve(__dirname, 'src/types'),
     '@socket-client': path.resolve(__dirname, 'src/socket-client'),
   }),
 );

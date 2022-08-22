@@ -6,6 +6,7 @@ import { AddToQueue } from '@material-ui/icons';
 import { useSnackbar } from 'notistack';
 import { useDebounce, useGetSearchForYoutubeVideos } from '@hooks';
 import { OptionsList } from '@components';
+import { VideoTypes } from '@types';
 import './AddVideoBar.css';
 
 // ! TEMP: For testing
@@ -28,16 +29,8 @@ const VIDEO_INITIAL_STATE = {
   img: '',
 };
 
-interface VideoTypes {
-  videoId: string;
-  channel: string;
-  description: string;
-  url: string;
-  name: string;
-  img: string;
-}
 interface BarTypes {
-  addVideoToList: any;
+  addVideoToList: (video: VideoTypes) => void;
 }
 
 const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
