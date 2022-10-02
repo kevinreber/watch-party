@@ -1,39 +1,3 @@
-// const mongoose = require('mongoose');
-// const Schema = mongoose.Schema;
-// const opts = require('./options');
-
-// const roomSchema = new Schema(
-// 	{
-// 		name: {
-// 			type: String,
-// 			lowercase: true,
-// 			required: [true, "can't be blank"],
-// 			match: [/^[a-zA-Z0-9]+$/, 'is invalid'],
-// 			index: true,
-// 		},
-// 		owner_id: {
-// 			type: mongoose.Schema.Types.ObjectId,
-// 			ref: 'User',
-// 		},
-// 		admins: [{ type: String, ref: 'User' }],
-// 		users: [{ type: String, ref: 'User' }],
-// 		messages: [
-// 			{
-// 				content: { type: String, required: true },
-// 				username: { type: String, required: true },
-// 				user_id: {
-// 					type: mongoose.Schema.Types.ObjectId,
-// 					ref: 'User',
-// 					required: true,
-// 				},
-// 				created_at: { type: String, required: true },
-// 			},
-// 		],
-// 	},
-// 	opts
-// );
-
-// const Room = mongoose.model('Room', roomSchema);
 import { getNowDateAsUTC } from "../utils/index.js";
 import { SOCKET_SERVER } from "../constants.js";
 const { EVENTS, EMITTER, LISTENER } = SOCKET_SERVER;
@@ -48,6 +12,8 @@ const { EVENTS, EMITTER, LISTENER } = SOCKET_SERVER;
 /**
  * Room is a collection of listening members; this becomes a "chat room"
  * where individual users can join/leave/broadcast to.
+ *
+ * Socket.io emit cheetsheet: https://socket.io/docs/v4/emit-cheatsheet/
  */
 
 export class Room {
@@ -62,28 +28,29 @@ export class Room {
     this.messages = [];
 
     // io.of(this.roomName).on(EVENTS.CONNECTION, (socket) => {
-    socket.on("ROOM:user-join-room", (data) => this.joinRoom(socket, data));
-    socket.on("disconnect", () => this.disconnect(socket));
+    socket.on("ROOM:user-join-room", (data) => this.joinRoom(data));
+    socket.on("disconnect", () => this.disconnect());
     socket.on("MSG:user-is-typing", (data) => this.userIsTyping(data));
     socket.on("MSG:no-user-is-typing", () => this.noUserIsTyping());
-    socket.on(EMITTER.SEND_MESSAGE, (message) =>
-      this.sendMessage(message, socket)
-    );
+    socket.on(EMITTER.SEND_MESSAGE, (message) => this.sendMessage(message));
     socket.on("connect_error", (error) => {
       console.error(`connect_error due to ${error.message}`);
     });
     // });
   }
 
-  sendMessage(message, socket) {
+  getClientCount() {
+    return this.io.engine.clientsCount;
+  }
+
+  sendMessage(message) {
     {
       console.log(message);
       this.addMessage(message);
 
       // Notify all other users about a new message.
-      // socket.broadcast.emit('receive-message', msg);
       // socket.to(this.roomId).broadcast.emit("receive-message", message);
-      socket.emit(`MSG:receive-message`, message);
+      this.socket.broadcast.emit(`MSG:receive-message`, message);
     }
   }
 
@@ -101,10 +68,13 @@ export class Room {
   }
 
   /** user joining a room. */
-  joinRoom(socket, data) {
+  joinRoom(data) {
     console.log("****** JOINING ROOM ******");
-    const socketId = socket.id;
+    const socketId = this.socket.id;
     const { username } = data;
+
+    // https://socket.io/docs/v4/server-socket-instance/#socketdata
+    this.socket.data.username = username;
 
     if (this.users.has(socketId)) {
       console.error(
@@ -113,7 +83,7 @@ export class Room {
     }
 
     // Add user to `users` Map
-    this.users.set(socketId, username);
+    // this.users.set(socketId, username);
 
     const nowDateUTC = getNowDateAsUTC();
     const content = `${username} has joined the room`;
@@ -125,26 +95,34 @@ export class Room {
       username,
     };
 
-    const videos = {
-      type: "get-current-video-list",
-      videos: this.videos,
-    };
+    const count = this.io.engine.clientsCount;
+    console.log("CLIENT COUNT ", count);
 
-    socket.emit(`MSG:receive-message`, message);
+    // TODO
+    // const videos = {
+    //   type: "get-current-video-list",
+    //   videos: this.videos,
+    // };
+
+    // this.io.sockets.emit(`MSG:receive-message`, message); <----- This also works
+    this.socket.broadcast.emit(`MSG:receive-message`, message);
 
     // get current videos list
     // io.to(socketId).emit(LISTENER.UPDATE_VIDEO_LIST, videos);
-    socket.emit(LISTENER.UPDATE_VIDEO_LIST, videos);
+    // TODO
+    // this.socket.emit(LISTENER.UPDATE_VIDEO_LIST, videos);
 
     // update room size
     // io.in(this.roomId).emit(LISTENER.UPDATE_USER_COUNT, this.users.size);
-    socket.emit(LISTENER.UPDATE_USER_COUNT, this.users.size);
+    // TODO
+    const userCount = this.getClientCount();
+    this.socket.broadcast.emit(LISTENER.UPDATE_USER_COUNT, userCount);
   }
 
   /** user leaving a room. */
-  disconnect(socket) {
+  disconnect() {
     console.log("DISCONNECTING-------------------");
-    const socketId = socket.id;
+    const socketId = this.socket.id;
     // To avoid edge case where all a user loses their websocket connection and
     // tries to refresh their browser. Their socket will be undefined and not exist in USERS.
     if (this.users.has(socketId)) {
@@ -162,11 +140,13 @@ export class Room {
       console.log(serverMsg);
 
       this.users.delete(socketId);
-      socket.to(this.roomId).emit("receive-message", message);
+      // this.socket.to(this.roomId).emit("receive-message", message);
+      this.socket.broadcast.emit("receive-message", message);
     }
     // update room size
     // io.in(this.roomId).emit(LISTENER.UPDATE_USER_COUNT, this.users.size);
-    socket.emit(LISTENER.UPDATE_USER_COUNT, this.users.size);
+    const userCount = this.getClientCount();
+    this.socket.broadcast.emit(LISTENER.UPDATE_USER_COUNT, userCount);
   }
 
   /** add video to videos list. */
@@ -195,15 +175,14 @@ export class Room {
 
   userIsTyping(data) {
     // TODO: Handle if multiple users in a room are typing vs only two users in a room
-    const message = `${data.username} is typing a message...`;
+    const { username } = this.socket.data;
+    const message = `${username} is typing a message...`;
 
-    data.message = message;
-    // socket.to(this.roomId).broadcast.emit("typing", data);
-    socket.emit("MSG:user-is-typing", data);
+    this.socket.broadcast.emit("MSG:user-is-typing", message);
   }
 
   noUserIsTyping() {
     // socket.to(this.roomId).broadcast.emit("typing", data);
-    socket.emit("MSG:no-user-is-typing", data);
+    this.socket.broadcast.emit("MSG:no-user-is-typing");
   }
 }

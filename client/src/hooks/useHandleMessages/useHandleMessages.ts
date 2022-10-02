@@ -5,6 +5,7 @@ import { MessageTypes } from '@types';
 export const useHandleMessages = (socket: SocketIOClient.Socket, user: string) => {
   const [messages, setMessages] = React.useState([]);
   const [userIsTyping, setIsUserTyping] = React.useState(false);
+  const [isTypingMessage, setIsTypingMessage] = React.useState('');
 
   const sendMessage = (data: any) => {
     const { content } = data;
@@ -47,10 +48,9 @@ export const useHandleMessages = (socket: SocketIOClient.Socket, user: string) =
   React.useEffect(() => {
     if (!socket) return;
 
-    const userIsTyping = (data: MessageTypes) => {
+    const userIsTyping = (userTypingMessage: string) => {
       setIsUserTyping(true);
-      // @ts-ignore
-      setMessages((state) => [...state, data]);
+      setIsTypingMessage(userTypingMessage);
     };
 
     socket.on(`MSG:user-is-typing`, userIsTyping);
@@ -73,5 +73,5 @@ export const useHandleMessages = (socket: SocketIOClient.Socket, user: string) =
     return () => socket.off(`MSG:no-user-is-typing`, noUserIsTyping);
   }, [socket]);
 
-  return { messages, appendMessage, sendMessage, userIsTyping };
+  return { messages, appendMessage, sendMessage, userIsTyping, isTypingMessage };
 };

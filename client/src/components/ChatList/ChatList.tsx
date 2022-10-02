@@ -13,16 +13,20 @@ interface ChatListTypes {
   socket: any;
   messages: MessageTypes[];
   sendMessage: (data: any) => void;
+  userIsTyping: boolean;
+  isTypingMessage: string;
 }
 
-const ChatList = ({ socket, messages, sendMessage }: ChatListTypes): JSX.Element => {
+const ChatList = ({ socket, messages, sendMessage, userIsTyping, isTypingMessage }: ChatListTypes): JSX.Element => {
   // @ts-ignore
   const { roomId } = useParams();
   // @ts-ignore
   const { user, setUser } = React.useContext(UserContext);
 
-  const { formData, handleChange, handleSubmitMessage, toggleShowEmojis, showEmojis, handleEmoji } =
-    useChatList(sendMessage);
+  const { formData, handleChange, handleSubmitMessage, toggleShowEmojis, showEmojis, handleEmoji } = useChatList(
+    sendMessage,
+    socket,
+  );
 
   const login = (username: string) => {
     const type = user ? 'username-updated' : 'user-join';
@@ -87,6 +91,10 @@ const ChatList = ({ socket, messages, sendMessage }: ChatListTypes): JSX.Element
           </IconButton>
           {showEmojis && <Picker onSelect={handleEmoji} native={true} theme="auto" />}
         </form>
+        <div style={{ width: '100%', margin: '0', fontSize: '14px', fontStyle: 'italic', fontWeight: '300' }}>
+          {userIsTyping && <p>{isTypingMessage}</p>}
+        </div>
+
         <LoginFooter login={login} username={user} />
       </div>
     </div>

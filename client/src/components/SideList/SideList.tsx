@@ -19,7 +19,7 @@ const SideList = ({ videos, removeVideoFromList, socket, usersCount }: SideListT
   const { user } = React.useContext(UserContext);
 
   const [activeList, setActiveList] = React.useState('videos');
-  const { messages, sendMessage } = useHandleMessages(socket, user);
+  const { messages, sendMessage, userIsTyping, isTypingMessage } = useHandleMessages(socket, user);
 
   const toggleActiveList = (active: string) => {
     setActiveList(active);
@@ -34,7 +34,13 @@ const SideList = ({ videos, removeVideoFromList, socket, usersCount }: SideListT
       {activeList === 'videos' ? (
         <WatchList videos={videos} removeVideo={removeVideoFromList} />
       ) : (
-        <ChatList socket={socket} messages={messages} sendMessage={sendMessage} />
+        <ChatList
+          socket={socket}
+          messages={messages}
+          sendMessage={sendMessage}
+          userIsTyping={userIsTyping}
+          isTypingMessage={isTypingMessage}
+        />
       )}
       <WatchCount usersCount={usersCount} />
     </>

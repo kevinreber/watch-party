@@ -8,18 +8,29 @@ const isValid = (data: string) => {
   return data && data.trim() !== '';
 };
 
-const useChatList = (sendMessage: (message: any) => void) => {
+const useChatList = (sendMessage: (message: any) => void, socket: any) => {
   const [formData, setFormData] = React.useState(INITIAL_STATE);
   const [showEmojis, setShowEmojis] = React.useState(false);
 
   /** Update state in formData */
   const handleChange = (e: any) => {
+    socket.emit('MSG:user-is-typing');
+
     const { name, value } = e.target;
 
     setFormData((fData: any) => ({
       ...fData,
       [name]: value,
     }));
+
+    setTimeout(() => {
+      socket.emit('MSG:no-user-is-typing');
+
+      return () => {
+        socket.off('MSG:user-is-typing');
+        socket.off('MSG:no-user-is-typing');
+      };
+    }, 1500);
   };
 
   const handleSubmitMessage = (e: React.FormEvent): void => {
