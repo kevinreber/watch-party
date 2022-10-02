@@ -1,142 +1,191 @@
-// const mongoose = require('mongoose');
-// const Schema = mongoose.Schema;
-// const opts = require('./options');
+import { getNowDateAsUTC } from "../utils/index.js";
+import { SOCKET_SERVER } from "../constants.js";
+const { EVENTS, EMITTER, LISTENER } = SOCKET_SERVER;
 
-// const roomSchema = new Schema(
-// 	{
-// 		name: {
-// 			type: String,
-// 			lowercase: true,
-// 			required: [true, "can't be blank"],
-// 			match: [/^[a-zA-Z0-9]+$/, 'is invalid'],
-// 			index: true,
-// 		},
-// 		owner_id: {
-// 			type: mongoose.Schema.Types.ObjectId,
-// 			ref: 'User',
-// 		},
-// 		admins: [{ type: String, ref: 'User' }],
-// 		users: [{ type: String, ref: 'User' }],
-// 		messages: [
-// 			{
-// 				content: { type: String, required: true },
-// 				username: { type: String, required: true },
-// 				user_id: {
-// 					type: mongoose.Schema.Types.ObjectId,
-// 					ref: 'User',
-// 					required: true,
-// 				},
-// 				created_at: { type: String, required: true },
-// 			},
-// 		],
-// 	},
-// 	opts
-// );
+/* Separate socket listeners/emitters to
+- Player Commands
+- Videos
+- Messages
+- Room
+*/
 
-// const Room = mongoose.model('Room', roomSchema);
-
-const { USERS } = require('./User');
-const ROOMS = new Map();
-
-/** Room is a collection of listening members; this becomes a "chat room"
- *   where individual users can join/leave/broadcast to.
+/**
+ * Room is a collection of listening members; this becomes a "chat room"
+ * where individual users can join/leave/broadcast to.
+ *
+ * Socket.io emit cheetsheet: https://socket.io/docs/v4/emit-cheatsheet/
+ *
+ * This file was created based off a similar pattern shown here:
+ * https://developer.okta.com/blog/2021/07/14/socket-io-react-tutorial
  */
 
-class Room {
-	/** get room by that name, creating if nonexistent
-	 *
-	 * This uses a programming pattern often called a "registry" ---
-	 * users of this class only need to .get to find a room; they don't
-	 * need to know about the ROOMS variable that holds the rooms. To
-	 * them, the Room class manages all of this stuff for them.
-	 **/
+export class Room {
+  /** make a new room, starting with empty set of listeners */
+  constructor(io, socket, roomId = "TESTING", privateRoom = false) {
+    this.io = io;
+    this.socket = socket;
+    this.roomName = roomId;
+    this.private = privateRoom;
+    this.users = new Map();
+    this.videos = [];
+    this.messages = [];
 
-	getRoom(roomName) {
-		if (!ROOMS.has(roomName)) {
-			ROOMS.set(roomName, new Room(roomName));
-		}
+    // io.of(this.roomName).on(EVENTS.CONNECTION, (socket) => {
+    socket.on("ROOM:user-join-room", (data) => this.joinRoom(data));
+    socket.on("disconnect", () => this.disconnect());
+    socket.on("MSG:user-is-typing", (data) => this.userIsTyping(data));
+    socket.on("MSG:no-user-is-typing", () => this.noUserIsTyping());
+    socket.on(EMITTER.SEND_MESSAGE, (message) => this.sendMessage(message));
+    socket.on("connect_error", (error) => {
+      console.error(`connect_error due to ${error.message}`);
+    });
+    // });
+  }
 
-		return ROOMS.get(roomName);
-	}
+  getClientCount() {
+    return this.io.engine.clientsCount;
+  }
 
-	/** make a new room, starting with empty set of listeners */
-	constructor(roomName, privateRoom = false) {
-		this.name = roomName;
-		this.private = privateRoom;
-		this.users = new Map();
-		this.videos = [];
-		this.messages = [];
-	}
+  sendMessage(message) {
+    {
+      console.log(message);
+      this.addMessage(message);
 
-	getUser(username) {
-		if (!this.users.has(username)) {
-			throw new Error(`${username} not in room: ${this.name}`);
-		}
+      // Notify all other users about a new message.
+      // socket.to(this.roomId).broadcast.emit("receive-message", message);
+      this.socket.broadcast.emit(`MSG:receive-message`, message);
+    }
+  }
 
-		return this.users.get(username);
-	}
+  getUser(userId) {
+    if (!this.users.has(userId)) {
+      throw new Error(`${userId} not in room: ${this.roomName}`);
+    }
 
-	/** toggle privacy of room. */
-	toggleRoomPrivacy() {
-		this.private = !this.private;
-	}
+    return this.users.get(userId);
+  }
 
-	/** user joining a room. */
-	join(socketId) {
-		console.log('joining room...');
-		if (this.users.has(socketId)) {
-			throw new Error(
-				`Socket ID: "${socketId}" already exists in room "${this.name}"`
-			);
-		}
-		const USER = USERS.get(socketId);
-		this.users.set(socketId, USER);
-		return this.users;
-	}
+  /** toggle privacy of room. */
+  toggleRoomPrivacy() {
+    this.private = !this.private;
+  }
 
-	/** user leaving a room. */
-	leave(socketId) {
-		if (!this.users.has(socketId)) {
-			throw new Error(
-				`Socket ID: "${socketId}" does not exist in Room: "${this.name}"`
-			);
-		}
-		this.users.delete(socketId); // Remove from Room users set
-		USERS.delete(socketId); // Remove from all USERS set
-		return this.users;
-	}
+  /** user joining a room. */
+  joinRoom(data) {
+    console.log("****** JOINING ROOM ******");
+    const socketId = this.socket.id;
+    const { username } = data;
 
-	/** add video to videos list. */
-	addVideo(video) {
-		this.videos.push(video);
-	}
+    // https://socket.io/docs/v4/server-socket-instance/#socketdata
+    this.socket.data.username = username;
 
-	/** remove video from videos list. */
-	removeVideo(videoId) {
-		const filteredVideos = this.videos.filter((video) => video !== videoId);
-		this.videos = filteredVideos;
-	}
+    if (this.users.has(socketId)) {
+      console.error(
+        `Socket ID: "${socketId}" already exists in room "${this.roomName}"`
+      );
+    }
 
-	/** add message to messages list. */
-	addMessage(message) {
-		this.messages.push(message);
-	}
+    // Add user to `users` Map
+    // this.users.set(socketId, username);
 
-	/** remove message from messages list. */
-	removeMessage(messageId) {
-		const filteredMessages = this.messages.filter(
-			(message) => message.id !== messageId
-		);
-		this.messages = filteredMessages;
-	}
+    const nowDateUTC = getNowDateAsUTC();
+    const content = `${username} has joined the room`;
+    const message = {
+      type: "admin",
+      content,
+      created_at: nowDateUTC,
+      userId: socketId,
+      username,
+    };
 
-	/** send message to all members in a room. */
+    const count = this.io.engine.clientsCount;
+    console.log("CLIENT COUNT ", count);
 
-	//   broadcast(data) {
-	//     for (let member of this.members) {
-	//       member.send(JSON.stringify(data));
-	//     }
-	//   }
+    // TODO
+    // const videos = {
+    //   type: "get-current-video-list",
+    //   videos: this.videos,
+    // };
+
+    // this.io.sockets.emit(`MSG:receive-message`, message); <----- This also works
+    this.socket.broadcast.emit(`MSG:receive-message`, message);
+
+    // get current videos list
+    // io.to(socketId).emit(LISTENER.UPDATE_VIDEO_LIST, videos);
+    // TODO
+    // this.socket.emit(LISTENER.UPDATE_VIDEO_LIST, videos);
+
+    // update room size
+    // io.in(this.roomId).emit(LISTENER.UPDATE_USER_COUNT, this.users.size);
+    // TODO
+    const userCount = this.getClientCount();
+    this.socket.broadcast.emit(LISTENER.UPDATE_USER_COUNT, userCount);
+  }
+
+  /** user leaving a room. */
+  disconnect() {
+    console.log("DISCONNECTING-------------------");
+    const socketId = this.socket.id;
+    // To avoid edge case where all a user loses their websocket connection and
+    // tries to refresh their browser. Their socket will be undefined and not exist in USERS.
+    if (this.users.has(socketId)) {
+      const username = this.users.get(socketId);
+      const serverMsg = `SOCKET ID: ${socket}-${username} disconnected from and Room: ${this.roomId}`;
+      const nowDateUTC = getNowDateAsUTC();
+      const content = `${username} has left the room`;
+      const message = {
+        type: "admin",
+        content,
+        created_at: nowDateUTC,
+        username: "admin",
+      };
+
+      console.log(serverMsg);
+
+      this.users.delete(socketId);
+      // this.socket.to(this.roomId).emit("receive-message", message);
+      this.socket.broadcast.emit("receive-message", message);
+    }
+    // update room size
+    // io.in(this.roomId).emit(LISTENER.UPDATE_USER_COUNT, this.users.size);
+    const userCount = this.getClientCount();
+    this.socket.broadcast.emit(LISTENER.UPDATE_USER_COUNT, userCount);
+  }
+
+  /** add video to videos list. */
+  addVideo(video) {
+    this.videos.push(video);
+  }
+
+  /** remove video from videos list. */
+  removeVideo(videoId) {
+    const filteredVideos = this.videos.filter((video) => video !== videoId);
+    this.videos = filteredVideos;
+  }
+
+  /** add message to messages list. */
+  addMessage(message) {
+    this.messages.push(message);
+  }
+
+  /** remove message from messages list. */
+  removeMessage(messageId) {
+    const filteredMessages = this.messages.filter(
+      (message) => message.id !== messageId
+    );
+    this.messages = filteredMessages;
+  }
+
+  userIsTyping(data) {
+    // TODO: Handle if multiple users in a room are typing vs only two users in a room
+    const { username } = this.socket.data;
+    const message = `${username} is typing a message...`;
+
+    this.socket.broadcast.emit("MSG:user-is-typing", message);
+  }
+
+  noUserIsTyping() {
+    // socket.to(this.roomId).broadcast.emit("typing", data);
+    this.socket.broadcast.emit("MSG:no-user-is-typing");
+  }
 }
-
-module.exports = { ROOMS, Room };

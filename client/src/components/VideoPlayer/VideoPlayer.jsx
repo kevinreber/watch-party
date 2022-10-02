@@ -1,6 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { getFormattedTime } from '@helpers';
+import { VideoFrame } from './VideoFrame';
 import { VideoPlayerControls } from './VideoPlayerControls';
 
 // * get-youtube-id: https://www.npmjs.com/package/get-youtube-id
@@ -50,6 +51,9 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
   });
   const [volumeLevel, setVolumeLevel] = React.useState(100);
   const [muted, setIsMuted] = React.useState(false);
+
+  // Placeholder when 'seekTo' is called
+  const [seekToTime, setSeekToTime] = React.useState(0);
 
   // Create player
   const loadVideo = (videoId) => {
@@ -176,6 +180,8 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
       const remainingTime = duration - newTime;
 
       player.seekTo(newTime);
+      console.log('NEW TIME: ', newTime);
+      setSeekToTime(newTime);
       console.log(value, player.getCurrentTime());
 
       setPlayerTimeline(value);
@@ -272,9 +278,15 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
 
   return (
     <div id="primary">
-      <div id="player">
-        <h3>No Video Found</h3>
-      </div>
+      <div id="player" style={{ background: 'red', width: '100%' }} />
+      <VideoFrame
+        curVideo={curVideo}
+        socket={socket}
+        addMessage={addMessage}
+        username={username}
+        status={playerStatus}
+        seekToTime={seekToTime}
+      />
       <VideoPlayerControls
         status={playerStatus}
         muted={muted}

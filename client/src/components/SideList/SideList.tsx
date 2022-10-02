@@ -1,31 +1,25 @@
 import React from 'react';
 import { Button } from '@material-ui/core';
+import { UserContext } from '@context';
+import { useHandleMessages } from '@hooks';
 
-// Components
-import WatchList from '../WatchList/WatchList';
-import ChatList from '../ChatList/ChatList';
-import WatchCount from '../WatchCount/WatchCount';
+import { WatchList, ChatList, WatchCount } from '@components';
 
 import './SideList.css';
 
 interface SideListTypes {
   videos: any;
   removeVideoFromList: any;
-  messages: any;
-  sendMessage: any;
   socket: any;
   usersCount: number;
 }
 
-const SideList = ({
-  videos,
-  removeVideoFromList,
-  messages,
-  sendMessage,
-  socket,
-  usersCount,
-}: SideListTypes): JSX.Element => {
+const SideList = ({ videos, removeVideoFromList, socket, usersCount }: SideListTypes): JSX.Element => {
+  // @ts-ignore
+  const { user } = React.useContext(UserContext);
+
   const [activeList, setActiveList] = React.useState('videos');
+  const { messages, sendMessage, userIsTyping, isTypingMessage } = useHandleMessages(socket, user);
 
   const toggleActiveList = (active: string) => {
     setActiveList(active);
@@ -40,7 +34,13 @@ const SideList = ({
       {activeList === 'videos' ? (
         <WatchList videos={videos} removeVideo={removeVideoFromList} />
       ) : (
-        <ChatList messages={messages} sendMessage={sendMessage} socket={socket} />
+        <ChatList
+          socket={socket}
+          messages={messages}
+          sendMessage={sendMessage}
+          userIsTyping={userIsTyping}
+          isTypingMessage={isTypingMessage}
+        />
       )}
       <WatchCount usersCount={usersCount} />
     </>

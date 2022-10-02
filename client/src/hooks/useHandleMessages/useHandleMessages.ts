@@ -1,8 +1,11 @@
 import React from 'react';
-import { SOCKET_CLIENT_EMITTER, SOCKET_CLIENT_LISTENER } from '@socket-client';
+import { SOCKET_CLIENT_EMITTER } from '@socket-client';
+import { MessageTypes } from '@types';
 
 export const useHandleMessages = (socket: SocketIOClient.Socket, user: string) => {
   const [messages, setMessages] = React.useState([]);
+  const [userIsTyping, setIsUserTyping] = React.useState(false);
+  const [isTypingMessage, setIsTypingMessage] = React.useState('');
 
   const sendMessage = (data: any) => {
     const { content } = data;
@@ -24,69 +27,51 @@ export const useHandleMessages = (socket: SocketIOClient.Socket, user: string) =
   };
 
   // * Socket Event Listener
-  // @ts-ignore
-  React.useEffect(() => {
-    if (!socket) return;
-    // @ts-ignore
-    socket.on(SOCKET_CLIENT_LISTENER.receiveMessage, (data) => {
-      // @ts-ignore
-      setMessages((m) => [...m, data]);
-    });
-
-    // @ts-ignore
-    return () => socket.off(SOCKET_CLIENT_LISTENER.receiveMessage);
-  }, [socket]);
-
-  // * Socket Event Listener
   // * When new user joins chat
   // @ts-ignore
   React.useEffect(() => {
     if (!socket) return;
 
-    // @ts-ignore
-    socket.on(SOCKET_CLIENT_LISTENER.userUpdated, (data: { type: string; user: string; username: string }) => {
-      const content =
-        data.type === 'user-join' ? `${data.username} has joined` : `${data.user} changed name to ${data.username}`;
-      const message = {
-        type: data.type,
-        content,
-        created_at: new Date().getTime(),
-        username: data.username,
-      };
-
+    const receiveMessageListener = (data: MessageTypes) => {
       // @ts-ignore
-      // setMessages((m) => [...m, message]);
-      appendMessage(message);
-    });
+      setMessages((state) => [...state, data]);
+    };
 
-    // @ts-ignore
-    return () => socket.off(SOCKET_CLIENT_LISTENER.userUpdated);
+    socket.on(`MSG:receive-message`, receiveMessageListener);
+
+    return () => socket.off(`MSG:receive-message`, receiveMessageListener);
   }, [socket]);
 
   // * Socket Event Listener
-  // * When new user joins chat
+  // * When user is typing
   // @ts-ignore
   React.useEffect(() => {
     if (!socket) return;
 
-    // @ts-ignore
-    socket.on(SOCKET_CLIENT_LISTENER.userUpdated, (data: { type: string; user: string; username: string }) => {
-      const content =
-        data.type === 'user-join' ? `${data.username} has joined` : `${data.user} changed name to ${data.username}`;
-      const message = {
-        type: data.type,
-        content,
-        created_at: new Date().getTime(),
-        username: data.username,
-      };
+    const userIsTyping = (userTypingMessage: string) => {
+      setIsUserTyping(true);
+      setIsTypingMessage(userTypingMessage);
+    };
 
-      // @ts-ignore
-      appendMessage(message);
-    });
+    socket.on(`MSG:user-is-typing`, userIsTyping);
 
-    // @ts-ignore
-    return () => socket.off(SOCKET_CLIENT_LISTENER.userUpdated);
+    return () => socket.off(`MSG:user-is-typing`, userIsTyping);
   }, [socket]);
 
-  return { messages, appendMessage, sendMessage };
+  // * Socket Event Listener
+  // * When user is typing
+  // @ts-ignore
+  React.useEffect(() => {
+    if (!socket) return;
+
+    const noUserIsTyping = () => {
+      setIsUserTyping(false);
+    };
+
+    socket.on(`MSG:no-user-is-typing`, noUserIsTyping);
+
+    return () => socket.off(`MSG:no-user-is-typing`, noUserIsTyping);
+  }, [socket]);
+
+  return { messages, appendMessage, sendMessage, userIsTyping, isTypingMessage };
 };

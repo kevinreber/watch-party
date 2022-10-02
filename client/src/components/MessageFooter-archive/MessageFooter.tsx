@@ -1,13 +1,9 @@
-// dependencies
 import React from 'react';
 import { Picker } from 'emoji-mart';
 import 'emoji-mart/css/emoji-mart.css';
-
-/** MUI */
 import IconButton from '@material-ui/core/IconButton';
 import { TextField } from '@mui/material';
 import { Send as SendIcon, InsertEmoticon as InsertEmoticonIcon } from '@material-ui/icons';
-
 import { useFields } from '@hooks';
 
 const INITIAL_STATE = {
@@ -21,6 +17,13 @@ const isValid = (data: string) => {
 interface MessageTypes {
   sendMessage: any;
 }
+
+/**
+ *
+ * ! This file is deprecated and not being used in our codebase.
+ * ! It is just to be used for reference
+ *
+ */
 
 const MessageFooter = ({ sendMessage }: MessageTypes): JSX.Element => {
   const [formData, handleChange, resetFormData] = useFields(INITIAL_STATE);
