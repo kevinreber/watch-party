@@ -41,7 +41,7 @@ const ChatList = ({ messages, sendMessage, socket }: ChatListTypes): JSX.Element
   };
 
   /** Scroll to Bottom of Chat */
-  const setRef = React.useCallback((node): void => {
+  const setRef = React.useCallback((node: any): void => {
     if (node) {
       node.scrollIntoView({ smooth: true });
     }

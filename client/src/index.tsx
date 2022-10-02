@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { createWebStoragePersister } from 'react-query/createWebStoragePersister';
 import { persistQueryClient } from 'react-query/persistQueryClient';
@@ -67,11 +66,9 @@ persistQueryClient({
 
 ReactDOM.render(
   <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <React.StrictMode>
-        <App />
-      </React.StrictMode>
-    </BrowserRouter>
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
     {process.env.NODE_ENV === 'development' && (
       <React.Suspense fallback={null}>
         <ReactQueryDevTools position="bottom-right" />
