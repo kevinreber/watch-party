@@ -75,9 +75,10 @@
 
 - https://www.npmjs.com/package/emoji-mart (Emojis)
 
-#### YT Player Package
+#### YT Player & React Player Packages
 
 - https://github.com/BTMPL/react-yt
+- https://cookpete.com/react-player/
 
 #### App Ideas
 

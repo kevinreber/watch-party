@@ -14,6 +14,9 @@ const { EVENTS, EMITTER, LISTENER } = SOCKET_SERVER;
  * where individual users can join/leave/broadcast to.
  *
  * Socket.io emit cheetsheet: https://socket.io/docs/v4/emit-cheatsheet/
+ *
+ * This file was created based off a similar pattern shown here:
+ * https://developer.okta.com/blog/2021/07/14/socket-io-react-tutorial
  */
 
 export class Room {
