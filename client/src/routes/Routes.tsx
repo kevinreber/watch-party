@@ -4,7 +4,7 @@ import React from 'react';
 import { Switch, Route, Redirect, BrowserRouter } from 'react-router-dom';
 
 // Components
-import { Room, EnterRoomForm } from '@components';
+import { Room, Homepage } from '@pages';
 
 const Routes = ({ children }: { children?: React.ReactNode }) => {
   return (
@@ -12,7 +12,7 @@ const Routes = ({ children }: { children?: React.ReactNode }) => {
     <BrowserRouter>
       <Switch>
         <Route exact path="/room/:roomId" component={Room} />
-        <Route exact path="/" component={EnterRoomForm} />
+        <Route exact path="/" component={Homepage} />
         <Redirect to="/" />
         {children}
       </Switch>
