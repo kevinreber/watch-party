@@ -9,7 +9,7 @@ import { UserContext } from '@context';
 // Helpers
 import { generateName } from '@utils';
 
-const EnterRoomForm = () => {
+const Homepage = () => {
   const history = useHistory();
   const [roomName, setRoomName] = React.useState('');
   const { user, setUser } = React.useContext<any>(UserContext);
@@ -92,4 +92,4 @@ const EnterRoomForm = () => {
   );
 };
 
-export default EnterRoomForm;
+export default Homepage;

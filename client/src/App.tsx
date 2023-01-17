@@ -21,11 +21,6 @@ interface ErrorTypes {
   message: string;
 }
 
-const MODAL_INITIAL_VALUES = {
-  isOpen: false,
-  // content: null,
-};
-
 const App = () => {
   const [user, setUser] = React.useState<any>(generateName());
   const userData = React.useMemo(() => ({ user, setUser }), [user, setUser]);

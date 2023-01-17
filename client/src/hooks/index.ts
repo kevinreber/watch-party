@@ -1,5 +1,4 @@
 export * from './useFields';
-export * from './useModal';
 export * from './useGetSearchForYoutubeVideos';
 export * from './useDebounce';
 export * from './useGetWebSocket';
