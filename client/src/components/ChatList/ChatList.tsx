@@ -2,10 +2,10 @@ import React from 'react';
 import moment from 'moment';
 import { useParams } from 'react-router-dom';
 import { Picker } from 'emoji-mart';
-import { List, ListItem, ListItemText, TextField, IconButton } from '@material-ui/core';
+import { List, ListItem, TextField, IconButton, Button } from '@material-ui/core';
 import { Send as SendIcon, InsertEmoticon as InsertEmoticonIcon } from '@material-ui/icons';
-import { useChatList } from '@hooks';
-import { LoginFooter } from '@components';
+import { useChatList, useFields } from '@hooks';
+// import { LoginFooter } from '@components';
 import { UserContext } from '@context';
 import { MessageTypes } from '@types';
 
@@ -16,6 +16,10 @@ interface ChatListTypes {
   userIsTyping: boolean;
   isTypingMessage: string;
 }
+
+const isValid = (data: string) => {
+  return data && data.trim() !== '';
+};
 
 const ChatList = ({ socket, messages, sendMessage, userIsTyping, isTypingMessage }: ChatListTypes): JSX.Element => {
   // @ts-ignore
@@ -44,6 +48,17 @@ const ChatList = ({ socket, messages, sendMessage, userIsTyping, isTypingMessage
     setUser(username);
   };
 
+  const [loginFormData, handleLoginFormChange, resetLoginFormData] = useFields({ username: user });
+
+  const handleLoginSubmit = (e: React.FormEvent): void => {
+    e.preventDefault();
+    // Check if field is empty or white space
+    if (!isValid(loginFormData.username)) return;
+
+    login(loginFormData.username);
+    resetLoginFormData();
+  };
+
   /** Scroll to Bottom of Chat */
   const setRef = React.useCallback((node: any): void => {
     if (node) {
@@ -56,6 +71,15 @@ const ChatList = ({ socket, messages, sendMessage, userIsTyping, isTypingMessage
       <List>
         {messages.map((message: any, index: number) => {
           const lastMessage = messages.length - 1 === index;
+          const messageBackgroundColor =
+            message.username === user
+              ? {
+                  color: '#fff',
+                  backgroundColor: '#54b78a',
+                }
+              : {
+                  backgroundColor: '#f0f0f0',
+                };
 
           return (
             <ListItem
@@ -63,10 +87,39 @@ const ChatList = ({ socket, messages, sendMessage, userIsTyping, isTypingMessage
               key={message.created_at}
               ref={lastMessage ? setRef : null}
             >
-              <ListItemText
-                primary={message.content}
-                secondary={`${message.username}-${moment(message.created_at).calendar()}`}
-              />
+              <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                <span style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '.5rem' }}>
+                  <p style={{ fontWeight: 600, margin: 0 }}>{message.username}</p>
+                  <p style={{ fontWeight: 300, margin: 0 }}>{moment(message.created_at).format('h:mm a')}</p>
+                  {/* <p>{moment(message.created_at).calendar()}</p> */}
+                </span>
+                {message.type === 'chat' ? (
+                  <p
+                    style={{
+                      width: '100%',
+                      margin: 0,
+                      padding: 8,
+                      borderRadius: 4,
+                      ...messageBackgroundColor,
+                    }}
+                  >
+                    {message.content}
+                  </p>
+                ) : (
+                  <p
+                    style={{
+                      width: '100%',
+                      fontStyle: 'italic',
+                      fontWeight: 300,
+                      margin: 0,
+                      padding: 4,
+                      borderRadius: 4,
+                    }}
+                  >
+                    {message.content}
+                  </p>
+                )}
+              </div>
             </ListItem>
           );
         })}
@@ -95,7 +148,20 @@ const ChatList = ({ socket, messages, sendMessage, userIsTyping, isTypingMessage
           {userIsTyping && <p>{isTypingMessage}</p>}
         </div>
 
-        <LoginFooter login={login} username={user} />
+        <form onSubmit={handleLoginSubmit}>
+          <TextField
+            name="username"
+            onChange={handleLoginFormChange}
+            value={loginFormData.username}
+            type="text"
+            placeholder="Create Username"
+            size="small"
+            required
+          />
+          <Button type="submit" disabled={!loginFormData.username} variant="contained">
+            Submit
+          </Button>
+        </form>
       </div>
     </div>
   );

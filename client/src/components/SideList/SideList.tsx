@@ -31,9 +31,8 @@ const SideList = ({ videos, removeVideoFromList, socket, usersCount }: SideListT
         <Button onClick={() => toggleActiveList('videos')}>Videos</Button>
         <Button onClick={() => toggleActiveList('chats')}>Chat</Button>
       </div>
-      {activeList === 'videos' ? (
-        <WatchList videos={videos} removeVideo={removeVideoFromList} />
-      ) : (
+      {activeList === 'videos' && <WatchList videos={videos} removeVideo={removeVideoFromList} />}
+      {activeList === 'chats' && (
         <ChatList
           socket={socket}
           messages={messages}
