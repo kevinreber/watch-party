@@ -1,0 +1,306 @@
+import React from 'react';
+import { useParams } from 'react-router';
+import { getFormattedTime } from '../../helpers';
+import { VideoFrame } from './VideoFrame';
+import { VideoPlayerControls } from './VideoPlayerControls';
+
+// * get-youtube-id: https://www.npmjs.com/package/get-youtube-id
+
+/**
+ * * Getting Video Information:
+ * https://developers.google.com/youtube/iframe_api_reference#Retrieving_video_information
+ *
+ * methods:
+ * player.getCurrentTime() => @returns {float} Current time in video player.
+ * player.getDuration() => @returns {float} Total duration of video player.
+ * player.getVideoData()  => @returns {author: string; title: string; video_id: string; video_quality: string} Object containing video data.
+ */
+
+/**
+ * Player Status:
+ * -1 = unstarted
+ * 0 = ended
+ * 1 = playing
+ * 2 = paused
+ * 3 = buffering
+ * 5 = cued
+ */
+
+// * Variable to control our YT Player
+let player;
+
+/**
+ * Video Player Component - has all functions to control video player
+ *
+ * VideoPlayer -> VidePlayerControls -> VolumeControls | VideoPlayerTimeline
+ * @param curVideo
+ * @param socket
+ * @param addMessage
+ * @param username
+ */
+
+// ! NOTE: Avoided using typescript b/c opts passed into YouTube component gives too many errors
+const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
+  const { roomId } = useParams();
+
+  const [playerStatus, setPlayerStatus] = React.useState(-1);
+  const [playerTimeline, setPlayerTimeline] = React.useState(0);
+  const [playerTime, setPlayerTime] = React.useState({
+    current: null,
+    remaining: null,
+  });
+  const [volumeLevel, setVolumeLevel] = React.useState(100);
+  const [muted, setIsMuted] = React.useState(false);
+
+  // Placeholder when 'seekTo' is called
+  const [seekToTime, setSeekToTime] = React.useState(0);
+
+  // Create player
+  const loadVideo = (videoId) => {
+    if (!player) {
+      /**
+       * Need to wait until Youtube Player is ready!
+       * https://stackoverflow.com/questions/52062169/uncaught-typeerror-yt-player-is-not-a-constructor
+       */
+      window.YT.ready(() => {
+        player = new window.YT.Player('player', {
+          videoId,
+          height: '480',
+          width: '854',
+          playerVars: {
+            // https://developers.google.com/youtube/player_parameters
+            autoplay: 1,
+            disablekb: 0,
+            // hides controllers
+            controls: 0,
+          },
+          events: {
+            onReady: onPlayerReady,
+            onStateChange: handleStateChange,
+          },
+        });
+      });
+      console.log('player created', videoId);
+    } else {
+      player.loadVideoById(videoId);
+      console.log('loaded', videoId, player);
+    }
+    console.log(player);
+    console.log(window.YT);
+  };
+
+  // Load YT IFrame Player script into html
+  React.useEffect(() => {
+    if (curVideo) {
+      // TODO: Find better way to emit event
+      // Sometimes video will load, but not start on other users browsers
+      loadVideo(curVideo.videoId);
+    }
+  }, [curVideo, player]);
+
+  const updateTimelineState = () => {
+    const currentTime = player.getCurrentTime();
+    const duration = player.getDuration();
+    const remainingTime = duration - currentTime;
+    const time = (currentTime / duration) * 100;
+
+    // Format current and remaining times into string, ex: "01:00"
+    setPlayerTime((st) => ({
+      ...st,
+      current: getFormattedTime(currentTime),
+      remaining: getFormattedTime(remainingTime, true),
+    }));
+    setPlayerTimeline(time);
+  };
+
+  // Timeline Player
+  React.useEffect(() => {
+    let interval = null;
+
+    if (playerStatus === 1) {
+      interval = setInterval(() => {
+        updateTimelineState();
+      }, 200);
+    } else if (playerStatus !== 1 && playerTimeline !== 0) {
+      clearInterval(interval);
+    }
+
+    return () => clearInterval(interval);
+  }, [playerStatus, playerTimeline]);
+
+  /** Pauses current video on ready to avoid auto-play and logs video data */
+  const onPlayerReady = (e) => {
+    // access to player in all event handlers via event.target
+    e.target.pauseVideo();
+    socket.emit('event', { state: 'load-video', videoId: curVideo }, roomId);
+    console.log(e.target.getVideoData());
+  };
+
+  const handlePlay = React.useCallback(
+    (emit = true) => {
+      player.playVideo();
+      console.log('play', player.getCurrentTime(), player.getDuration());
+      if (emit) {
+        const data = {
+          currentTime: player.getCurrentTime(),
+          state: 'play',
+          username,
+          created_at: new Date().getTime(),
+        };
+
+        socket.emit('event', data, roomId);
+      }
+    },
+    [socket, roomId],
+  );
+
+  const handlePause = React.useCallback(
+    (emit = true) => {
+      player.pauseVideo();
+      console.log('pause', player.getCurrentTime(), player.getDuration());
+      if (emit) {
+        const data = {
+          currentTime: player.getCurrentTime(),
+          state: 'pause',
+          username,
+          created_at: new Date().getTime(),
+        };
+
+        socket.emit('event', data, roomId);
+      }
+    },
+    [socket, roomId],
+  );
+
+  // MUI passes value through 2nd paramter, DO NOT remove 'e'
+  const handleTimelineChange = React.useCallback(
+    (e, value, emit = true) => {
+      const duration = player.getDuration();
+      const newTime = (value / 100) * duration;
+      const remainingTime = duration - newTime;
+
+      player.seekTo(newTime);
+      console.log('NEW TIME: ', newTime);
+      setSeekToTime(newTime);
+      console.log(value, player.getCurrentTime());
+
+      setPlayerTimeline(value);
+      if (emit) {
+        const data = {
+          value,
+          newTime,
+          state: 'seek',
+          username,
+          created_at: new Date().getTime(),
+        };
+
+        socket.emit('event', data, roomId);
+      }
+
+      // Format current and remaining times into string, ex: "01:00"
+      setPlayerTime((st) => ({
+        ...st,
+        current: getFormattedTime(newTime),
+        remaining: getFormattedTime(remainingTime, true),
+      }));
+    },
+    [socket, roomId],
+  );
+
+  // MUI passes value through 2nd paramter, DO NOT remove 'e'
+  const handleVolume = (e, value) => {
+    // Unmute volume if user changes volume and player is already muted
+    if (player.isMuted()) {
+      player.unMute();
+      setIsMuted(false);
+    }
+    setVolumeLevel(value);
+    player.setVolume(value);
+    console.log('volume', value);
+  };
+
+  const handleMute = () => {
+    if (player.isMuted()) {
+      player.unMute();
+      setIsMuted(false);
+    } else {
+      setIsMuted(true);
+      player.mute();
+    }
+    console.log('muting', player.isMuted());
+  };
+
+  const handleStateChange = (e) => {
+    console.log('state', e.data);
+    setPlayerStatus(e.data);
+  };
+
+  // * Socket Event Listener
+  React.useEffect(() => {
+    if (!socket) return;
+    socket.on('receive-event', (data) => {
+      console.log(data);
+      let message;
+
+      if (data.state === 'load-video') {
+        // loadVideo(data.videoId);
+      } else if (data.state === 'play') {
+        console.log('play function...');
+        message = `${data.username} resumed video`;
+        handlePlay(false);
+      } else if (data.state === 'pause') {
+        console.log('pause function...');
+        message = `${data.username} paused video`;
+        handlePause(false);
+      } else {
+        const duration = player.getDuration();
+        const newTime = (data.value / 100) * duration;
+
+        console.log('seeking...');
+        message = `${data.username} jumped to ${getFormattedTime(newTime)}`;
+        // message = `${data.username} jumped to ${playerTime.current}`;
+        handleTimelineChange(null, data.value, false);
+      }
+      if (message) {
+        const messageData = {
+          type: 'player-change',
+          username: data.username,
+          content: message,
+          created_at: data.created_at,
+        };
+
+        addMessage(messageData);
+      }
+    });
+
+    return () => socket.off('receive-event');
+  }, [socket, handlePlay, handlePause, handleTimelineChange]);
+
+  return (
+    <div id="primary">
+      <div id="player" style={{ background: 'red', width: '100%' }} />
+      <VideoFrame
+        curVideo={curVideo}
+        socket={socket}
+        addMessage={addMessage}
+        username={username}
+        status={playerStatus}
+        seekToTime={seekToTime}
+      />
+      <VideoPlayerControls
+        status={playerStatus}
+        muted={muted}
+        handlePause={handlePause}
+        handlePlay={handlePlay}
+        volumeLevel={volumeLevel}
+        playerTimeline={playerTimeline}
+        handleVolume={handleVolume}
+        handleMute={handleMute}
+        handleTimelineChange={handleTimelineChange}
+        playerTime={playerTime}
+      />
+    </div>
+  );
+};
+
+export default VideoPlayer;

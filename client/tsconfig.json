@@ -1,21 +1,46 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
+    "target": "ES2022",
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "types": ["vite/client"],
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
+    "skipLibCheck": true,
     "noEmit": true,
-    "jsx": "preserve"
+    "isolatedModules": true,
+    "rootDirs": [".", "./.react-router/types"],
+    "baseUrl": "./app",
+    "paths": {
+      "~/*": ["./*"],
+      "@components": ["./components"],
+      "@components/*": ["./components/*"],
+      "@pages": ["./pages"],
+      "@pages/*": ["./pages/*"],
+      "@helpers": ["./helpers"],
+      "@helpers/*": ["./helpers/*"],
+      "@utils": ["./utils"],
+      "@utils/*": ["./utils/*"],
+      "@hooks": ["./hooks"],
+      "@hooks/*": ["./hooks/*"],
+      "@api": ["./api"],
+      "@api/*": ["./api/*"],
+      "@context": ["./context"],
+      "@context/*": ["./context/*"],
+      "@types": ["./types"],
+      "@types/*": ["./types/*"],
+      "@socket-client": ["./socket-client"],
+      "@socket-client/*": ["./socket-client/*"]
+    }
   },
-  "include": ["./src"],
-  "extends": "./tsconfig.path.json"
+  "include": [
+    ".react-router/types/**/*",
+    "app/**/*",
+    "app/**/*.ts",
+    "app/**/*.tsx"
+  ]
 }

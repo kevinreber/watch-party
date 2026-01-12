@@ -12,6 +12,9 @@
 # production
 /build
 
+# React Router v7 generated types
+/.react-router
+
 # misc
 .DS_Store
 .env.local
