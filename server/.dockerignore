@@ -1,0 +1,15 @@
+node_modules
+npm-debug.log
+.env
+.env.local
+.env.*.local
+.git
+.gitignore
+Dockerfile
+docker-compose*.yml
+*.md
+.DS_Store
+coverage
+.nyc_output
+*.test.js
+*.spec.js

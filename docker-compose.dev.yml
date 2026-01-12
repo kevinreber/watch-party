@@ -1,0 +1,71 @@
+version: '3.8'
+
+# Development docker-compose with hot reloading
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:6
+    container_name: watch-party-mongodb-dev
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: watchparty
+      MONGO_INITDB_ROOT_PASSWORD: watchparty123
+      MONGO_INITDB_DATABASE: watchparty
+    volumes:
+      - mongodb_data_dev:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - watch-party-network-dev
+
+  # Backend Server with hot reload
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.dev
+    container_name: watch-party-server-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      MONGODB_URI: mongodb://watchparty:watchparty123@mongodb:27017/watchparty?authSource=admin
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
+      ALLOWED_ORIGINS: http://localhost:3000
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    depends_on:
+      - mongodb
+    networks:
+      - watch-party-network-dev
+
+  # Frontend Client with hot reload
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
+    container_name: watch-party-client-dev
+    restart: unless-stopped
+    environment:
+      REACT_APP_API_BASE_URL: http://localhost:3001
+      CHOKIDAR_USEPOLLING: "true"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    depends_on:
+      - server
+    networks:
+      - watch-party-network-dev
+    stdin_open: true
+
+volumes:
+  mongodb_data_dev:
+    driver: local
+
+networks:
+  watch-party-network-dev:
+    driver: bridge

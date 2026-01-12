@@ -4,6 +4,129 @@
 
 [Watch Party](https://optimistic-clarke-29f167.netlify.app/)
 
+A real-time collaborative video watching application that allows multiple users to watch YouTube videos together synchronously, with real-time chat functionality.
+
+## Quick Start with Docker
+
+The easiest way to run Watch Party is with Docker:
+
+### Prerequisites
+- [Docker](https://docs.docker.com/get-docker/) installed
+- [Docker Compose](https://docs.docker.com/compose/install/) installed
+
+### Production Mode
+
+```bash
+# Clone the repository
+git clone https://github.com/kevinreber/watch-party.git
+cd watch-party
+
+# Copy environment file and configure
+cp .env.example .env
+# Edit .env with your YouTube API key
+
+# Build and start all services
+docker-compose up --build
+
+# Or run in detached mode
+docker-compose up -d --build
+```
+
+Access the app:
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:3001
+- **MongoDB**: localhost:27017
+
+### Development Mode (with hot reloading)
+
+```bash
+# Start development environment
+docker-compose -f docker-compose.dev.yml up --build
+```
+
+### Useful Docker Commands
+
+```bash
+# View logs
+docker-compose logs -f
+
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (clears database)
+docker-compose down -v
+
+# Rebuild a specific service
+docker-compose up --build server
+
+# View running containers
+docker-compose ps
+```
+
+---
+
+## Manual Setup (without Docker)
+
+### Clone directory:
+
+```bash
+cd [workspace folder]
+git clone https://github.com/kevinreber/watch-party.git
+```
+
+### Front End
+
+```bash
+cd client
+cp .env.example .env
+npm install
+npm start
+```
+
+Open [http://localhost:3000](http://localhost:3000) to view project in the browser.
+
+### Back End
+
+```bash
+cd server
+cp .env.example .env
+npm install
+nodemon server.js
+```
+
+Open [http://localhost:3001](http://localhost:3001) to view project in the browser.
+
+---
+
+## Environment Variables
+
+### Server (`server/.env`)
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `MONGODB_URI` | MongoDB connection string | Yes |
+| `YOUTUBE_API_KEY` | YouTube Data API v3 key - [Get credentials](https://developers.google.com/youtube/v3/docs/) | Yes |
+| `PORT` | Server port (default: 3001) | No |
+| `NODE_ENV` | Environment (development/production) | No |
+| `ALLOWED_ORIGINS` | Comma-separated list of allowed CORS origins | No |
+
+### Client (`client/.env`)
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `REACT_APP_API_BASE_URL` | Backend API URL (default: http://localhost:3001) | No |
+
+---
+
+## Tech Stack
+
+- **Frontend**: React, TypeScript, Material-UI, Socket.io-client
+- **Backend**: Node.js, Express, Socket.io
+- **Database**: MongoDB with Mongoose
+- **Deployment**: Docker, Nginx
+
+---
+
 ## ToDo
 
 ### Front End
@@ -12,9 +135,9 @@
 - [x] Sync player with video playback
 - [x] Validate YT link before YT id
 - [ ] Disable play bar if no video is loaded
-- [ ] Create list of queued videos
+- [x] Create list of queued videos
 - [ ] Users can re-arrange queued videos
-- [ ] Chat interface
+- [x] Chat interface
 
 ### YT Player
 
@@ -22,12 +145,12 @@
 - [x] Feat: Add volume controls
 - [ ] Feat: Add keyboard arrow features to control video
 - [ ] Disable player controls if no video is loaded
-- [ ] ? If video is removed, next video in queue takes it's place
+- [ ] If video is removed, next video in queue takes its place
 - [ ] If last video is removed, need to remove script and show "No Videos Found"
-- [ ] YouTube API
-- [ ] hide ads if possible
-- [ ] enlarge video
-- [ ] video controls with "space bar"
+- [x] YouTube API
+- [ ] Hide ads if possible
+- [ ] Enlarge video
+- [ ] Video controls with "space bar"
 
 ### Websockets
 
@@ -39,91 +162,48 @@
 - [x] Sync state with YouTube API
 - [x] Setup Rooms
 - [x] Setup Users
-- [ ] Setup action when User joins room
-- [ ] When new users log in, they need updated Video List
+- [x] Setup action when User joins room
+- [x] When new users log in, they need updated Video List
 - [ ] When new users log in, they need current Playlist state
 
 ### DB
 
-- [ ] Database?
+- [x] MongoDB integration with Mongoose
+- [x] Message persistence
+- [x] Video queue persistence
+
+### Security
+
+- [x] CORS configuration
+- [x] Input validation
+- [x] XSS sanitization
 
 ### Future Features
 
-- [ ] Integrate with google calendars so users can plan recurring "meetings"
-
-### Resources
-
-#### Similar Projects
-
-- https://github.com/howardchung/watchparty/blob/master/server/room.ts (Hackathon Project)
-- https://github.com/filahf/wevid-youtube-together/blob/master/server/server.js (Reddit Post)
-- https://github.com/filahf/wevid-youtube-together/blob/master/client/src/components/video/Video.js (Reddit Post)
-- https://www.reddit.com/r/reactjs/comments/gh76ez/synchronized_youtube_player_built_in_react/ (Reddit Post)
-
-- https://github.com/bramgiessen/react-youtube-sync/tree/master/server
-- https://github.com/YasserYka/YT-Together/blob/master/frontend/src/components/Watch.js
-
-#### Instructions (How To)
-
-- https://www.linode.com/docs/guides/build-react-video-streaming-app/
-
-#### Whiteboard Feature
-
-- https://medium.com/better-programming/building-a-realtime-drawing-app-using-socket-io-and-p5-js-86f979285b12
-
-#### Chat Feature
-
-- https://www.npmjs.com/package/emoji-mart (Emojis)
-
-#### YT Player & React Player Packages
-
-- https://github.com/BTMPL/react-yt
-- https://cookpete.com/react-player/
-
-#### App Ideas
-
-- https://dev.to/reedbarger/7-react-projects-you-should-build-in-2021-p20
-
-## Other Resources
-
-- https://www.freecodecamp.org/news/create-a-professional-node-express/
-- https://dev.to/armelpingault/how-to-create-a-simple-and-beautiful-chat-with-mongodb-express-react-and-node-js-mern-stack-29l6
-- https://github.com/gordonpn/slack-clone
-
-## Project Setup
-
-### Clone directory:
-
-```
-cd [workspace folder]
-git clone https://github.com/kevinreber/watch-party.git
-```
+- [ ] Integrate with Google calendars so users can plan recurring "meetings"
+- [ ] User authentication
+- [ ] Private rooms
 
 ---
 
-## Front End
+## Resources
 
-```
-cd client
-npm install
-npm start
-```
+### Similar Projects
 
-Open [http://localhost:3000](http://localhost:3000) to view project in the browser.
+- [watchparty](https://github.com/howardchung/watchparty/blob/master/server/room.ts) (Hackathon Project)
+- [wevid-youtube-together](https://github.com/filahf/wevid-youtube-together/blob/master/server/server.js) (Reddit Post)
+- [react-youtube-sync](https://github.com/bramgiessen/react-youtube-sync/tree/master/server)
+- [YT-Together](https://github.com/YasserYka/YT-Together/blob/master/frontend/src/components/Watch.js)
 
----
+### Instructions (How To)
 
-## Back End
+- [Build React Video Streaming App](https://www.linode.com/docs/guides/build-react-video-streaming-app/)
 
-### Environment Variables
+### Chat Feature
 
-- `YOUTUBE_API_KEY`: Allows search feature for YouTube videos - [Get YouTube API Credentials](https://developers.google.com/youtube/v3/docs/)
-- `DB_URI`: Access to Mongo Database
+- [emoji-mart](https://www.npmjs.com/package/emoji-mart) (Emojis)
 
-```
-cd server
-npm install
-nodemon server.js
-```
+### YT Player & React Player Packages
 
-Open [http://localhost:3001](http://localhost:3001) to view project in the browser.
+- [react-yt](https://github.com/BTMPL/react-yt)
+- [react-player](https://cookpete.com/react-player/)
