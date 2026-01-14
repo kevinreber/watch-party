@@ -1,4 +1,4 @@
-import { useState, useMemo, lazy, Suspense } from "react";
+import { useState, useMemo, useEffect, lazy, Suspense } from "react";
 import {
   Links,
   Meta,
@@ -76,6 +76,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   const [user, setUser] = useState<string>(generateName());
   const userData = useMemo(() => ({ user, setUser }), [user]);
+  const [isClient, setIsClient] = useState(false);
+
+  // Only render client-only components after hydration
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -93,7 +99,7 @@ export default function App() {
           </SnackbarProvider>
         </UserContext.Provider>
       </div>
-      {import.meta.env.DEV && (
+      {isClient && import.meta.env.DEV && (
         <Suspense fallback={null}>
           <ReactQueryDevTools position="bottom" />
         </Suspense>
