@@ -1,7 +1,8 @@
 import React from 'react';
-import { List, ListItem, ListItemText, ListItemAvatar, Avatar, CircularProgress, IconButton } from '@material-ui/core';
-import { AddToQueue } from '@material-ui/icons';
-import './OptionsList.css';
+import { Plus, Loader2 } from 'lucide-react';
+import { Button } from '../ui/button';
+import { ScrollArea } from '../ui/scroll-area';
+import { Card } from '../ui/card';
 
 interface OptionsTypes {
   videoId: string;
@@ -19,45 +20,74 @@ interface OptionListTypes {
 }
 
 const OptionsList = ({ options, handleClick, isLoading }: OptionListTypes): JSX.Element => {
-  // Builds Options List to display
-  const OptionsList = options.length ? (
-    options.map((option) => (
-      <ListItem
-        key={option.videoId}
-        // onClick={() => handleClick(option)}
-        className="Options-Item"
-      >
-        <ListItemAvatar>
-          <Avatar variant="square" alt={option.img} src={option.img} />
-        </ListItemAvatar>
-        <ListItemText primary={option.name} secondary={option.description} />
+  if (isLoading) {
+    return (
+      <Card className="bg-card border-border/50 rounded-xl shadow-2xl p-6">
+        <div className="flex items-center justify-center gap-2 text-muted-foreground">
+          <Loader2 className="w-5 h-5 animate-spin" />
+          <span>Searching...</span>
+        </div>
+      </Card>
+    );
+  }
 
-        <IconButton
-          type="button"
-          onClick={() => handleClick(option)}
-          aria-label="add to queue"
-          className="form-btn-icon"
-        >
-          <AddToQueue />
-        </IconButton>
-      </ListItem>
-    ))
-  ) : (
-    <ListItem className="Options-Item">
-      <em className="no-matches">No Matches</em>
-    </ListItem>
-  );
+  if (!options.length) {
+    return (
+      <Card className="bg-card border-border/50 rounded-xl shadow-2xl p-6">
+        <p className="text-center text-muted-foreground text-sm">No results found</p>
+      </Card>
+    );
+  }
 
   return (
-    <List className="Options-List">
-      {isLoading ? (
-        <ListItem className="Options-Item">
-          <CircularProgress />
-        </ListItem>
-      ) : (
-        OptionsList
-      )}
-    </List>
+    <Card className="bg-card border-border/50 rounded-xl shadow-2xl overflow-hidden">
+      <ScrollArea className="max-h-80">
+        <div className="p-2 space-y-1">
+          {options.map((option) => (
+            <div
+              key={option.videoId}
+              className="group flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+              onClick={() => handleClick(option)}
+            >
+              {/* Thumbnail */}
+              <div className="shrink-0 w-20 h-12 rounded-md overflow-hidden bg-black">
+                {option.img ? (
+                  <img
+                    src={option.img}
+                    alt={option.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-muted" />
+                )}
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <h4 className="font-medium text-sm line-clamp-1">{option.name}</h4>
+                <p className="text-xs text-muted-foreground line-clamp-1">
+                  {option.channel}
+                </p>
+              </div>
+
+              {/* Add button */}
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClick(option);
+                }}
+                className="shrink-0 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
+    </Card>
   );
 };
 

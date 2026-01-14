@@ -12,5 +12,6 @@ module.exports = override(
     '@context': path.resolve(__dirname, 'src/context'),
     '@types': path.resolve(__dirname, 'src/types'),
     '@socket-client': path.resolve(__dirname, 'src/socket-client'),
+    '@lib': path.resolve(__dirname, 'src/lib'),
   }),
 );

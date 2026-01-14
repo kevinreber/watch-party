@@ -1,46 +1,8 @@
 import React from 'react';
-
-// MUI
-import { PlayArrow as PlayArrowIcon, Pause as PauseIcon } from '@material-ui/icons';
-import { Grid, IconButton, makeStyles } from '@material-ui/core';
-
-// Components & Helpers
-import { VideoPlayerTimeline } from '../VideoPlayerTimeline';
-import { VideoVolumeControls } from '../VideoVolumeControls';
-
-// @ts-ignore
-const useStyles = makeStyles((theme: any) => ({
-  volumeIconContainer: {
-    position: 'relative',
-    flex: '0 0 auto',
-    '&:hover': {
-      cursor: 'pointer',
-    },
-  },
-  volumeControlContainer: {
-    position: 'absolute',
-    display: 'none',
-    zIndex: '100',
-    right: '10px',
-    [theme.breakpoints.up('sm')]: {
-      display: 'flex',
-      height: '60px',
-    },
-    padding: '10px 5px',
-    '&:hover': {
-      cursor: 'pointer',
-    },
-  },
-  sliderContainerWrapper: {
-    width: 'auto',
-    flex: '1 1 auto',
-    display: 'flex',
-    boxSizing: 'border-box',
-  },
-  sliderContainer: {
-    flex: '1 1 auto',
-  },
-}));
+import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { Button } from '../../ui/button';
+import { Slider } from '../../ui/slider';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/tooltip';
 
 interface PlayerControlProps {
   status: number;
@@ -55,22 +17,6 @@ interface PlayerControlProps {
   playerTime: { current: string; remaining: string };
 }
 
-/**
- * VideoPlayerControls
- *
- * VideoPlayer -> VidePlayerControls -> VolumeControls | VideoPlayerTimeline
- *
- * @param {number}		status
- * @param {boolean}		muted
- * @param {Function}	handlePause
- * @param {Function}	handlePlay
- * @param {number}		volumeLevel
- * @param {Function} 	handleVolume
- * @param {Function} 	handleMute
- * @param {number}		playerTimeline
- * @param {Function}	handleTimelineChange
- * @param {object}		playerTime
- */
 const VideoPlayerControls = ({
   status,
   muted,
@@ -83,61 +29,106 @@ const VideoPlayerControls = ({
   handleTimelineChange,
   playerTime,
 }: PlayerControlProps): JSX.Element => {
-  // @ts-ignore
-  const classes = useStyles();
+  const [showVolumeSlider, setShowVolumeSlider] = React.useState(false);
 
-  const [volumeSlider, openVolumeSlider] = React.useState(false);
-  const toggleVolumeSlider = () => {
-    openVolumeSlider((value) => !value);
+  const isPlaying = status === 1;
+
+  const onTimelineChange = (value: number[]) => {
+    handleTimelineChange(value[0]);
   };
-  const ButtonStatus =
-    status === 1 ? (
-      <IconButton aria-label="pause" onClick={handlePause}>
-        <PauseIcon fontSize="large" />
-      </IconButton>
-    ) : (
-      <IconButton aria-label="play" onClick={handlePlay}>
-        <PlayArrowIcon fontSize="large" />
-      </IconButton>
-    );
+
+  const onVolumeChange = (value: number[]) => {
+    handleVolume(value[0]);
+  };
 
   return (
-    <>
-      <Grid container={true} className="Video-Controls" alignItems="center">
-        <Grid item={true} className="Player-Controls">
-          {ButtonStatus}
-          {/* <IconButton aria-label="previous">
-						<SkipPrevious fontSize="large" />
-					</IconButton>
-					<IconButton aria-label="next">
-						<SkipNext fontSize="large" />
-					</IconButton> */}
-        </Grid>
-        <Grid
-          item={true}
-          className={classes.volumeIconContainer}
-          onMouseEnter={toggleVolumeSlider}
-          onMouseLeave={toggleVolumeSlider}
-        >
-          <VideoVolumeControls
-            muted={muted}
-            handleMute={handleMute}
-            volumeSlider={volumeSlider}
-            volumeControlContainer={classes.volumeControlContainer}
-            volumeLevel={volumeLevel}
-            handleVolume={handleVolume}
-          />
-        </Grid>
-        <Grid item={true} container={true} spacing={2} className={classes.sliderContainerWrapper}>
-          <VideoPlayerTimeline
-            playerTime={playerTime}
-            playerTimeline={playerTimeline}
-            handleTimelineChange={handleTimelineChange}
-            sliderContainer={classes.sliderContainer}
-          />
-        </Grid>
-      </Grid>
-    </>
+    <div className="bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4">
+      {/* Timeline Slider */}
+      <div className="mb-3">
+        <Slider
+          value={[playerTimeline]}
+          onValueChange={onTimelineChange}
+          max={100}
+          step={0.1}
+          className="cursor-pointer [&_[role=slider]]:h-3 [&_[role=slider]]:w-3 [&_[role=slider]]:border-0 [&_[role=slider]]:bg-white [&_.bg-primary]:bg-gradient-to-r [&_.bg-primary]:from-purple-500 [&_.bg-primary]:to-blue-500"
+        />
+      </div>
+
+      {/* Controls Row */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {/* Play/Pause Button */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => (isPlaying ? handlePause() : handlePlay())}
+                className="h-10 w-10 rounded-full bg-white/10 hover:bg-white/20 text-white"
+              >
+                {isPlaying ? (
+                  <Pause className="h-5 w-5 fill-current" />
+                ) : (
+                  <Play className="h-5 w-5 fill-current ml-0.5" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {isPlaying ? 'Pause' : 'Play'}
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Volume Controls */}
+          <div
+            className="flex items-center gap-2"
+            onMouseEnter={() => setShowVolumeSlider(true)}
+            onMouseLeave={() => setShowVolumeSlider(false)}
+          >
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleMute}
+                  className="h-10 w-10 rounded-full hover:bg-white/10 text-white"
+                >
+                  {muted || volumeLevel === 0 ? (
+                    <VolumeX className="h-5 w-5" />
+                  ) : (
+                    <Volume2 className="h-5 w-5" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {muted ? 'Unmute' : 'Mute'}
+              </TooltipContent>
+            </Tooltip>
+
+            {/* Volume Slider */}
+            <div
+              className={`transition-all duration-200 overflow-hidden ${
+                showVolumeSlider ? 'w-24 opacity-100' : 'w-0 opacity-0'
+              }`}
+            >
+              <Slider
+                value={[muted ? 0 : volumeLevel]}
+                onValueChange={onVolumeChange}
+                max={100}
+                step={1}
+                className="cursor-pointer [&_[role=slider]]:h-3 [&_[role=slider]]:w-3 [&_[role=slider]]:border-0 [&_[role=slider]]:bg-white"
+              />
+            </div>
+          </div>
+
+          {/* Time Display */}
+          <div className="text-white text-sm font-medium ml-2 flex items-center gap-1">
+            <span className="tabular-nums">{playerTime?.current || '00:00'}</span>
+            <span className="text-white/50">/</span>
+            <span className="tabular-nums text-white/70">{playerTime?.remaining || '00:00'}</span>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

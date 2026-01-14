@@ -1,15 +1,12 @@
 /* eslint-disable */
 import React from 'react';
-import { IconButton, Avatar, ListItemText, Snackbar } from '@material-ui/core';
-import { Alert, TextField } from '@mui/material';
-import { AddToQueue } from '@material-ui/icons';
+import { Search, Loader2 } from 'lucide-react';
 import { useSnackbar } from 'notistack';
 import { useDebounce, useGetSearchForYoutubeVideos } from '@hooks';
 import { OptionsList } from '@components';
 import { VideoTypes } from '@types';
-import './AddVideoBar.css';
+import { Input } from '../ui/input';
 
-// ! TEMP: For testing
 const WORKING_VIDEO_INITIAL_STATE = {
   videoId: 'OHviieMFY0c',
   channel: 'Joma Tech',
@@ -41,6 +38,9 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
 
   const [options, setOptions] = React.useState([]);
   const [showOptions, setShowOptions] = React.useState(false);
+  const [isFocused, setIsFocused] = React.useState(false);
+
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
   const debouncedSearchQuery = useDebounce(search);
 
@@ -48,31 +48,25 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
     searchTerm: debouncedSearchQuery,
     configOptions: {
       onSuccess: (data: any) => {
-        console.log(data);
-
         setOptions(data);
         setShowOptions(true);
       },
       onError: (error: any) => {
         console.error(`[useGetSearchForYoutubeVideos]: `, error);
-        console.error(error);
         enqueueSnackbar(error, { variant: 'error' });
       },
     },
   });
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
   };
 
   const handleSubmit = React.useCallback(
     (e: any) => {
       if (e.keyCode === 13 || e.type === 'submit') {
-        console.log(e);
-
         e.preventDefault();
         addVideoToList(video);
-        // setSearch('');
         setVideo(VIDEO_INITIAL_STATE);
         setShowOptions(false);
       }
@@ -81,50 +75,52 @@ const AddVideoBar = ({ addVideoToList }: BarTypes): JSX.Element => {
   );
 
   const handleClick = (option: VideoTypes) => {
-    // setSearch(option.url);
-    // setVideo(option);
     addVideoToList(option);
     setShowOptions(false);
-    // setOptions([]);
   };
 
-  return (
-    <form
-      className="Add-Video-Form"
-      // onSubmit={handleSubmit}
-      style={{ width: '100%', marginBottom: '3rem' }}
-    >
-      <TextField
-        name="id"
-        id="video-id"
-        value={search}
-        onChange={handleChange}
-        onKeyDown={handleSubmit}
-        className="form-input"
-        size="small"
-      />
-      {showOptions && (
-        <OptionsList options={options} handleClick={handleClick} isLoading={youtubeVideosSearchResults.isLoading} />
-      )}
-      {/* {video.img && (
-				<div className="Add-Video__Preview">
-					<Avatar
-						style={{ width: '80px', height: '100%', objectFit: 'contain' }}
-						variant="square"
-						alt={video.img}
-						src={video.img}
-					/>
-					<ListItemText primary={video.name} secondary={video.description} />
-				</div>
-			)}
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setShowOptions(false);
+      }
+    };
 
-			<IconButton
-				type="submit"
-				aria-label="add to queue"
-				className="form-btn-icon">
-				<AddToQueue />
-			</IconButton> */}
-    </form>
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={containerRef} className="relative w-full">
+      <div className="relative">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+        {youtubeVideosSearchResults.isLoading && (
+          <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground animate-spin" />
+        )}
+        <Input
+          name="search"
+          id="video-search"
+          value={search}
+          onChange={handleChange}
+          onKeyDown={handleSubmit}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder="Search for videos or paste a YouTube URL..."
+          className="w-full h-12 pl-12 pr-12 text-base bg-card border-border/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 transition-all"
+        />
+      </div>
+
+      {showOptions && options.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-2 z-50">
+          <OptionsList
+            options={options}
+            handleClick={handleClick}
+            isLoading={youtubeVideosSearchResults.isLoading}
+          />
+        </div>
+      )}
+    </div>
   );
 };
 

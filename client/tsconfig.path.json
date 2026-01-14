@@ -3,6 +3,7 @@
     "baseUrl": "./src",
     "paths": {
       "@components": ["./components"],
+      "@components/*": ["./components/*"],
       "@pages": ["./pages"],
       "@helpers": ["./helpers"],
       "@utils": ["./utils"],
@@ -10,7 +11,9 @@
       "@api": ["./api"],
       "@context": ["./context"],
       "@types": ["./types"],
-      "@socket-client": ["./socket-client"]
+      "@socket-client": ["./socket-client"],
+      "@lib": ["./lib"],
+      "@lib/*": ["./lib/*"]
     }
   }
 }
