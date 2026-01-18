@@ -32,9 +32,15 @@ export default function Homepage() {
     navigate(`/room/${newRoute}`);
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleNewRoom();
+  };
+
   return (
     <Box
       component="form"
+      onSubmit={handleSubmit}
       style={{
         width: "45%",
         maxWidth: "600px",
@@ -68,14 +74,15 @@ export default function Homepage() {
         }}
       >
         <Button
+          type="submit"
           style={{ width: "150px", height: "40px" }}
-          onClick={() => handleNewRoom()}
           color="primary"
           variant="outlined"
         >
           Create Room
         </Button>
         <Button
+          type="button"
           style={{ width: "150px", height: "40px" }}
           onClick={() => handleNewRoom(true)}
           color="primary"
