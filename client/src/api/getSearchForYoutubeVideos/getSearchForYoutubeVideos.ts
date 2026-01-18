@@ -1,18 +1,26 @@
 import { request } from '@api';
+import { VideoTypes } from '@types';
 
-const WORKING_VIDEO_INITIAL_STATE = {
-  videoId: 'OHviieMFY0c',
-  channel: 'Joma Tech',
-  description:
-    'Learn how to code with Python 3 for Data Science and Software Engineering. High-quality video courses: https://python.jomaclass.com/ ▻ Chat with me on ...',
-  url: 'https://www.youtube.com/watch?v=OHviieMFY0c',
-  name: 'Cool Kids Code In Javascript (PART 3)',
-  img: 'https://i.ytimg.com/vi/OHviieMFY0c/default.jpg',
-};
+/**
+ * Search for YouTube videos
+ * @param searchTerm - The search query
+ * @returns Promise resolving to array of video results
+ */
+const getSearchForYoutubeVideos = async (searchTerm: string): Promise<VideoTypes[]> => {
+  if (!searchTerm || searchTerm.trim() === '') {
+    return [];
+  }
 
-const getSearchForYoutubeVideos = (searchTerm: string) => {
-  // return request({ endpoint: `youtube?q=${encodeURIComponent(searchTerm)}` });
-  return [WORKING_VIDEO_INITIAL_STATE];
+  try {
+    const results = await request<VideoTypes[]>({
+      endpoint: `youtube?q=${encodeURIComponent(searchTerm.trim())}`,
+    });
+    return results || [];
+  } catch (error) {
+    console.error('YouTube search error:', error);
+    // Return empty array on error rather than crashing
+    return [];
+  }
 };
 
 export default getSearchForYoutubeVideos;
