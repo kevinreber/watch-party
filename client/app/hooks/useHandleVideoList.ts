@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { Socket } from "socket.io-client";
 import { useSnackbar } from "notistack";
 import { isValidYTLink, ifArrayContains } from "~/utils/helpers";
@@ -31,9 +31,9 @@ export const useHandleVideoList = (socket: Socket | null) => {
         };
 
         socket.emit(SOCKET_CLIENT_EMITTER.videoListEvent, data);
-        enqueueSnackbar("Video added to Video Queue", { variant: "success" });
+        enqueueSnackbar("Video added to queue", { variant: "success" });
       } else {
-        enqueueSnackbar("Video already in Video Queue", { variant: "warning" });
+        enqueueSnackbar("Video already in queue", { variant: "warning" });
       }
     } else {
       enqueueSnackbar("Invalid URL", { variant: "warning" });
@@ -54,6 +54,26 @@ export const useHandleVideoList = (socket: Socket | null) => {
     socket.emit(SOCKET_CLIENT_EMITTER.videoListEvent, data);
   };
 
+  // Play next video in queue (remove current video)
+  const playNextVideo = useCallback(() => {
+    if (!socket || videos.length <= 1) return;
+
+    const currentVideo = videos[0];
+    const filteredVideos = videos.slice(1);
+    setVideos(filteredVideos);
+
+    const data = {
+      type: "remove-video",
+      video: currentVideo,
+    };
+
+    socket.emit(SOCKET_CLIENT_EMITTER.videoListEvent, data);
+
+    if (filteredVideos.length > 0) {
+      enqueueSnackbar(`Now playing: ${filteredVideos[0].name}`, { variant: "info" });
+    }
+  }, [socket, videos, enqueueSnackbar]);
+
   // Socket Event Listener - Update video list
   useEffect(() => {
     if (!socket) return;
@@ -70,5 +90,5 @@ export const useHandleVideoList = (socket: Socket | null) => {
     };
   }, [socket]);
 
-  return { videos, addVideoToList, removeVideoFromList };
+  return { videos, addVideoToList, removeVideoFromList, playNextVideo };
 };

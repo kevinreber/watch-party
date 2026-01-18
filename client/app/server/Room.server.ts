@@ -21,6 +21,21 @@ interface Video {
   img?: string;
 }
 
+interface VideoSyncEvent {
+  roomId: string;
+  type: "play" | "pause" | "seek";
+  currentTime: number;
+  timestamp: number;
+}
+
+interface VideoSyncState {
+  isPlaying: boolean;
+  currentTime: number;
+}
+
+// Store video sync state per room
+const roomVideoStates = new Map<string, VideoSyncState>();
+
 /**
  * Room is a collection of listening members; this becomes a "chat room"
  * where individual users can join/leave/broadcast to.
@@ -46,7 +61,7 @@ export class Room {
     this.messages = [];
 
     // Set up socket event listeners
-    socket.on("ROOM:user-join-room", (data: { username: string }) =>
+    socket.on("ROOM:user-join-room", (data: { username: string; roomId: string }) =>
       this.joinRoom(data)
     );
     socket.on("disconnect", () => this.disconnect());
@@ -55,6 +70,11 @@ export class Room {
     socket.on(EMITTER.SEND_MESSAGE, (message: Message) =>
       this.sendMessage(message)
     );
+
+    // Video sync events
+    socket.on("VIDEO:sync", (event: VideoSyncEvent) => this.handleVideoSync(event));
+    socket.on("VIDEO:request-sync", (data: { roomId: string }) => this.handleSyncRequest(data));
+
     socket.on("connect_error", (error: Error) => {
       console.error(`connect_error due to ${error.message}`);
     });
@@ -82,19 +102,29 @@ export class Room {
     this.private = !this.private;
   }
 
-  joinRoom(data: { username: string }): void {
+  joinRoom(data: { username: string; roomId?: string }): void {
     console.log("****** JOINING ROOM ******");
     const socketId = this.socket.id;
-    const { username } = data;
+    const { username, roomId } = data;
 
-    // Store username in socket data
+    // Store username and roomId in socket data
     this.socket.data.username = username;
+    this.socket.data.roomId = roomId;
+
+    // Join the room if roomId is provided
+    if (roomId) {
+      this.socket.join(roomId);
+      this.roomName = roomId;
+    }
 
     if (this.users.has(socketId)) {
       console.error(
         `Socket ID: "${socketId}" already exists in room "${this.roomName}"`
       );
     }
+
+    // Add user to room
+    this.users.set(socketId, username);
 
     const nowDateUTC = getNowDateAsUTC();
     const content = `${username} has joined the room`;
@@ -109,17 +139,32 @@ export class Room {
     const count = this.io.engine.clientsCount;
     console.log("CLIENT COUNT", count);
 
-    // Broadcast join message to other users
-    this.socket.broadcast.emit("MSG:receive-message", message);
+    // Broadcast join message to other users in the room
+    if (roomId) {
+      this.socket.to(roomId).emit("MSG:receive-message", message);
+
+      // Send current video sync state to new user
+      const syncState = roomVideoStates.get(roomId);
+      if (syncState) {
+        this.socket.emit("VIDEO:sync-state", syncState);
+      }
+    } else {
+      this.socket.broadcast.emit("MSG:receive-message", message);
+    }
 
     // Update room size for all users
     const userCount = this.getClientCount();
-    this.socket.broadcast.emit(LISTENER.UPDATE_USER_COUNT, userCount);
+    if (roomId) {
+      this.io.to(roomId).emit(LISTENER.UPDATE_USER_COUNT, userCount);
+    } else {
+      this.socket.broadcast.emit(LISTENER.UPDATE_USER_COUNT, userCount);
+    }
   }
 
   disconnect(): void {
     console.log("DISCONNECTING-------------------");
     const socketId = this.socket.id;
+    const roomId = this.socket.data.roomId;
 
     if (this.users.has(socketId)) {
       const username = this.users.get(socketId);
@@ -137,12 +182,55 @@ export class Room {
       );
 
       this.users.delete(socketId);
-      this.socket.broadcast.emit("receive-message", message);
+
+      if (roomId) {
+        this.socket.to(roomId).emit("MSG:receive-message", message);
+      } else {
+        this.socket.broadcast.emit("receive-message", message);
+      }
     }
 
     // Update room size
     const userCount = this.getClientCount();
-    this.socket.broadcast.emit(LISTENER.UPDATE_USER_COUNT, userCount);
+    if (roomId) {
+      this.io.to(roomId).emit(LISTENER.UPDATE_USER_COUNT, userCount);
+    } else {
+      this.socket.broadcast.emit(LISTENER.UPDATE_USER_COUNT, userCount);
+    }
+  }
+
+  // Handle video sync events (play, pause, seek)
+  handleVideoSync(event: VideoSyncEvent): void {
+    const { roomId, type, currentTime } = event;
+    console.log(`Video sync event: ${type} at ${currentTime}s in room ${roomId}`);
+
+    // Update room video state
+    const currentState = roomVideoStates.get(roomId) || { isPlaying: false, currentTime: 0 };
+
+    switch (type) {
+      case "play":
+        roomVideoStates.set(roomId, { isPlaying: true, currentTime });
+        break;
+      case "pause":
+        roomVideoStates.set(roomId, { isPlaying: false, currentTime });
+        break;
+      case "seek":
+        roomVideoStates.set(roomId, { ...currentState, currentTime });
+        break;
+    }
+
+    // Broadcast to all other users in the room
+    this.socket.to(roomId).emit("VIDEO:sync", event);
+  }
+
+  // Handle sync request from new users
+  handleSyncRequest(data: { roomId: string }): void {
+    const { roomId } = data;
+    const syncState = roomVideoStates.get(roomId);
+
+    if (syncState) {
+      this.socket.emit("VIDEO:sync-state", syncState);
+    }
   }
 
   addVideo(video: Video): void {
@@ -165,11 +253,23 @@ export class Room {
 
   userIsTyping(_data: unknown): void {
     const username = this.socket.data.username;
+    const roomId = this.socket.data.roomId;
     const message = `${username} is typing a message...`;
-    this.socket.broadcast.emit("MSG:user-is-typing", message);
+
+    if (roomId) {
+      this.socket.to(roomId).emit("MSG:user-is-typing", message);
+    } else {
+      this.socket.broadcast.emit("MSG:user-is-typing", message);
+    }
   }
 
   noUserIsTyping(): void {
-    this.socket.broadcast.emit("MSG:no-user-is-typing");
+    const roomId = this.socket.data.roomId;
+
+    if (roomId) {
+      this.socket.to(roomId).emit("MSG:no-user-is-typing");
+    } else {
+      this.socket.broadcast.emit("MSG:no-user-is-typing");
+    }
   }
 }
