@@ -19,16 +19,16 @@ export function initializeSocketServer(httpServer: HttpServer): SocketServer {
     cors: {
       origin: "*",
       methods: ["GET", "POST"],
-      transports: ["websocket", "polling"],
       credentials: true,
     },
+    transports: ["websocket", "polling"],
     allowEIO3: true,
   });
 
   io.on(EVENTS.CONNECTION, (socket) => {
     console.log("CONNECTING TO SOCKET");
 
-    socket.on("connect_error", (err) => {
+    socket.on("connect_error", (err: Error) => {
       console.log(`connect_error due to ${err.message}`);
     });
 
