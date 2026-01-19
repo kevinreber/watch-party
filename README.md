@@ -92,38 +92,31 @@
 
 ## Project Setup
 
-### Clone directory:
+### Clone and Install
 
-```
-cd [workspace folder]
+```bash
 git clone https://github.com/kevinreber/watch-party.git
-```
-
----
-
-## Front End
-
-```
-cd client
+cd watch-party
 npm install
-npm start
 ```
-
-Open [http://localhost:3000](http://localhost:3000) to view project in the browser.
-
----
-
-## Back End
 
 ### Environment Variables
 
-- `YOUTUBE_API_KEY`: Allows search feature for YouTube videos - [Get YouTube API Credentials](https://developers.google.com/youtube/v3/docs/)
-- `DB_URI`: Access to Mongo Database
+Create a `.env` file in the root directory:
 
-```
-cd server
-npm install
-nodemon server.js
+- `YOUTUBE_API_KEY`: Enables YouTube video search - [Get YouTube API Credentials](https://developers.google.com/youtube/v3/docs/)
+
+### Run Development Server
+
+```bash
+npm run dev
 ```
 
-Open [http://localhost:3001](http://localhost:3001) to view project in the browser.
+Open [http://localhost:3000](http://localhost:3000) to view the project in the browser.
+
+### Build for Production
+
+```bash
+npm run build
+npm start
+```
