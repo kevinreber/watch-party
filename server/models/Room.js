@@ -19,6 +19,9 @@ const { EVENTS, EMITTER, LISTENER } = SOCKET_SERVER;
  * https://developer.okta.com/blog/2021/07/14/socket-io-react-tutorial
  */
 
+// Shared video state across all rooms (keyed by roomId)
+const roomVideoStates = new Map();
+
 export class Room {
   /** make a new room, starting with empty set of listeners */
   constructor(io, socket, roomId = "TESTING", privateRoom = false) {
@@ -36,10 +39,119 @@ export class Room {
     socket.on("MSG:user-is-typing", (data) => this.userIsTyping(data));
     socket.on("MSG:no-user-is-typing", () => this.noUserIsTyping());
     socket.on(EMITTER.SEND_MESSAGE, (message) => this.sendMessage(message));
+    socket.on("event", (data, roomId) => this.handleVideoEvent(data, roomId));
+    socket.on("request-video-state", (roomId) => this.sendVideoState(roomId));
+    socket.on(EMITTER.VIDEO_LIST_EVENT, (data) => this.handleVideoListEvent(data));
     socket.on("connect_error", (error) => {
       console.error(`connect_error due to ${error.message}`);
     });
     // });
+  }
+
+  /**
+   * Get or create video state for a room
+   */
+  static getVideoState(roomId) {
+    if (!roomVideoStates.has(roomId)) {
+      roomVideoStates.set(roomId, {
+        videoId: null,
+        currentTime: 0,
+        isPlaying: false,
+        lastUpdated: Date.now(),
+        videos: [],
+      });
+    }
+    return roomVideoStates.get(roomId);
+  }
+
+  /**
+   * Update video state for a room
+   */
+  static updateVideoState(roomId, updates) {
+    const state = Room.getVideoState(roomId);
+    Object.assign(state, updates, { lastUpdated: Date.now() });
+    return state;
+  }
+
+  /**
+   * Handle video sync events (play, pause, seek, load-video)
+   */
+  handleVideoEvent(data, roomId) {
+    const { state } = data;
+    console.log(`Video sync event: ${state} at ${data.currentTime || data.newTime || 0}s in room ${roomId}`);
+
+    // Update shared video state based on event type
+    if (state === "load-video") {
+      Room.updateVideoState(roomId, {
+        videoId: data.videoId,
+        currentTime: 0,
+        isPlaying: false,
+      });
+    } else if (state === "play") {
+      Room.updateVideoState(roomId, {
+        currentTime: data.currentTime,
+        isPlaying: true,
+      });
+    } else if (state === "pause") {
+      Room.updateVideoState(roomId, {
+        currentTime: data.currentTime,
+        isPlaying: false,
+      });
+    } else if (state === "seek") {
+      Room.updateVideoState(roomId, {
+        currentTime: data.newTime,
+      });
+    }
+
+    // Broadcast event to all other users in the room
+    this.socket.broadcast.emit("receive-event", data);
+  }
+
+  /**
+   * Send current video state to requesting client
+   */
+  sendVideoState(roomId) {
+    const videoState = Room.getVideoState(roomId);
+
+    // Create a copy to avoid mutating the stored state
+    const stateToSend = { ...videoState };
+
+    // Calculate estimated current time if video is playing
+    if (stateToSend.isPlaying && stateToSend.lastUpdated) {
+      const elapsedSeconds = (Date.now() - stateToSend.lastUpdated) / 1000;
+      stateToSend.currentTime = stateToSend.currentTime + elapsedSeconds;
+    }
+
+    console.log(`Sending video state to new user in room ${roomId}:`, stateToSend);
+    this.socket.emit("video-state-sync", stateToSend);
+  }
+
+  /**
+   * Handle video list events (add/remove videos)
+   */
+  handleVideoListEvent(data) {
+    const { type, video, roomId } = data;
+    console.log(`Video list event: ${type}`, video);
+
+    const videoState = Room.getVideoState(roomId || "default");
+
+    if (type === "add-video") {
+      videoState.videos.push(video);
+      // If this is the first video, set it as current
+      if (videoState.videos.length === 1) {
+        videoState.videoId = video;
+      }
+    } else if (type === "remove-video") {
+      videoState.videos = videoState.videos.filter((v) => v !== video);
+    }
+
+    // Broadcast updated video list to all other users
+    const responseData = {
+      type,
+      video,
+      videos: videoState.videos,
+    };
+    this.socket.broadcast.emit("update_video_list", responseData);
   }
 
   getClientCount() {

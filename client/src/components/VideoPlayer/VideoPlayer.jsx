@@ -235,7 +235,7 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
     setPlayerStatus(e.data);
   };
 
-  // * Socket Event Listener
+  // * Socket Event Listener for video sync events
   React.useEffect(() => {
     if (!socket) return;
     socket.on('receive-event', (data) => {
@@ -275,6 +275,64 @@ const VideoPlayer = ({ curVideo, socket, addMessage, username }) => {
 
     return () => socket.off('receive-event');
   }, [socket, handlePlay, handlePause, handleTimelineChange]);
+
+  // * Socket Event Listener for initial video state sync (when new user joins)
+  React.useEffect(() => {
+    if (!socket) return;
+
+    socket.on('video-state-sync', (videoState) => {
+      console.log('Received video state sync:', videoState);
+
+      if (!videoState || !videoState.videoId) {
+        console.log('No video currently playing in room');
+        return;
+      }
+
+      // Wait for player to be ready before syncing
+      const syncVideo = () => {
+        if (!player) {
+          // Player not ready yet, retry after a short delay
+          setTimeout(syncVideo, 500);
+          return;
+        }
+
+        try {
+          // Seek to the current time
+          if (videoState.currentTime > 0) {
+            player.seekTo(videoState.currentTime, true);
+            console.log(`Synced to time: ${videoState.currentTime}s`);
+          }
+
+          // Play or pause based on room state
+          if (videoState.isPlaying) {
+            player.playVideo();
+            console.log('Video synced and playing');
+          } else {
+            player.pauseVideo();
+            console.log('Video synced and paused');
+          }
+
+          // Add system message about sync
+          const messageData = {
+            type: 'player-change',
+            username: 'System',
+            content: `Video synced to ${getFormattedTime(videoState.currentTime)}`,
+            created_at: new Date().getTime(),
+          };
+          addMessage(messageData);
+        } catch (error) {
+          console.error('Error syncing video:', error);
+          // Retry if player methods aren't ready
+          setTimeout(syncVideo, 500);
+        }
+      };
+
+      // Start sync process after a short delay to ensure player is initialized
+      setTimeout(syncVideo, 1000);
+    });
+
+    return () => socket.off('video-state-sync');
+  }, [socket, addMessage]);
 
   return (
     <div id="primary">
