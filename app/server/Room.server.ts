@@ -340,7 +340,7 @@ export class Room {
         videoState.videoId = video;
       }
     } else if (type === "remove-video") {
-      videoState.videos = videoState.videos.filter((v) => v !== video);
+      videoState.videos = videoState.videos.filter((v) => v.videoId !== video.videoId);
     }
 
     // Broadcast updated video list to all other users

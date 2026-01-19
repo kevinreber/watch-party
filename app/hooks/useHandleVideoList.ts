@@ -69,6 +69,7 @@ export const useHandleVideoList = (socket: Socket | null) => {
     const data = {
       type: "remove-video",
       video: currentVideo,
+      roomId,
     };
 
     socket.emit(SOCKET_CLIENT_EMITTER.videoListEvent, data);
@@ -76,7 +77,7 @@ export const useHandleVideoList = (socket: Socket | null) => {
     if (filteredVideos.length > 0) {
       enqueueSnackbar(`Now playing: ${filteredVideos[0].name}`, { variant: "info" });
     }
-  }, [socket, videos, enqueueSnackbar]);
+  }, [socket, videos, enqueueSnackbar, roomId]);
 
   // Socket Event Listener - Update video list
   useEffect(() => {
