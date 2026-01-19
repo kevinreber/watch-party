@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Links,
   Meta,
@@ -11,7 +11,10 @@ import type { LinksFunction, MetaFunction } from "react-router";
 import { SnackbarProvider } from "notistack";
 
 import { UserContext } from "~/context/UserContext";
+import { AuthProvider } from "~/context/AuthContext";
+import { ThemeProvider } from "~/context/ThemeContext";
 import { generateName } from "~/utils/generateName";
+import { themeService } from "~/services/themeService";
 
 import "./styles/app.css";
 
@@ -57,17 +60,26 @@ export default function App() {
   const [user, setUser] = useState<string>(generateName());
   const userData = useMemo(() => ({ user, setUser }), [user, setUser]);
 
+  // Initialize theme on mount
+  useEffect(() => {
+    themeService.initializeTheme();
+  }, []);
+
   return (
     <div className="App">
-      <UserContext.Provider value={userData}>
-        <SnackbarProvider
-          maxSnack={5}
-          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-          autoHideDuration={10000}
-        >
-          <Outlet />
-        </SnackbarProvider>
-      </UserContext.Provider>
+      <AuthProvider>
+        <ThemeProvider>
+          <UserContext.Provider value={userData}>
+            <SnackbarProvider
+              maxSnack={5}
+              anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+              autoHideDuration={10000}
+            >
+              <Outlet />
+            </SnackbarProvider>
+          </UserContext.Provider>
+        </ThemeProvider>
+      </AuthProvider>
     </div>
   );
 }
