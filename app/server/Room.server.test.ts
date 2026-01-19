@@ -21,6 +21,12 @@ const createMockIo = (): Partial<Server> => ({
   } as any,
   sockets: {
     emit: vi.fn(),
+    adapter: {
+      rooms: new Map([
+        ["test-room", new Set(["socket-1", "socket-2"])],
+        ["empty-room", new Set()],
+      ]),
+    },
   } as any,
   to: vi.fn().mockReturnThis(),
 });
@@ -322,6 +328,27 @@ describe("Room", () => {
       const room = new Room(mockIo as Server, mockSocket as Socket, "count-test-room");
 
       expect(room.getClientCount()).toBe(5);
+    });
+  });
+
+  describe("getRoomUserCount", () => {
+    it("should return the number of users in a specific room", () => {
+      const room = new Room(mockIo as Server, mockSocket as Socket, "room-count-test");
+
+      // test-room has 2 users in our mock
+      expect(room.getRoomUserCount("test-room")).toBe(2);
+    });
+
+    it("should return 0 for an empty room", () => {
+      const room = new Room(mockIo as Server, mockSocket as Socket, "room-count-test");
+
+      expect(room.getRoomUserCount("empty-room")).toBe(0);
+    });
+
+    it("should return 0 for a non-existent room", () => {
+      const room = new Room(mockIo as Server, mockSocket as Socket, "room-count-test");
+
+      expect(room.getRoomUserCount("non-existent-room")).toBe(0);
     });
   });
 });

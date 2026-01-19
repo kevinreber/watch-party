@@ -113,6 +113,12 @@ export class Room {
     return this.io.engine.clientsCount;
   }
 
+  // Get the number of users in a specific room
+  getRoomUserCount(roomId: string): number {
+    const room = this.io.sockets.adapter.rooms.get(roomId);
+    return room ? room.size : 0;
+  }
+
   sendMessage(message: Message): void {
     console.log("Message received:", message);
     this.addMessage(message);
@@ -165,9 +171,6 @@ export class Room {
       username,
     };
 
-    const count = this.io.engine.clientsCount;
-    console.log("CLIENT COUNT", count);
-
     // Broadcast join message to other users in the room
     if (roomId) {
       this.socket.to(roomId).emit("MSG:receive-message", message);
@@ -184,15 +187,15 @@ export class Room {
       this.socket.emit("VIDEO:sync-state", stateToSend);
       // Also send legacy format for backward compatibility
       this.socket.emit("video-state-sync", stateToSend);
+
+      // Update room size for all users in this room
+      const roomUserCount = this.getRoomUserCount(roomId);
+      console.log(`Room ${roomId} user count:`, roomUserCount);
+      this.io.to(roomId).emit(LISTENER.UPDATE_USER_COUNT, roomUserCount);
     } else {
       this.socket.broadcast.emit("MSG:receive-message", message);
-    }
-
-    // Update room size for all users
-    const userCount = this.getClientCount();
-    if (roomId) {
-      this.io.to(roomId).emit(LISTENER.UPDATE_USER_COUNT, userCount);
-    } else {
+      // Fallback to global count if no roomId
+      const userCount = this.getClientCount();
       this.socket.broadcast.emit(LISTENER.UPDATE_USER_COUNT, userCount);
     }
   }
@@ -226,11 +229,13 @@ export class Room {
       }
     }
 
-    // Update room size
-    const userCount = this.getClientCount();
+    // Update room size for remaining users
     if (roomId) {
-      this.io.to(roomId).emit(LISTENER.UPDATE_USER_COUNT, userCount);
+      const roomUserCount = this.getRoomUserCount(roomId);
+      console.log(`Room ${roomId} user count after disconnect:`, roomUserCount);
+      this.io.to(roomId).emit(LISTENER.UPDATE_USER_COUNT, roomUserCount);
     } else {
+      const userCount = this.getClientCount();
       this.socket.broadcast.emit(LISTENER.UPDATE_USER_COUNT, userCount);
     }
   }
