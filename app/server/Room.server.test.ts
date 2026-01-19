@@ -240,12 +240,14 @@ describe("Room", () => {
 
   describe("handleVideoListEvent", () => {
     let room: Room;
+    let mockEmit: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
       room = new Room(mockIo as Server, mockSocket as Socket, "list-test-room");
       mockSocket.data = { roomId: "list-room" };
+      mockEmit = vi.fn();
       (mockSocket.to as ReturnType<typeof vi.fn>).mockReturnValue({
-        emit: vi.fn(),
+        emit: mockEmit,
       });
     });
 
@@ -280,6 +282,205 @@ describe("Room", () => {
       });
 
       expect(mockSocket.to).toHaveBeenCalledWith("remove-room");
+    });
+
+    describe("video removal by videoId", () => {
+      it("should remove video using videoId comparison, not object reference", () => {
+        const uniqueRoomId = "videoId-comparison-room-" + Date.now();
+        const video1 = { videoId: "video-1", url: "http://youtube.com/watch?v=video-1", name: "Video 1" };
+        const video2 = { videoId: "video-2", url: "http://youtube.com/watch?v=video-2", name: "Video 2" };
+
+        // Add two videos
+        room.handleVideoListEvent({ type: "add-video", video: video1, roomId: uniqueRoomId });
+        room.handleVideoListEvent({ type: "add-video", video: video2, roomId: uniqueRoomId });
+
+        // Create a NEW object with the same videoId (simulating deserialized JSON from socket)
+        const video1Copy = { videoId: "video-1", url: "http://youtube.com/watch?v=video-1", name: "Video 1" };
+
+        // Remove using the copy (different object reference, same videoId)
+        room.handleVideoListEvent({ type: "remove-video", video: video1Copy, roomId: uniqueRoomId });
+
+        // Verify the broadcast contains only video2
+        expect(mockEmit).toHaveBeenLastCalledWith(
+          "update_video_list",
+          expect.objectContaining({
+            type: "remove-video",
+            videos: [video2],
+          })
+        );
+      });
+
+      it("should correctly remove a video from the middle of the queue", () => {
+        const uniqueRoomId = "middle-removal-room-" + Date.now();
+        const video1 = { videoId: "first", url: "http://youtube.com/watch?v=first", name: "First Video" };
+        const video2 = { videoId: "middle", url: "http://youtube.com/watch?v=middle", name: "Middle Video" };
+        const video3 = { videoId: "last", url: "http://youtube.com/watch?v=last", name: "Last Video" };
+
+        // Add three videos
+        room.handleVideoListEvent({ type: "add-video", video: video1, roomId: uniqueRoomId });
+        room.handleVideoListEvent({ type: "add-video", video: video2, roomId: uniqueRoomId });
+        room.handleVideoListEvent({ type: "add-video", video: video3, roomId: uniqueRoomId });
+
+        // Remove the middle video
+        room.handleVideoListEvent({ type: "remove-video", video: { videoId: "middle" }, roomId: uniqueRoomId });
+
+        // Verify only first and last remain
+        expect(mockEmit).toHaveBeenLastCalledWith(
+          "update_video_list",
+          expect.objectContaining({
+            videos: expect.arrayContaining([
+              expect.objectContaining({ videoId: "first" }),
+              expect.objectContaining({ videoId: "last" }),
+            ]),
+          })
+        );
+
+        // Verify middle video is not in the list
+        const lastCall = mockEmit.mock.calls[mockEmit.mock.calls.length - 1];
+        const videos = lastCall[1].videos;
+        expect(videos.length).toBe(2);
+        expect(videos.find((v: any) => v.videoId === "middle")).toBeUndefined();
+      });
+
+      it("should remove the currently playing video (first in queue)", () => {
+        const uniqueRoomId = "first-removal-room-" + Date.now();
+        const currentVideo = { videoId: "now-playing", url: "http://youtube.com/watch?v=now-playing", name: "Now Playing" };
+        const nextVideo = { videoId: "up-next", url: "http://youtube.com/watch?v=up-next", name: "Up Next" };
+
+        // Add videos (first one is "now playing")
+        room.handleVideoListEvent({ type: "add-video", video: currentVideo, roomId: uniqueRoomId });
+        room.handleVideoListEvent({ type: "add-video", video: nextVideo, roomId: uniqueRoomId });
+
+        // Remove the currently playing video (simulating playNextVideo)
+        room.handleVideoListEvent({ type: "remove-video", video: { videoId: "now-playing" }, roomId: uniqueRoomId });
+
+        // Verify only the next video remains
+        expect(mockEmit).toHaveBeenLastCalledWith(
+          "update_video_list",
+          expect.objectContaining({
+            videos: [expect.objectContaining({ videoId: "up-next" })],
+          })
+        );
+      });
+
+      it("should handle removing a non-existent video gracefully", () => {
+        const uniqueRoomId = "non-existent-removal-room-" + Date.now();
+        const video1 = { videoId: "exists", url: "http://youtube.com/watch?v=exists", name: "Exists" };
+
+        // Add a video
+        room.handleVideoListEvent({ type: "add-video", video: video1, roomId: uniqueRoomId });
+
+        // Try to remove a video that doesn't exist
+        room.handleVideoListEvent({ type: "remove-video", video: { videoId: "does-not-exist" }, roomId: uniqueRoomId });
+
+        // Verify the original video is still there
+        expect(mockEmit).toHaveBeenLastCalledWith(
+          "update_video_list",
+          expect.objectContaining({
+            videos: [expect.objectContaining({ videoId: "exists" })],
+          })
+        );
+      });
+
+      it("should handle removing from an empty queue", () => {
+        const uniqueRoomId = "empty-queue-room-" + Date.now();
+
+        // Try to remove from empty queue
+        room.handleVideoListEvent({ type: "remove-video", video: { videoId: "ghost" }, roomId: uniqueRoomId });
+
+        // Verify empty array is broadcast
+        expect(mockEmit).toHaveBeenLastCalledWith(
+          "update_video_list",
+          expect.objectContaining({
+            videos: [],
+          })
+        );
+      });
+
+      it("should broadcast to the correct room after removal", () => {
+        const uniqueRoomId = "broadcast-test-room-" + Date.now();
+        const video = { videoId: "test-video", url: "http://youtube.com/watch?v=test", name: "Test" };
+
+        room.handleVideoListEvent({ type: "add-video", video, roomId: uniqueRoomId });
+        room.handleVideoListEvent({ type: "remove-video", video: { videoId: "test-video" }, roomId: uniqueRoomId });
+
+        expect(mockSocket.to).toHaveBeenCalledWith(uniqueRoomId);
+        expect(mockEmit).toHaveBeenCalledWith("update_video_list", expect.any(Object));
+      });
+    });
+
+    describe("end-to-end queue scenarios", () => {
+      it("should handle complete queue workflow: add multiple, remove one, add another", () => {
+        const uniqueRoomId = "e2e-workflow-room-" + Date.now();
+        const video1 = { videoId: "v1", url: "http://youtube.com/watch?v=v1", name: "Video 1" };
+        const video2 = { videoId: "v2", url: "http://youtube.com/watch?v=v2", name: "Video 2" };
+        const video3 = { videoId: "v3", url: "http://youtube.com/watch?v=v3", name: "Video 3" };
+        const video4 = { videoId: "v4", url: "http://youtube.com/watch?v=v4", name: "Video 4" };
+
+        // Add three videos
+        room.handleVideoListEvent({ type: "add-video", video: video1, roomId: uniqueRoomId });
+        room.handleVideoListEvent({ type: "add-video", video: video2, roomId: uniqueRoomId });
+        room.handleVideoListEvent({ type: "add-video", video: video3, roomId: uniqueRoomId });
+
+        // Remove video2
+        room.handleVideoListEvent({ type: "remove-video", video: { videoId: "v2" }, roomId: uniqueRoomId });
+
+        // Add video4
+        room.handleVideoListEvent({ type: "add-video", video: video4, roomId: uniqueRoomId });
+
+        // Verify final state: v1, v3, v4
+        expect(mockEmit).toHaveBeenLastCalledWith(
+          "update_video_list",
+          expect.objectContaining({
+            videos: [
+              expect.objectContaining({ videoId: "v1" }),
+              expect.objectContaining({ videoId: "v3" }),
+              expect.objectContaining({ videoId: "v4" }),
+            ],
+          })
+        );
+      });
+
+      it("should handle sequential removal of all videos", () => {
+        const uniqueRoomId = "sequential-removal-room-" + Date.now();
+        const video1 = { videoId: "seq1", url: "http://youtube.com/watch?v=seq1", name: "Seq 1" };
+        const video2 = { videoId: "seq2", url: "http://youtube.com/watch?v=seq2", name: "Seq 2" };
+        const video3 = { videoId: "seq3", url: "http://youtube.com/watch?v=seq3", name: "Seq 3" };
+
+        // Add all videos
+        room.handleVideoListEvent({ type: "add-video", video: video1, roomId: uniqueRoomId });
+        room.handleVideoListEvent({ type: "add-video", video: video2, roomId: uniqueRoomId });
+        room.handleVideoListEvent({ type: "add-video", video: video3, roomId: uniqueRoomId });
+
+        // Remove them one by one (simulating playNextVideo advancing through queue)
+        room.handleVideoListEvent({ type: "remove-video", video: { videoId: "seq1" }, roomId: uniqueRoomId });
+
+        let lastCall = mockEmit.mock.calls[mockEmit.mock.calls.length - 1];
+        expect(lastCall[1].videos.length).toBe(2);
+
+        room.handleVideoListEvent({ type: "remove-video", video: { videoId: "seq2" }, roomId: uniqueRoomId });
+
+        lastCall = mockEmit.mock.calls[mockEmit.mock.calls.length - 1];
+        expect(lastCall[1].videos.length).toBe(1);
+
+        room.handleVideoListEvent({ type: "remove-video", video: { videoId: "seq3" }, roomId: uniqueRoomId });
+
+        lastCall = mockEmit.mock.calls[mockEmit.mock.calls.length - 1];
+        expect(lastCall[1].videos.length).toBe(0);
+      });
+
+      it("should use socket.data.roomId as fallback when roomId not provided", () => {
+        const fallbackRoomId = "fallback-room-" + Date.now();
+        mockSocket.data = { roomId: fallbackRoomId };
+
+        const video = { videoId: "fallback-video", url: "http://youtube.com/watch?v=fb", name: "Fallback" };
+
+        // Add without explicit roomId
+        room.handleVideoListEvent({ type: "add-video", video });
+        room.handleVideoListEvent({ type: "remove-video", video: { videoId: "fallback-video" } });
+
+        expect(mockSocket.to).toHaveBeenCalledWith(fallbackRoomId);
+      });
     });
   });
 
