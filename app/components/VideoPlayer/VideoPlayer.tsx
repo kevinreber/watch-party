@@ -15,24 +15,28 @@ interface VideoPlayerProps {
   curVideo: Video | undefined;
   isPlaying: boolean;
   currentTime: number;
+  isMutedForSync: boolean;
   onPlay: () => void;
   onPause: () => void;
   onSeek: (time: number) => void;
   onProgress: (state: { playedSeconds: number }) => void;
   onReady: () => void;
   onEnded: () => void;
+  onUnmute: () => void;
 }
 
 export const VideoPlayer = ({
   curVideo,
   isPlaying,
   currentTime,
+  isMutedForSync,
   onPlay,
   onPause,
   onSeek,
   onProgress,
   onReady,
   onEnded,
+  onUnmute,
 }: VideoPlayerProps) => {
   const playerRef = useRef<ReactPlayer>(null);
   const lastSeekTime = useRef<number>(0);
@@ -88,6 +92,7 @@ export const VideoPlayer = ({
           width="100%"
           height="100%"
           playing={isPlaying}
+          muted={isMutedForSync}
           controls
           onPlay={onPlay}
           onPause={onPause}
@@ -110,6 +115,21 @@ export const VideoPlayer = ({
         <span style={styles.syncDot} />
         <span style={styles.syncText}>Synced</span>
       </div>
+      {/* Unmute indicator - shown when video is muted for sync */}
+      {isMutedForSync && (
+        <button
+          onClick={onUnmute}
+          style={styles.unmuteButton}
+          aria-label="Click to unmute"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M11 5L6 9H2v6h4l5 4V5z" />
+            <line x1="23" y1="9" x2="17" y2="15" />
+            <line x1="17" y1="9" x2="23" y2="15" />
+          </svg>
+          <span>Click to unmute</span>
+        </button>
+      )}
     </div>
   );
 };
@@ -182,6 +202,27 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "0.75rem",
     fontWeight: 500,
     color: "#ffffff",
+  },
+  unmuteButton: {
+    position: "absolute",
+    bottom: "80px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    padding: "12px 20px",
+    background: "rgba(239, 68, 68, 0.9)",
+    backdropFilter: "blur(8px)",
+    border: "none",
+    borderRadius: "100px",
+    color: "#ffffff",
+    fontSize: "0.875rem",
+    fontWeight: 500,
+    cursor: "pointer",
+    zIndex: 20,
+    transition: "background 0.2s ease",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
   },
 };
 

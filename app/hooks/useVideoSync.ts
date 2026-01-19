@@ -16,8 +16,10 @@ export const useVideoSync = (socket: Socket | null, roomId: string | undefined) 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [seekTime, setSeekTime] = useState<number | null>(null);
+  const [isMutedForSync, setIsMutedForSync] = useState(false);
   const isLocalAction = useRef(false);
   const lastSyncTime = useRef(0);
+  const hasReceivedInitialSync = useRef(false);
 
   // Handle play action (local user pressed play)
   const handlePlay = useCallback(() => {
@@ -95,6 +97,11 @@ export const useVideoSync = (socket: Socket | null, roomId: string | undefined) 
     socket.emit("VIDEO:request-sync", { roomId });
   }, [socket, roomId]);
 
+  // Handle unmuting after user interaction
+  const handleUnmute = useCallback(() => {
+    setIsMutedForSync(false);
+  }, []);
+
   // Listen for sync events from other users
   useEffect(() => {
     if (!socket) return;
@@ -122,6 +129,13 @@ export const useVideoSync = (socket: Socket | null, roomId: string | undefined) 
     };
 
     const onSyncState = (state: VideoSyncState) => {
+      // If this is the initial sync and video is playing, mute to allow autoplay
+      // (browsers block autoplay with sound unless user has interacted)
+      if (!hasReceivedInitialSync.current && state.isPlaying) {
+        setIsMutedForSync(true);
+      }
+      hasReceivedInitialSync.current = true;
+
       setIsPlaying(state.isPlaying);
       if (Math.abs(state.currentTime - currentTime) > 2) {
         setSeekTime(state.currentTime);
@@ -146,13 +160,21 @@ export const useVideoSync = (socket: Socket | null, roomId: string | undefined) 
     }
   }, [seekTime]);
 
+  // Reset initial sync flag when room changes
+  useEffect(() => {
+    hasReceivedInitialSync.current = false;
+    setIsMutedForSync(false);
+  }, [roomId]);
+
   return {
     isPlaying,
     currentTime: seekTime ?? currentTime,
+    isMutedForSync,
     handlePlay,
     handlePause,
     handleSeek,
     handleProgress,
     handleReady,
+    handleUnmute,
   };
 };
