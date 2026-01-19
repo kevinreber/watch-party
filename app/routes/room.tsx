@@ -28,11 +28,13 @@ export default function Room() {
   const {
     isPlaying,
     currentTime,
+    isMutedForSync,
     handlePlay,
     handlePause,
     handleSeek,
     handleProgress,
     handleReady,
+    handleUnmute,
   } = useVideoSync(socket, roomId);
 
   useLoadYouTubeScript();
@@ -126,12 +128,14 @@ export default function Room() {
             curVideo={videos[0]}
             isPlaying={isPlaying}
             currentTime={currentTime}
+            isMutedForSync={isMutedForSync}
             onPlay={handlePlay}
             onPause={handlePause}
             onSeek={handleSeek}
             onProgress={handleProgress}
             onReady={handleReady}
             onEnded={handleVideoEnd}
+            onUnmute={handleUnmute}
           />
           {videos[0] && (
             <div style={styles.nowPlaying}>
