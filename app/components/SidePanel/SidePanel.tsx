@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { Socket } from "socket.io-client";
-import { useHandleMessages } from "~/hooks";
+import type { RealtimeChannel } from "ably";
+import { useHandleMessagesAbly } from "~/hooks";
 import { WatchList } from "../WatchList/WatchList";
 import { ChatList } from "../ChatList/ChatList";
 
@@ -16,7 +16,8 @@ interface Video {
 interface SidePanelProps {
   videos: Video[];
   removeVideoFromList: (video: Video) => void;
-  socket: Socket | null;
+  channel: RealtimeChannel | null;
+  clientId: string | undefined;
   usersCount: number;
   user: string;
 }
@@ -26,13 +27,14 @@ type TabType = "queue" | "chat";
 export const SidePanel = ({
   videos,
   removeVideoFromList,
-  socket,
+  channel,
+  clientId,
   usersCount,
   user,
 }: SidePanelProps) => {
   const [activeTab, setActiveTab] = useState<TabType>("queue");
-  const { messages, sendMessage, userIsTyping, isTypingMessage } =
-    useHandleMessages(socket, user);
+  const { messages, sendMessage, userIsTyping, isTypingMessage, emitTyping, emitStopTyping } =
+    useHandleMessagesAbly(channel, user, clientId);
 
   return (
     <div style={styles.container}>
@@ -96,12 +98,13 @@ export const SidePanel = ({
         )}
         {activeTab === "chat" && (
           <ChatList
-            socket={socket}
             messages={messages}
             sendMessage={sendMessage}
             userIsTyping={userIsTyping}
             isTypingMessage={isTypingMessage}
             user={user}
+            onTyping={emitTyping}
+            onStopTyping={emitStopTyping}
           />
         )}
       </div>

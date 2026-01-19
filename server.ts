@@ -1,13 +1,7 @@
 import { createRequestHandler } from "@react-router/express";
 import express from "express";
-import { createServer } from "http";
-import { initializeSocketServer } from "./app/server/socket.server";
 
 const app = express();
-const httpServer = createServer(app);
-
-// Initialize Socket.IO with the HTTP server
-initializeSocketServer(httpServer);
 
 // Serve static assets in production
 const viteDevServer =
@@ -40,6 +34,6 @@ app.all(
 );
 
 const PORT = process.env.PORT || 3000;
-httpServer.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

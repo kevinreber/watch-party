@@ -1,6 +1,4 @@
 import { useState, FormEvent, ChangeEvent, useRef, useEffect } from "react";
-import { useParams } from "react-router";
-import type { Socket } from "socket.io-client";
 import moment from "moment";
 
 interface Message {
@@ -11,23 +9,24 @@ interface Message {
 }
 
 interface ChatListProps {
-  socket: Socket | null;
   messages: Message[];
   sendMessage: (data: { content: string }) => void;
   userIsTyping: boolean;
   isTypingMessage: string;
   user: string;
+  onTyping: () => void;
+  onStopTyping: () => void;
 }
 
 export const ChatList = ({
-  socket,
   messages,
   sendMessage,
   userIsTyping,
   isTypingMessage,
   user,
+  onTyping,
+  onStopTyping,
 }: ChatListProps) => {
-  const { roomId } = useParams();
   const [messageContent, setMessageContent] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -40,9 +39,7 @@ export const ChatList = ({
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setMessageContent(e.target.value);
     // Emit typing event
-    if (socket) {
-      socket.emit("MSG:user-is-typing", { roomId });
-    }
+    onTyping();
   };
 
   const handleSubmit = (e: FormEvent) => {
@@ -51,9 +48,7 @@ export const ChatList = ({
       sendMessage({ content: messageContent });
       setMessageContent("");
       // Clear typing indicator
-      if (socket) {
-        socket.emit("MSG:no-user-is-typing");
-      }
+      onStopTyping();
       inputRef.current?.focus();
     }
   };
