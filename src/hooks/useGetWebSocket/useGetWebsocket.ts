@@ -41,6 +41,11 @@ export const useGetWebSocket = (user: string) => {
     const joinRoom = () => {
       socket.emit(EMITTER.JOIN_ROOM, { username: user });
 
+      // Request current video state after joining the room
+      if (roomId) {
+        socket.emit('request-video-state', roomId);
+      }
+
       return () => socket.off(EMITTER.JOIN_ROOM);
     };
 

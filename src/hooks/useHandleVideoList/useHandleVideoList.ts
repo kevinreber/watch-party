@@ -1,4 +1,5 @@
 import React from 'react';
+import { useParams } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import { isValidYTLink, ifArrayContains } from '@helpers';
 import { SOCKET_CLIENT_EMITTER, SOCKET_CLIENT_LISTENER } from '@socket-client';
@@ -6,6 +7,7 @@ import { SOCKET_CLIENT_EMITTER, SOCKET_CLIENT_LISTENER } from '@socket-client';
 export const useHandleVideoList = (socket: SocketIOClient.Socket) => {
   const [videos, setVideos] = React.useState<string[]>([]);
   const { enqueueSnackbar } = useSnackbar();
+  const { roomId } = useParams<any>();
 
   const addVideoToList = (video: any) => {
     if (isValidYTLink(video.url)) {
@@ -18,6 +20,7 @@ export const useHandleVideoList = (socket: SocketIOClient.Socket) => {
         const data = {
           type: 'add-video',
           video,
+          roomId,
         };
 
         socket.emit(SOCKET_CLIENT_EMITTER.videoListEvent, data);
@@ -37,13 +40,14 @@ export const useHandleVideoList = (socket: SocketIOClient.Socket) => {
     const data = {
       type: 'remove-video',
       video,
+      roomId,
     };
 
     // emit event
     socket.emit(SOCKET_CLIENT_EMITTER.videoListEvent, data);
   };
 
-  // * Socket Event Listener
+  // * Socket Event Listener for video list updates
   // @ts-ignore
   React.useEffect(() => {
     if (!socket) return;
@@ -60,6 +64,23 @@ export const useHandleVideoList = (socket: SocketIOClient.Socket) => {
 
     return () => socket.off(SOCKET_CLIENT_LISTENER.updateVideoList);
   }, [socket]);
+
+  // * Socket Event Listener for initial video state sync (when joining room)
+  // @ts-ignore
+  React.useEffect(() => {
+    if (!socket) return;
+    // @ts-ignore
+    socket.on('video-state-sync', (videoState) => {
+      console.log('Received video state sync for video list:', videoState);
+
+      if (videoState && videoState.videos && videoState.videos.length > 0) {
+        setVideos(videoState.videos);
+        enqueueSnackbar('Video queue synced', { variant: 'info' });
+      }
+    });
+
+    return () => socket.off('video-state-sync');
+  }, [socket, enqueueSnackbar]);
 
   return { videos, addVideoToList, removeVideoFromList };
 };

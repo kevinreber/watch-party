@@ -31,10 +31,34 @@ interface VideoSyncEvent {
 interface VideoSyncState {
   isPlaying: boolean;
   currentTime: number;
+  videoId: Video | null;
+  videos: Video[];
+  lastUpdated: number;
 }
 
 // Store video sync state per room
 const roomVideoStates = new Map<string, VideoSyncState>();
+
+// Get or create video state for a room
+function getVideoState(roomId: string): VideoSyncState {
+  if (!roomVideoStates.has(roomId)) {
+    roomVideoStates.set(roomId, {
+      isPlaying: false,
+      currentTime: 0,
+      videoId: null,
+      videos: [],
+      lastUpdated: Date.now(),
+    });
+  }
+  return roomVideoStates.get(roomId)!;
+}
+
+// Update video state for a room
+function updateVideoState(roomId: string, updates: Partial<VideoSyncState>): VideoSyncState {
+  const state = getVideoState(roomId);
+  Object.assign(state, updates, { lastUpdated: Date.now() });
+  return state;
+}
 
 /**
  * Room is a collection of listening members; this becomes a "chat room"
@@ -75,6 +99,11 @@ export class Room {
     socket.on("VIDEO:sync", (event: VideoSyncEvent) => this.handleVideoSync(event));
     socket.on("VIDEO:request-sync", (data: { roomId: string }) => this.handleSyncRequest(data));
 
+    // Video list events (for backward compatibility with old client)
+    socket.on("event", (data: any, roomId: string) => this.handleLegacyVideoEvent(data, roomId));
+    socket.on("request-video-state", (roomId: string) => this.handleLegacySyncRequest(roomId));
+    socket.on("video_list_event", (data: any) => this.handleVideoListEvent(data));
+
     socket.on("connect_error", (error: Error) => {
       console.error(`connect_error due to ${error.message}`);
     });
@@ -82,6 +111,12 @@ export class Room {
 
   getClientCount(): number {
     return this.io.engine.clientsCount;
+  }
+
+  // Get the number of users in a specific room
+  getRoomUserCount(roomId: string): number {
+    const room = this.io.sockets.adapter.rooms.get(roomId);
+    return room ? room.size : 0;
   }
 
   sendMessage(message: Message): void {
@@ -136,27 +171,31 @@ export class Room {
       username,
     };
 
-    const count = this.io.engine.clientsCount;
-    console.log("CLIENT COUNT", count);
-
     // Broadcast join message to other users in the room
     if (roomId) {
       this.socket.to(roomId).emit("MSG:receive-message", message);
 
       // Send current video sync state to new user
-      const syncState = roomVideoStates.get(roomId);
-      if (syncState) {
-        this.socket.emit("VIDEO:sync-state", syncState);
+      const state = getVideoState(roomId);
+      // Calculate elapsed time if video is playing
+      const stateToSend = { ...state };
+      if (state.isPlaying && state.lastUpdated) {
+        const elapsedSeconds = (Date.now() - state.lastUpdated) / 1000;
+        stateToSend.currentTime = state.currentTime + elapsedSeconds;
       }
+      console.log(`Sending video state to new user joining room ${roomId}:`, stateToSend);
+      this.socket.emit("VIDEO:sync-state", stateToSend);
+      // Also send legacy format for backward compatibility
+      this.socket.emit("video-state-sync", stateToSend);
+
+      // Update room size for all users in this room
+      const roomUserCount = this.getRoomUserCount(roomId);
+      console.log(`Room ${roomId} user count:`, roomUserCount);
+      this.io.to(roomId).emit(LISTENER.UPDATE_USER_COUNT, roomUserCount);
     } else {
       this.socket.broadcast.emit("MSG:receive-message", message);
-    }
-
-    // Update room size for all users
-    const userCount = this.getClientCount();
-    if (roomId) {
-      this.io.to(roomId).emit(LISTENER.UPDATE_USER_COUNT, userCount);
-    } else {
+      // Fallback to global count if no roomId
+      const userCount = this.getClientCount();
       this.socket.broadcast.emit(LISTENER.UPDATE_USER_COUNT, userCount);
     }
   }
@@ -190,11 +229,13 @@ export class Room {
       }
     }
 
-    // Update room size
-    const userCount = this.getClientCount();
+    // Update room size for remaining users
     if (roomId) {
-      this.io.to(roomId).emit(LISTENER.UPDATE_USER_COUNT, userCount);
+      const roomUserCount = this.getRoomUserCount(roomId);
+      console.log(`Room ${roomId} user count after disconnect:`, roomUserCount);
+      this.io.to(roomId).emit(LISTENER.UPDATE_USER_COUNT, roomUserCount);
     } else {
+      const userCount = this.getClientCount();
       this.socket.broadcast.emit(LISTENER.UPDATE_USER_COUNT, userCount);
     }
   }
@@ -204,18 +245,16 @@ export class Room {
     const { roomId, type, currentTime } = event;
     console.log(`Video sync event: ${type} at ${currentTime}s in room ${roomId}`);
 
-    // Update room video state
-    const currentState = roomVideoStates.get(roomId) || { isPlaying: false, currentTime: 0 };
-
+    // Update room video state using helper function
     switch (type) {
       case "play":
-        roomVideoStates.set(roomId, { isPlaying: true, currentTime });
+        updateVideoState(roomId, { isPlaying: true, currentTime });
         break;
       case "pause":
-        roomVideoStates.set(roomId, { isPlaying: false, currentTime });
+        updateVideoState(roomId, { isPlaying: false, currentTime });
         break;
       case "seek":
-        roomVideoStates.set(roomId, { ...currentState, currentTime });
+        updateVideoState(roomId, { currentTime });
         break;
     }
 
@@ -226,10 +265,95 @@ export class Room {
   // Handle sync request from new users
   handleSyncRequest(data: { roomId: string }): void {
     const { roomId } = data;
-    const syncState = roomVideoStates.get(roomId);
+    const state = getVideoState(roomId);
 
-    if (syncState) {
-      this.socket.emit("VIDEO:sync-state", syncState);
+    // Calculate elapsed time if video is playing
+    const stateToSend = { ...state };
+    if (state.isPlaying && state.lastUpdated) {
+      const elapsedSeconds = (Date.now() - state.lastUpdated) / 1000;
+      stateToSend.currentTime = state.currentTime + elapsedSeconds;
+    }
+
+    console.log(`Sending video state to user in room ${roomId}:`, stateToSend);
+    this.socket.emit("VIDEO:sync-state", stateToSend);
+  }
+
+  // Handle legacy video events (for backward compatibility)
+  handleLegacyVideoEvent(data: any, roomId: string): void {
+    const { state } = data;
+    console.log(`Legacy video sync event: ${state} at ${data.currentTime || data.newTime || 0}s in room ${roomId}`);
+
+    // Update shared video state based on event type
+    if (state === "load-video") {
+      updateVideoState(roomId, {
+        videoId: data.videoId,
+        currentTime: 0,
+        isPlaying: false,
+      });
+    } else if (state === "play") {
+      updateVideoState(roomId, {
+        currentTime: data.currentTime,
+        isPlaying: true,
+      });
+    } else if (state === "pause") {
+      updateVideoState(roomId, {
+        currentTime: data.currentTime,
+        isPlaying: false,
+      });
+    } else if (state === "seek") {
+      updateVideoState(roomId, {
+        currentTime: data.newTime,
+      });
+    }
+
+    // Broadcast event to all other users in the room
+    this.socket.broadcast.emit("receive-event", data);
+  }
+
+  // Handle legacy sync request
+  handleLegacySyncRequest(roomId: string): void {
+    const state = getVideoState(roomId);
+
+    // Calculate elapsed time if video is playing
+    const stateToSend = { ...state };
+    if (state.isPlaying && state.lastUpdated) {
+      const elapsedSeconds = (Date.now() - state.lastUpdated) / 1000;
+      stateToSend.currentTime = state.currentTime + elapsedSeconds;
+    }
+
+    console.log(`Sending legacy video state to user in room ${roomId}:`, stateToSend);
+    this.socket.emit("video-state-sync", stateToSend);
+  }
+
+  // Handle video list events (add/remove videos)
+  handleVideoListEvent(data: any): void {
+    const { type, video, roomId } = data;
+    console.log(`Video list event: ${type}`, video);
+
+    const actualRoomId = roomId || this.socket.data.roomId || "default";
+    const videoState = getVideoState(actualRoomId);
+
+    if (type === "add-video") {
+      videoState.videos.push(video);
+      // If this is the first video, set it as current
+      if (videoState.videos.length === 1) {
+        videoState.videoId = video;
+      }
+    } else if (type === "remove-video") {
+      videoState.videos = videoState.videos.filter((v) => v !== video);
+    }
+
+    // Broadcast updated video list to all other users
+    const responseData = {
+      type,
+      video,
+      videos: videoState.videos,
+    };
+
+    if (actualRoomId && actualRoomId !== "default") {
+      this.socket.to(actualRoomId).emit("update_video_list", responseData);
+    } else {
+      this.socket.broadcast.emit("update_video_list", responseData);
     }
   }
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useParams } from "react-router";
 import type { Socket } from "socket.io-client";
 import { useSnackbar } from "notistack";
 import { isValidYTLink, ifArrayContains } from "~/utils/helpers";
@@ -14,6 +15,7 @@ interface Video {
 }
 
 export const useHandleVideoList = (socket: Socket | null) => {
+  const { roomId } = useParams();
   const [videos, setVideos] = useState<Video[]>([]);
   const { enqueueSnackbar } = useSnackbar();
 
@@ -28,6 +30,7 @@ export const useHandleVideoList = (socket: Socket | null) => {
         const data = {
           type: "add-video",
           video,
+          roomId,
         };
 
         socket.emit(SOCKET_CLIENT_EMITTER.videoListEvent, data);
@@ -49,6 +52,7 @@ export const useHandleVideoList = (socket: Socket | null) => {
     const data = {
       type: "remove-video",
       video,
+      roomId,
     };
 
     socket.emit(SOCKET_CLIENT_EMITTER.videoListEvent, data);
@@ -89,6 +93,28 @@ export const useHandleVideoList = (socket: Socket | null) => {
       socket.off(SOCKET_CLIENT_LISTENER.updateVideoList, onUpdateVideoList);
     };
   }, [socket]);
+
+  // Socket Event Listener - Sync video list when joining room
+  useEffect(() => {
+    if (!socket) return;
+
+    const onVideoStateSync = (videoState: { videos?: Video[] }) => {
+      console.log("Received video state sync for video list:", videoState);
+
+      if (videoState && videoState.videos && videoState.videos.length > 0) {
+        setVideos(videoState.videos);
+        enqueueSnackbar("Video queue synced", { variant: "info" });
+      }
+    };
+
+    socket.on("VIDEO:sync-state", onVideoStateSync);
+    socket.on("video-state-sync", onVideoStateSync); // Legacy support
+
+    return () => {
+      socket.off("VIDEO:sync-state", onVideoStateSync);
+      socket.off("video-state-sync", onVideoStateSync);
+    };
+  }, [socket, enqueueSnackbar]);
 
   return { videos, addVideoToList, removeVideoFromList, playNextVideo };
 };
