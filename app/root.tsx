@@ -10,6 +10,8 @@ import {
 import type { LinksFunction, MetaFunction } from "react-router";
 import { SnackbarProvider } from "notistack";
 
+import { ConvexClientProvider } from "~/providers/ConvexClientProvider";
+import { ConvexAuthProvider } from "~/context/ConvexAuthContext";
 import { UserContext } from "~/context/UserContext";
 import { AuthProvider } from "~/context/AuthContext";
 import { ThemeProvider } from "~/context/ThemeContext";
@@ -75,19 +77,23 @@ export default function App() {
 
   return (
     <div className="App">
-      <AuthProvider>
-        <ThemeProvider>
-          <UserContext.Provider value={userData}>
-            <SnackbarProvider
-              maxSnack={5}
-              anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-              autoHideDuration={10000}
-            >
-              <Outlet />
-            </SnackbarProvider>
-          </UserContext.Provider>
-        </ThemeProvider>
-      </AuthProvider>
+      <ConvexClientProvider>
+        <ConvexAuthProvider>
+          <AuthProvider>
+            <ThemeProvider>
+              <UserContext.Provider value={userData}>
+                <SnackbarProvider
+                  maxSnack={5}
+                  anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                  autoHideDuration={10000}
+                >
+                  <Outlet />
+                </SnackbarProvider>
+              </UserContext.Provider>
+            </ThemeProvider>
+          </AuthProvider>
+        </ConvexAuthProvider>
+      </ConvexClientProvider>
     </div>
   );
 }
