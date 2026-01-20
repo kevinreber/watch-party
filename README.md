@@ -1,9 +1,5 @@
 # Watch Party
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/d1d4abdf-4e2a-42a7-8b2f-923e370bf0ee/deploy-status)](https://app.netlify.com/sites/optimistic-clarke-29f167/deploys)
-
-[Watch Party](https://optimistic-clarke-29f167.netlify.app/)
-
 ## ToDo
 
 ### Front End
