@@ -1,16 +1,17 @@
 import { useState, useEffect, useCallback, type CSSProperties } from "react";
-import type { Socket } from "socket.io-client";
+import type { RealtimeChannel, Message as AblyMessage } from "ably";
 import type { Reaction, ReactionEmoji } from "~/types";
 
 interface EmojiReactionsProps {
-  socket: Socket | null;
+  channel: RealtimeChannel | null;
   roomId?: string;
   username: string;
+  clientId?: string;
 }
 
 const REACTION_EMOJIS: ReactionEmoji[] = ["😂", "❤️", "🔥", "👏", "😮", "😢", "🎉", "👀"];
 
-export function EmojiReactions({ socket, roomId, username }: EmojiReactionsProps) {
+export function EmojiReactions({ channel, roomId, username, clientId }: EmojiReactionsProps) {
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [showPicker, setShowPicker] = useState(false);
 
@@ -26,7 +27,7 @@ export function EmojiReactions({ socket, roomId, username }: EmojiReactionsProps
     const reaction: Reaction = {
       id: `${Date.now()}-${Math.random()}`,
       emoji,
-      userId: socket?.id || "local",
+      userId: clientId || "local",
       username,
       timestamp: Date.now(),
       x,
@@ -35,9 +36,9 @@ export function EmojiReactions({ socket, roomId, username }: EmojiReactionsProps
 
     setReactions(prev => [...prev, reaction]);
 
-    // Emit to other users
-    if (socket && roomId) {
-      socket.emit("REACTION:send", { roomId, reaction });
+    // Publish to other users via Ably
+    if (channel && roomId) {
+      channel.publish("reaction", { roomId, reaction, senderId: clientId });
     }
 
     // Remove after animation
@@ -46,25 +47,30 @@ export function EmojiReactions({ socket, roomId, username }: EmojiReactionsProps
     }, 3000);
 
     setShowPicker(false);
-  }, [socket, roomId, username]);
+  }, [channel, roomId, username, clientId]);
 
   // Listen for reactions from other users
   useEffect(() => {
-    if (!socket) return;
+    if (!channel) return;
 
-    const handleReaction = (reaction: Reaction) => {
+    const handleReaction = (message: AblyMessage) => {
+      const data = message.data as { reaction: Reaction; senderId?: string };
+      const { reaction, senderId } = data;
+      // Don't show our own reactions again (we already added them locally)
+      if (senderId === clientId) return;
+
       setReactions(prev => [...prev, reaction]);
       setTimeout(() => {
         setReactions(prev => prev.filter(r => r.id !== reaction.id));
       }, 3000);
     };
 
-    socket.on("REACTION:receive", handleReaction);
+    channel.subscribe("reaction", handleReaction);
 
     return () => {
-      socket.off("REACTION:receive", handleReaction);
+      channel.unsubscribe("reaction", handleReaction);
     };
-  }, [socket]);
+  }, [channel, clientId]);
 
   return (
     <div style={styles.container}>

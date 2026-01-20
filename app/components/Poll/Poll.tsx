@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback, type CSSProperties } from "react";
-import type { Socket } from "socket.io-client";
+import type { RealtimeChannel, Message as AblyMessage } from "ably";
 import type { Poll as PollType, PollOption } from "~/types";
 import { pollService } from "~/services/pollService";
 
 interface PollProps {
-  socket: Socket | null;
+  channel: RealtimeChannel | null;
   roomId: string;
   username: string;
+  clientId?: string;
 }
 
-export function Poll({ socket, roomId, username }: PollProps) {
+export function Poll({ channel, roomId, username, clientId }: PollProps) {
   const [currentPoll, setCurrentPoll] = useState<PollType | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [question, setQuestion] = useState("");
@@ -21,26 +22,33 @@ export function Poll({ socket, roomId, username }: PollProps) {
     setCurrentPoll(poll);
   }, [roomId]);
 
-  // Listen for poll updates
+  // Listen for poll updates via Ably
   useEffect(() => {
-    if (!socket) return;
+    if (!channel) return;
 
-    const handlePollUpdate = (poll: PollType) => {
+    const handlePollUpdate = (message: AblyMessage) => {
+      const data = message.data as { poll: PollType; senderId?: string };
+      const { poll, senderId } = data;
+      // Don't update from our own messages (we already updated locally)
+      if (senderId === clientId) return;
       setCurrentPoll(poll);
     };
 
-    const handlePollEnd = () => {
+    const handlePollEnd = (message: AblyMessage) => {
+      const data = message.data as { senderId?: string };
+      const { senderId } = data;
+      if (senderId === clientId) return;
       setCurrentPoll(prev => prev ? { ...prev, isActive: false } : null);
     };
 
-    socket.on("POLL:update", handlePollUpdate);
-    socket.on("POLL:ended", handlePollEnd);
+    channel.subscribe("poll-update", handlePollUpdate);
+    channel.subscribe("poll-ended", handlePollEnd);
 
     return () => {
-      socket.off("POLL:update", handlePollUpdate);
-      socket.off("POLL:ended", handlePollEnd);
+      channel.unsubscribe("poll-update", handlePollUpdate);
+      channel.unsubscribe("poll-ended", handlePollEnd);
     };
-  }, [socket]);
+  }, [channel, clientId]);
 
   // Create a poll
   const handleCreatePoll = useCallback(() => {
@@ -50,16 +58,16 @@ export function Poll({ socket, roomId, username }: PollProps) {
     const poll = pollService.createPoll(roomId, question, validOptions, 5);
     setCurrentPoll(poll);
 
-    // Broadcast to other users
-    if (socket) {
-      socket.emit("POLL:create", { roomId, poll });
+    // Broadcast to other users via Ably
+    if (channel) {
+      channel.publish("poll-update", { roomId, poll, senderId: clientId });
     }
 
     // Reset form
     setQuestion("");
     setOptions(["", ""]);
     setShowCreateForm(false);
-  }, [question, options, roomId, socket]);
+  }, [question, options, roomId, channel, clientId]);
 
   // Vote on a poll
   const handleVote = useCallback((optionId: string) => {
@@ -69,12 +77,12 @@ export function Poll({ socket, roomId, username }: PollProps) {
     if (updatedPoll) {
       setCurrentPoll(updatedPoll);
 
-      // Broadcast to other users
-      if (socket) {
-        socket.emit("POLL:vote", { roomId, pollId: currentPoll.id, optionId });
+      // Broadcast to other users via Ably
+      if (channel) {
+        channel.publish("poll-update", { roomId, poll: updatedPoll, senderId: clientId });
       }
     }
-  }, [currentPoll, roomId, socket]);
+  }, [currentPoll, roomId, channel, clientId]);
 
   // End poll
   const handleEndPoll = useCallback(() => {
@@ -83,10 +91,10 @@ export function Poll({ socket, roomId, username }: PollProps) {
     pollService.endPoll(roomId, currentPoll.id);
     setCurrentPoll(prev => prev ? { ...prev, isActive: false } : null);
 
-    if (socket) {
-      socket.emit("POLL:end", { roomId, pollId: currentPoll.id });
+    if (channel) {
+      channel.publish("poll-ended", { roomId, pollId: currentPoll.id, senderId: clientId });
     }
-  }, [currentPoll, roomId, socket]);
+  }, [currentPoll, roomId, channel, clientId]);
 
   // Add option to form
   const addOption = () => {

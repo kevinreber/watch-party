@@ -213,7 +213,7 @@ export default function Room() {
               onUnmute={handleUnmute}
             />
             {/* Emoji Reactions Overlay */}
-            <EmojiReactions socket={socket} roomId={roomId} username={user} />
+            <EmojiReactions channel={channel} roomId={roomId} username={user} clientId={clientId} />
           </div>
           {videos[0] && (
             <div style={styles.nowPlaying}>
@@ -240,7 +240,7 @@ export default function Room() {
           {/* Poll Section */}
           {showPoll && roomId && (
             <div style={styles.pollSection}>
-              <Poll socket={socket} roomId={roomId} username={user} />
+              <Poll channel={channel} roomId={roomId} username={user} clientId={clientId} />
             </div>
           )}
         </div>
