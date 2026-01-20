@@ -13,7 +13,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "test:seed": "npx convex run testing:seedTestUsers && npx convex run testing:seedTestRooms && npx convex run testing:seedTestFriendData",
+    "test:clear": "npx convex run testing:clearTestData"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.0.0",
