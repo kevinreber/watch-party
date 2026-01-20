@@ -73,38 +73,53 @@ export const pollService = {
     const poll = roomPolls[pollIndex];
 
     // Find current vote (if any)
-    const currentVoteOption = poll.options.find(o => o.voters.includes(userId));
+    const currentVoteOptionIndex = poll.options.findIndex(o => o.voters.includes(userId));
     const targetOptionIndex = poll.options.findIndex(o => o.id === optionId);
 
     if (targetOptionIndex === -1) return null;
 
+    // Create a deep copy of options to ensure React detects the change
+    const newOptions = poll.options.map((opt, idx) => ({
+      ...opt,
+      voters: [...opt.voters],
+    }));
+
+    let newTotalVotes = poll.totalVotes;
+
     // If user clicked on the same option they already voted for, remove the vote
-    if (currentVoteOption && currentVoteOption.id === optionId) {
-      currentVoteOption.votes--;
-      currentVoteOption.voters = currentVoteOption.voters.filter(v => v !== userId);
-      poll.totalVotes--;
+    if (currentVoteOptionIndex !== -1 && poll.options[currentVoteOptionIndex].id === optionId) {
+      newOptions[currentVoteOptionIndex].votes--;
+      newOptions[currentVoteOptionIndex].voters = newOptions[currentVoteOptionIndex].voters.filter(v => v !== userId);
+      newTotalVotes--;
     }
     // If user has voted on a different option, change their vote
-    else if (currentVoteOption) {
+    else if (currentVoteOptionIndex !== -1) {
       // Remove from old option
-      currentVoteOption.votes--;
-      currentVoteOption.voters = currentVoteOption.voters.filter(v => v !== userId);
+      newOptions[currentVoteOptionIndex].votes--;
+      newOptions[currentVoteOptionIndex].voters = newOptions[currentVoteOptionIndex].voters.filter(v => v !== userId);
       // Add to new option
-      poll.options[targetOptionIndex].votes++;
-      poll.options[targetOptionIndex].voters.push(userId);
+      newOptions[targetOptionIndex].votes++;
+      newOptions[targetOptionIndex].voters.push(userId);
       // Total votes stays the same
     }
     // If user hasn't voted, add their vote
     else {
-      poll.options[targetOptionIndex].votes++;
-      poll.options[targetOptionIndex].voters.push(userId);
-      poll.totalVotes++;
+      newOptions[targetOptionIndex].votes++;
+      newOptions[targetOptionIndex].voters.push(userId);
+      newTotalVotes++;
     }
 
-    roomPolls[pollIndex] = poll;
+    // Create a new poll object to ensure React detects the change
+    const updatedPoll: Poll = {
+      ...poll,
+      options: newOptions,
+      totalVotes: newTotalVotes,
+    };
+
+    roomPolls[pollIndex] = updatedPoll;
     polls.set(roomId, roomPolls);
 
-    return poll;
+    return updatedPoll;
   },
 
   // End a poll
