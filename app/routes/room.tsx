@@ -1,4 +1,4 @@
-import { useContext, useState, useCallback, useEffect } from "react";
+import { useContext, useState, useCallback, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
 import { UserContext } from "~/context/UserContext";
 import {
@@ -26,6 +26,8 @@ export default function Room() {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showPoll, setShowPoll] = useState(false);
+  const [hasActivePoll, setHasActivePoll] = useState(false);
+  const hasAutoShownPoll = useRef(false);
 
   // Ably connection and channel
   const { channel, isConnected, clientId } = useAbly(user);
@@ -74,6 +76,16 @@ export default function Room() {
   const handleVideoEnd = useCallback(() => {
     playNextVideo();
   }, [playNextVideo]);
+
+  // Handle poll availability - auto-show poll section for late joiners
+  const handlePollAvailable = useCallback((isAvailable: boolean) => {
+    setHasActivePoll(isAvailable);
+    // Auto-show poll section when a poll is synced to a late joiner
+    if (isAvailable && !showPoll && !hasAutoShownPoll.current) {
+      hasAutoShownPoll.current = true;
+      setShowPoll(true);
+    }
+  }, [showPoll]);
 
   const copyRoomLink = () => {
     const link = window.location.href;
@@ -170,10 +182,16 @@ export default function Room() {
         <div style={styles.headerRight}>
           <button
             onClick={() => setShowPoll(!showPoll)}
-            style={styles.pollButton}
+            style={{
+              ...styles.pollButton,
+              ...(hasActivePoll && !showPoll ? styles.pollButtonActive : {}),
+            }}
             data-testid="poll-button"
           >
             📊 Poll
+            {hasActivePoll && !showPoll && (
+              <span style={styles.pollBadge}>!</span>
+            )}
           </button>
           <div style={styles.connectionStatus}>
             <span style={{
@@ -237,10 +255,19 @@ export default function Room() {
             </div>
           )}
 
-          {/* Poll Section */}
-          {showPoll && roomId && (
-            <div style={styles.pollSection}>
-              <Poll channel={channel} roomId={roomId} username={user} clientId={clientId} />
+          {/* Poll Section - always rendered for sync, conditionally visible */}
+          {roomId && (
+            <div style={{
+              ...styles.pollSection,
+              display: showPoll ? "block" : "none",
+            }}>
+              <Poll
+                channel={channel}
+                roomId={roomId}
+                username={user}
+                clientId={clientId}
+                onPollAvailable={handlePollAvailable}
+              />
             </div>
           )}
         </div>
@@ -378,6 +405,26 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: "8px",
     cursor: "pointer",
     transition: "all 0.2s ease",
+    position: "relative" as const,
+  },
+  pollButtonActive: {
+    border: "1px solid #6366f1",
+    background: "rgba(99, 102, 241, 0.1)",
+  },
+  pollBadge: {
+    position: "absolute" as const,
+    top: "-4px",
+    right: "-4px",
+    width: "16px",
+    height: "16px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "#ef4444",
+    borderRadius: "50%",
+    fontSize: "0.65rem",
+    fontWeight: 700,
+    color: "#ffffff",
   },
   headerRight: {
     display: "flex",

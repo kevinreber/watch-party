@@ -8,14 +8,27 @@ interface PollProps {
   roomId: string;
   username: string;
   clientId?: string;
+  onPollAvailable?: (hasActivePoll: boolean) => void;
 }
 
-export function Poll({ channel, roomId, username, clientId }: PollProps) {
+export function Poll({ channel, roomId, username, clientId, onPollAvailable }: PollProps) {
   const [currentPoll, setCurrentPoll] = useState<PollType | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showPollHistory, setShowPollHistory] = useState(false);
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState(["", ""]);
   const hasRequestedSync = useRef(false);
+  const currentPollRef = useRef<PollType | null>(null);
+
+  // Keep ref in sync with state for use in callbacks
+  useEffect(() => {
+    currentPollRef.current = currentPoll;
+  }, [currentPoll]);
+
+  // Notify parent when poll availability changes
+  useEffect(() => {
+    onPollAvailable?.(currentPoll !== null && currentPoll.isActive);
+  }, [currentPoll, onPollAvailable]);
 
   // Get active poll on mount and request sync from other users
   useEffect(() => {
@@ -66,10 +79,10 @@ export function Poll({ channel, roomId, username, clientId }: PollProps) {
       // Don't respond to our own request
       if (data.requesterId === clientId) return;
 
-      // If we have a poll, send it to the requester
-      if (currentPoll) {
+      // If we have a poll, send it to the requester (use ref to avoid stale closure)
+      if (currentPollRef.current) {
         channel.publish("poll-sync", {
-          poll: currentPoll,
+          poll: currentPollRef.current,
           senderId: clientId,
           targetId: data.requesterId
         });
@@ -84,10 +97,11 @@ export function Poll({ channel, roomId, username, clientId }: PollProps) {
       // Don't process our own sync messages
       if (data.senderId === clientId) return;
 
-      // Only update if we don't have a poll yet
-      if (!currentPoll && data.poll) {
-        setCurrentPoll(data.poll);
+      // Only update if we don't have a poll yet (use ref to avoid stale closure)
+      if (!currentPollRef.current && data.poll) {
+        // Save poll first so voting will work
         pollService.savePoll(roomId, data.poll);
+        setCurrentPoll(data.poll);
       }
     };
 
@@ -102,7 +116,7 @@ export function Poll({ channel, roomId, username, clientId }: PollProps) {
       channel.unsubscribe("poll-request", handlePollRequest);
       channel.unsubscribe("poll-sync", handlePollSync);
     };
-  }, [channel, clientId, currentPoll, roomId]);
+  }, [channel, clientId, roomId]);
 
   // Create a poll
   const handleCreatePoll = useCallback(() => {
@@ -217,6 +231,51 @@ export function Poll({ channel, roomId, username, clientId }: PollProps) {
           {!currentPoll.isActive && (
             <div style={styles.closedBadge}>Poll Closed</div>
           )}
+
+          {/* Start New Poll button - always available */}
+          <button
+            onClick={() => {
+              setCurrentPoll(null);
+              setShowCreateForm(true);
+            }}
+            style={styles.newPollButton}
+          >
+            Start New Poll
+          </button>
+        </div>
+      )}
+
+      {/* Poll History Toggle */}
+      {pollService.getPolls(roomId).length > 0 && (
+        <button
+          onClick={() => setShowPollHistory(!showPollHistory)}
+          style={styles.historyToggle}
+        >
+          {showPollHistory ? "Hide History" : `View History (${pollService.getPolls(roomId).filter(p => !p.isActive).length})`}
+        </button>
+      )}
+
+      {/* Poll History */}
+      {showPollHistory && (
+        <div style={styles.pollHistory}>
+          <h5 style={styles.historyTitle}>Past Polls</h5>
+          {pollService.getPolls(roomId)
+            .filter(p => !p.isActive)
+            .map(poll => (
+              <div key={poll.id} style={styles.historyItem}>
+                <div style={styles.historyQuestion}>{poll.question}</div>
+                <div style={styles.historyMeta}>
+                  {poll.totalVotes} votes • by {poll.creatorName}
+                </div>
+                <div style={styles.historyOptions}>
+                  {poll.options.map(opt => (
+                    <div key={opt.id} style={styles.historyOption}>
+                      {opt.text}: {poll.totalVotes > 0 ? Math.round((opt.votes / poll.totalVotes) * 100) : 0}%
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
         </div>
       )}
 
@@ -372,6 +431,71 @@ const styles: Record<string, CSSProperties> = {
     borderRadius: "6px",
     color: "#a3a3a3",
     fontSize: "0.875rem",
+  },
+  newPollButton: {
+    width: "100%",
+    marginTop: "0.75rem",
+    padding: "0.5rem",
+    background: "transparent",
+    border: "1px solid #404040",
+    borderRadius: "6px",
+    color: "#a3a3a3",
+    fontSize: "0.75rem",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+  },
+  historyToggle: {
+    width: "100%",
+    marginTop: "0.75rem",
+    padding: "0.5rem",
+    background: "transparent",
+    border: "none",
+    color: "#6366f1",
+    fontSize: "0.75rem",
+    cursor: "pointer",
+    textAlign: "center",
+  },
+  pollHistory: {
+    marginTop: "0.75rem",
+    padding: "0.75rem",
+    background: "#1a1a1a",
+    borderRadius: "8px",
+    border: "1px solid #333",
+  },
+  historyTitle: {
+    margin: "0 0 0.5rem 0",
+    fontSize: "0.75rem",
+    fontWeight: 600,
+    color: "#a3a3a3",
+    textTransform: "uppercase",
+    letterSpacing: "0.05em",
+  },
+  historyItem: {
+    padding: "0.5rem 0",
+    borderBottom: "1px solid #333",
+  },
+  historyQuestion: {
+    fontSize: "0.875rem",
+    fontWeight: 500,
+    color: "#ffffff",
+    marginBottom: "0.25rem",
+  },
+  historyMeta: {
+    fontSize: "0.7rem",
+    color: "#737373",
+    marginBottom: "0.25rem",
+  },
+  historyOptions: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "0.5rem",
+  },
+  historyOption: {
+    fontSize: "0.7rem",
+    color: "#a3a3a3",
+    background: "#262626",
+    padding: "0.25rem 0.5rem",
+    borderRadius: "4px",
   },
   createButton: {
     width: "100%",
