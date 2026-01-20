@@ -179,12 +179,16 @@ export function Poll({ channel, roomId, username, clientId, onPollAvailable }: P
   };
 
   const hasVoted = currentPoll ? pollService.hasUserVoted(currentPoll) : false;
+  const userVote = currentPoll ? pollService.getUserVote(currentPoll) : null;
 
   // Calculate vote percentages
   const getPercentage = (option: PollOption) => {
     if (!currentPoll || currentPoll.totalVotes === 0) return 0;
     return Math.round((option.votes / currentPoll.totalVotes) * 100);
   };
+
+  // Check if this option is the user's current vote
+  const isUserVote = (option: PollOption) => userVote?.id === option.id;
 
   return (
     <div style={styles.container} data-testid="poll-container">
@@ -200,27 +204,36 @@ export function Poll({ channel, roomId, username, clientId, onPollAvailable }: P
             {currentPoll.options.map(option => (
               <button
                 key={option.id}
-                onClick={() => !hasVoted && currentPoll.isActive && handleVote(option.id)}
-                disabled={hasVoted || !currentPoll.isActive}
+                onClick={() => currentPoll.isActive && handleVote(option.id)}
+                disabled={!currentPoll.isActive}
                 style={{
                   ...styles.optionButton,
-                  ...(hasVoted || !currentPoll.isActive ? styles.votedOption : {}),
+                  ...(isUserVote(option) ? styles.selectedOption : {}),
+                  ...(!currentPoll.isActive ? styles.disabledOption : {}),
                 }}
                 data-testid={`poll-option-${option.id}`}
               >
                 <div
                   style={{
                     ...styles.progressBar,
+                    ...(isUserVote(option) ? styles.selectedProgressBar : {}),
                     width: `${getPercentage(option)}%`,
                   }}
                 />
-                <span style={styles.optionText}>{option.text}</span>
+                <span style={styles.optionText}>
+                  {isUserVote(option) && "✓ "}
+                  {option.text}
+                </span>
                 {(hasVoted || !currentPoll.isActive) && (
                   <span style={styles.percentage}>{getPercentage(option)}%</span>
                 )}
               </button>
             ))}
           </div>
+
+          {currentPoll.isActive && hasVoted && (
+            <div style={styles.voteHint}>Click your selection again to remove, or click another option to change your vote</div>
+          )}
 
           {currentPoll.isActive && currentPoll.creatorName === username && (
             <button onClick={handleEndPoll} style={styles.endButton}>
@@ -388,6 +401,24 @@ const styles: Record<string, CSSProperties> = {
   },
   votedOption: {
     cursor: "default",
+  },
+  selectedOption: {
+    border: "2px solid #6366f1",
+    background: "rgba(99, 102, 241, 0.1)",
+  },
+  disabledOption: {
+    cursor: "default",
+    opacity: 0.8,
+  },
+  selectedProgressBar: {
+    background: "rgba(99, 102, 241, 0.5)",
+  },
+  voteHint: {
+    fontSize: "0.7rem",
+    color: "#737373",
+    textAlign: "center",
+    marginTop: "0.5rem",
+    fontStyle: "italic",
   },
   progressBar: {
     position: "absolute",

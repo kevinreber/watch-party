@@ -60,7 +60,7 @@ export const pollService = {
     return poll;
   },
 
-  // Vote on a poll
+  // Vote on a poll (supports changing vote or removing vote by clicking same option)
   vote(roomId: string, pollId: string, optionId: string): Poll | null {
     const currentUser = mockAuth.getCurrentUser();
     const userId = currentUser?.id || "anonymous";
@@ -72,17 +72,34 @@ export const pollService = {
 
     const poll = roomPolls[pollIndex];
 
-    // Check if user already voted
-    const hasVoted = poll.options.some(o => o.voters.includes(userId));
-    if (hasVoted) return poll;
+    // Find current vote (if any)
+    const currentVoteOption = poll.options.find(o => o.voters.includes(userId));
+    const targetOptionIndex = poll.options.findIndex(o => o.id === optionId);
 
-    // Find option and add vote
-    const optionIndex = poll.options.findIndex(o => o.id === optionId);
-    if (optionIndex === -1) return null;
+    if (targetOptionIndex === -1) return null;
 
-    poll.options[optionIndex].votes++;
-    poll.options[optionIndex].voters.push(userId);
-    poll.totalVotes++;
+    // If user clicked on the same option they already voted for, remove the vote
+    if (currentVoteOption && currentVoteOption.id === optionId) {
+      currentVoteOption.votes--;
+      currentVoteOption.voters = currentVoteOption.voters.filter(v => v !== userId);
+      poll.totalVotes--;
+    }
+    // If user has voted on a different option, change their vote
+    else if (currentVoteOption) {
+      // Remove from old option
+      currentVoteOption.votes--;
+      currentVoteOption.voters = currentVoteOption.voters.filter(v => v !== userId);
+      // Add to new option
+      poll.options[targetOptionIndex].votes++;
+      poll.options[targetOptionIndex].voters.push(userId);
+      // Total votes stays the same
+    }
+    // If user hasn't voted, add their vote
+    else {
+      poll.options[targetOptionIndex].votes++;
+      poll.options[targetOptionIndex].voters.push(userId);
+      poll.totalVotes++;
+    }
 
     roomPolls[pollIndex] = poll;
     polls.set(roomId, roomPolls);
