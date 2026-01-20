@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, type CSSProperties } from "react";
+import { useState, useEffect, useCallback, useRef, type CSSProperties } from "react";
 import type { RealtimeChannel, Message as AblyMessage } from "ably";
 import type { Poll as PollType, PollOption } from "~/types";
 import { pollService } from "~/services/pollService";
@@ -15,12 +15,29 @@ export function Poll({ channel, roomId, username, clientId }: PollProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState(["", ""]);
+  const hasRequestedSync = useRef(false);
 
-  // Get active poll on mount
+  // Get active poll on mount and request sync from other users
   useEffect(() => {
-    const poll = pollService.getActivePoll(roomId);
-    setCurrentPoll(poll);
+    // First check local storage
+    const localPoll = pollService.getActivePoll(roomId);
+    if (localPoll) {
+      setCurrentPoll(localPoll);
+    }
   }, [roomId]);
+
+  // Request poll sync when channel becomes available
+  useEffect(() => {
+    if (!channel || hasRequestedSync.current) return;
+
+    // Small delay to ensure we're connected
+    const timer = setTimeout(() => {
+      hasRequestedSync.current = true;
+      channel.publish("poll-request", { roomId, requesterId: clientId });
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [channel, roomId, clientId]);
 
   // Listen for poll updates via Ably
   useEffect(() => {
@@ -32,6 +49,8 @@ export function Poll({ channel, roomId, username, clientId }: PollProps) {
       // Don't update from our own messages (we already updated locally)
       if (senderId === clientId) return;
       setCurrentPoll(poll);
+      // Also save to local storage
+      pollService.savePoll(roomId, poll);
     };
 
     const handlePollEnd = (message: AblyMessage) => {
@@ -41,14 +60,49 @@ export function Poll({ channel, roomId, username, clientId }: PollProps) {
       setCurrentPoll(prev => prev ? { ...prev, isActive: false } : null);
     };
 
+    // Handle poll sync requests from new joiners
+    const handlePollRequest = (message: AblyMessage) => {
+      const data = message.data as { requesterId?: string };
+      // Don't respond to our own request
+      if (data.requesterId === clientId) return;
+
+      // If we have a poll, send it to the requester
+      if (currentPoll) {
+        channel.publish("poll-sync", {
+          poll: currentPoll,
+          senderId: clientId,
+          targetId: data.requesterId
+        });
+      }
+    };
+
+    // Handle poll sync responses
+    const handlePollSync = (message: AblyMessage) => {
+      const data = message.data as { poll: PollType; senderId?: string; targetId?: string };
+      // Only process if this sync is for us or broadcast
+      if (data.targetId && data.targetId !== clientId) return;
+      // Don't process our own sync messages
+      if (data.senderId === clientId) return;
+
+      // Only update if we don't have a poll yet
+      if (!currentPoll && data.poll) {
+        setCurrentPoll(data.poll);
+        pollService.savePoll(roomId, data.poll);
+      }
+    };
+
     channel.subscribe("poll-update", handlePollUpdate);
     channel.subscribe("poll-ended", handlePollEnd);
+    channel.subscribe("poll-request", handlePollRequest);
+    channel.subscribe("poll-sync", handlePollSync);
 
     return () => {
       channel.unsubscribe("poll-update", handlePollUpdate);
       channel.unsubscribe("poll-ended", handlePollEnd);
+      channel.unsubscribe("poll-request", handlePollRequest);
+      channel.unsubscribe("poll-sync", handlePollSync);
     };
-  }, [channel, clientId]);
+  }, [channel, clientId, currentPoll, roomId]);
 
   // Create a poll
   const handleCreatePoll = useCallback(() => {

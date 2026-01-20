@@ -103,6 +103,25 @@ export const pollService = {
     return roomPolls[pollIndex];
   },
 
+  // Save/update a poll received from another user (for sync)
+  savePoll(roomId: string, poll: Poll): void {
+    const roomPolls = pollService.getPolls(roomId);
+    const existingIndex = roomPolls.findIndex(p => p.id === poll.id);
+
+    if (existingIndex !== -1) {
+      // Update existing poll
+      roomPolls[existingIndex] = poll;
+    } else {
+      // Deactivate other polls if this one is active
+      if (poll.isActive) {
+        roomPolls.forEach(p => p.isActive = false);
+      }
+      roomPolls.push(poll);
+    }
+
+    polls.set(roomId, roomPolls);
+  },
+
   // Delete a poll
   deletePoll(roomId: string, pollId: string): void {
     const roomPolls = pollService.getPolls(roomId);

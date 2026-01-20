@@ -14,7 +14,6 @@ import { UserContext } from "~/context/UserContext";
 import { AuthProvider } from "~/context/AuthContext";
 import { ThemeProvider } from "~/context/ThemeContext";
 import { generateName } from "~/utils/generateName";
-import { themeService } from "~/services/themeService";
 
 import "./styles/app.css";
 
@@ -56,13 +55,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Default username for SSR - must be consistent between server and client
+const DEFAULT_USERNAME = "Guest";
+
 export default function App() {
-  const [user, setUser] = useState<string>(generateName());
+  // Start with consistent default for hydration, then generate random name
+  const [user, setUser] = useState<string>(DEFAULT_USERNAME);
+  const [isHydrated, setIsHydrated] = useState(false);
   const userData = useMemo(() => ({ user, setUser }), [user, setUser]);
 
-  // Initialize theme on mount
+  // Generate random name after hydration to avoid mismatch
   useEffect(() => {
-    themeService.initializeTheme();
+    setIsHydrated(true);
+    // Only generate a new name if still using default
+    if (user === DEFAULT_USERNAME) {
+      setUser(generateName());
+    }
   }, []);
 
   return (
