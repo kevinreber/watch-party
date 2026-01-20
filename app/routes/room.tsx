@@ -1,4 +1,4 @@
-import { useContext, useState, useCallback } from "react";
+import { useContext, useState, useCallback, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
 import { UserContext } from "~/context/UserContext";
 import {
@@ -12,13 +12,22 @@ import {
   VideoPlayer,
   AddVideoBar,
   SidePanel,
+  EmojiReactions,
+  Poll,
+  RoomSettings,
 } from "~/components";
+import { historyService } from "~/services/historyService";
 
 export default function Room() {
   const { roomId } = useParams();
   const navigate = useNavigate();
   const { user } = useContext(UserContext);
   const [copied, setCopied] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showPoll, setShowPoll] = useState(false);
+  const [hasActivePoll, setHasActivePoll] = useState(false);
+  const hasAutoShownPoll = useRef(false);
 
   // Ably connection and channel
   const { channel, isConnected, clientId } = useAbly(user);
@@ -40,9 +49,43 @@ export default function Room() {
 
   useLoadYouTubeScript();
 
+  // Track room visit on mount
+  useEffect(() => {
+    if (roomId) {
+      historyService.addRoomVisit(roomId, roomId);
+      setIsBookmarked(historyService.isRoomBookmarked(roomId));
+    }
+  }, [roomId]);
+
+  // Track watch time and video
+  useEffect(() => {
+    if (!roomId || !videos[0]) return;
+
+    // Add to watch history when video changes
+    historyService.addToWatchHistory({
+      videoId: videos[0].videoId,
+      videoName: videos[0].name,
+      videoChannel: videos[0].channel,
+      videoImg: videos[0].img,
+      watchDuration: 0,
+      roomId,
+      roomName: roomId,
+    });
+  }, [videos, roomId]);
+
   const handleVideoEnd = useCallback(() => {
     playNextVideo();
   }, [playNextVideo]);
+
+  // Handle poll availability - auto-show poll section for late joiners
+  const handlePollAvailable = useCallback((isAvailable: boolean) => {
+    setHasActivePoll(isAvailable);
+    // Auto-show poll section when a poll is synced to a late joiner
+    if (isAvailable && !showPoll && !hasAutoShownPoll.current) {
+      hasAutoShownPoll.current = true;
+      setShowPoll(true);
+    }
+  }, [showPoll]);
 
   const copyRoomLink = () => {
     const link = window.location.href;
@@ -51,12 +94,28 @@ export default function Room() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const toggleBookmark = () => {
+    if (!roomId) return;
+    if (isBookmarked) {
+      historyService.removeRoomBookmark(roomId);
+    } else {
+      historyService.addRoomBookmark(roomId, roomId);
+    }
+    setIsBookmarked(!isBookmarked);
+  };
+
+  const handleFavoriteVideo = () => {
+    if (videos[0]) {
+      historyService.addFavoriteVideo(videos[0]);
+    }
+  };
+
   return (
     <div style={styles.container}>
       {/* Header */}
       <header style={styles.header}>
         <div style={styles.headerLeft}>
-          <button onClick={() => navigate("/")} style={styles.backButton}>
+          <button onClick={() => navigate("/")} style={styles.backButton} data-testid="back-button">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M12 4L6 10L12 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -81,7 +140,7 @@ export default function Room() {
             <span style={styles.roomLabel}>Room</span>
             <span style={styles.roomName}>{roomId}</span>
           </div>
-          <button onClick={copyRoomLink} style={styles.shareButton}>
+          <button onClick={copyRoomLink} style={styles.shareButton} data-testid="share-button">
             {copied ? (
               <>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -99,9 +158,41 @@ export default function Room() {
               </>
             )}
           </button>
+          <button
+            onClick={toggleBookmark}
+            style={{
+              ...styles.iconButton,
+              color: isBookmarked ? "#f59e0b" : "#a3a3a3",
+            }}
+            title={isBookmarked ? "Remove bookmark" : "Bookmark room"}
+            data-testid="bookmark-button"
+          >
+            {isBookmarked ? "★" : "☆"}
+          </button>
+          <button
+            onClick={() => setShowSettings(true)}
+            style={styles.iconButton}
+            title="Room settings"
+            data-testid="room-settings-button"
+          >
+            ⚙️
+          </button>
         </div>
 
         <div style={styles.headerRight}>
+          <button
+            onClick={() => setShowPoll(!showPoll)}
+            style={{
+              ...styles.pollButton,
+              ...(hasActivePoll && !showPoll ? styles.pollButtonActive : {}),
+            }}
+            data-testid="poll-button"
+          >
+            📊 Poll
+            {hasActivePoll && !showPoll && (
+              <span style={styles.pollBadge}>!</span>
+            )}
+          </button>
           <div style={styles.connectionStatus}>
             <span style={{
               ...styles.statusDot,
@@ -125,26 +216,58 @@ export default function Room() {
         {/* Video Section */}
         <div style={styles.videoSection}>
           <AddVideoBar addVideoToList={addVideoToList} />
-          <VideoPlayer
-            curVideo={videos[0]}
-            isPlaying={isPlaying}
-            currentTime={currentTime}
-            isMutedForSync={isMutedForSync}
-            onPlay={handlePlay}
-            onPause={handlePause}
-            onSeek={handleSeek}
-            onProgress={handleProgress}
-            onReady={handleReady}
-            onEnded={handleVideoEnd}
-            onUnmute={handleUnmute}
-          />
+          <div style={styles.videoContainer}>
+            <VideoPlayer
+              curVideo={videos[0]}
+              isPlaying={isPlaying}
+              currentTime={currentTime}
+              isMutedForSync={isMutedForSync}
+              onPlay={handlePlay}
+              onPause={handlePause}
+              onSeek={handleSeek}
+              onProgress={handleProgress}
+              onReady={handleReady}
+              onEnded={handleVideoEnd}
+              onUnmute={handleUnmute}
+            />
+            {/* Emoji Reactions Overlay */}
+            <EmojiReactions channel={channel} roomId={roomId} username={user} clientId={clientId} />
+          </div>
           {videos[0] && (
             <div style={styles.nowPlaying}>
-              <span style={styles.nowPlayingLabel}>Now Playing</span>
-              <h3 style={styles.nowPlayingTitle}>{videos[0].name}</h3>
-              {videos[0].channel && (
-                <p style={styles.nowPlayingChannel}>{videos[0].channel}</p>
-              )}
+              <div style={styles.nowPlayingHeader}>
+                <div>
+                  <span style={styles.nowPlayingLabel}>Now Playing</span>
+                  <h3 style={styles.nowPlayingTitle}>{videos[0].name}</h3>
+                  {videos[0].channel && (
+                    <p style={styles.nowPlayingChannel}>{videos[0].channel}</p>
+                  )}
+                </div>
+                <button
+                  onClick={handleFavoriteVideo}
+                  style={styles.favoriteButton}
+                  title="Add to favorites"
+                  data-testid="favorite-button"
+                >
+                  ❤️
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Poll Section - always rendered for sync, conditionally visible */}
+          {roomId && (
+            <div style={{
+              ...styles.pollSection,
+              display: showPoll ? "block" : "none",
+            }}>
+              <Poll
+                channel={channel}
+                roomId={roomId}
+                username={user}
+                clientId={clientId}
+                onPollAvailable={handlePollAvailable}
+              />
             </div>
           )}
         </div>
@@ -159,6 +282,15 @@ export default function Room() {
           user={user}
         />
       </main>
+
+      {/* Room Settings Modal */}
+      {roomId && (
+        <RoomSettings
+          isOpen={showSettings}
+          onClose={() => setShowSettings(false)}
+          roomId={roomId}
+        />
+      )}
     </div>
   );
 }
@@ -247,6 +379,53 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "pointer",
     transition: "all 0.2s ease",
   },
+  iconButton: {
+    width: "36px",
+    height: "36px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "#262626",
+    border: "none",
+    borderRadius: "8px",
+    fontSize: "1rem",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+  },
+  pollButton: {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.5rem",
+    padding: "0.5rem 0.75rem",
+    fontSize: "0.75rem",
+    fontWeight: 500,
+    color: "#ffffff",
+    background: "#262626",
+    border: "1px solid #333",
+    borderRadius: "8px",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+    position: "relative" as const,
+  },
+  pollButtonActive: {
+    border: "1px solid #6366f1",
+    background: "rgba(99, 102, 241, 0.1)",
+  },
+  pollBadge: {
+    position: "absolute" as const,
+    top: "-4px",
+    right: "-4px",
+    width: "16px",
+    height: "16px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "#ef4444",
+    borderRadius: "50%",
+    fontSize: "0.65rem",
+    fontWeight: 700,
+    color: "#ffffff",
+  },
   headerRight: {
     display: "flex",
     alignItems: "center",
@@ -303,7 +482,10 @@ const styles: Record<string, React.CSSProperties> = {
     display: "flex",
     flexDirection: "column",
     padding: "1.5rem",
-    overflow: "hidden",
+    overflow: "auto",
+  },
+  videoContainer: {
+    position: "relative",
   },
   nowPlaying: {
     marginTop: "1rem",
@@ -311,6 +493,11 @@ const styles: Record<string, React.CSSProperties> = {
     background: "#1a1a1a",
     borderRadius: "12px",
     border: "1px solid #262626",
+  },
+  nowPlayingHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
   },
   nowPlayingLabel: {
     fontSize: "0.75rem",
@@ -330,6 +517,25 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "0.875rem",
     color: "#a3a3a3",
     margin: 0,
+  },
+  favoriteButton: {
+    width: "36px",
+    height: "36px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "#262626",
+    border: "none",
+    borderRadius: "8px",
+    fontSize: "1rem",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+  },
+  pollSection: {
+    marginTop: "1rem",
+    background: "#1a1a1a",
+    borderRadius: "12px",
+    border: "1px solid #262626",
   },
 };
 

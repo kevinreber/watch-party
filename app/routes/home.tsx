@@ -1,14 +1,60 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router";
 
 import { UserContext } from "~/context/UserContext";
+import { useAuth } from "~/context/AuthContext";
 import { generateName } from "~/utils/generateName";
+import { historyService } from "~/services/historyService";
+import type { RoomHistory, RoomBookmark, ScheduledParty } from "~/types";
+import { scheduledPartyService } from "~/services/scheduledPartyService";
+
+import {
+  AuthModal,
+  UserProfile,
+  ThemeSettings,
+  FriendsPanel,
+  ScheduledParties,
+  WatchHistory,
+  RoomBookmarks,
+  Notifications,
+  NotificationBell,
+} from "~/components";
 
 export default function Homepage() {
   const navigate = useNavigate();
   const [roomName, setRoomName] = useState("");
   const { user, setUser } = useContext(UserContext);
+  const { user: authUser, isLoggedIn } = useAuth();
   const [isCreating, setIsCreating] = useState(false);
+
+  // Modal states
+  const [showAuth, setShowAuth] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showTheme, setShowTheme] = useState(false);
+  const [showFriends, setShowFriends] = useState(false);
+  const [showScheduled, setShowScheduled] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [showBookmarks, setShowBookmarks] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  // Quick access data
+  const [recentRooms, setRecentRooms] = useState<RoomHistory[]>([]);
+  const [bookmarkedRooms, setBookmarkedRooms] = useState<RoomBookmark[]>([]);
+  const [upcomingParties, setUpcomingParties] = useState<ScheduledParty[]>([]);
+
+  // Load quick access data
+  useEffect(() => {
+    setRecentRooms(historyService.getRoomHistory().slice(0, 3));
+    setBookmarkedRooms(historyService.getRoomBookmarks().slice(0, 3));
+    setUpcomingParties(scheduledPartyService.getUpcomingParties().slice(0, 2));
+  }, []);
+
+  // Sync user name with auth user if logged in
+  useEffect(() => {
+    if (authUser && authUser.username !== user) {
+      setUser(authUser.username);
+    }
+  }, [authUser, user, setUser]);
 
   const handleRoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRoomName(e.target.value);
@@ -42,10 +88,40 @@ export default function Homepage() {
     }
   };
 
+  const navigateToRoom = (roomId: string) => {
+    navigate(`/room/${roomId}`);
+  };
+
   return (
     <div style={styles.container}>
       {/* Background decoration */}
       <div style={styles.backgroundGlow} />
+
+      {/* Header with user actions */}
+      <div style={styles.header}>
+        <div style={styles.headerActions}>
+          <NotificationBell onClick={() => setShowNotifications(true)} />
+          <button onClick={() => setShowTheme(true)} style={styles.headerButton} data-testid="theme-button">
+            ⚙️
+          </button>
+          {isLoggedIn ? (
+            <button
+              onClick={() => setShowProfile(true)}
+              style={{
+                ...styles.userButton,
+                backgroundColor: authUser?.avatarColor || "#6366f1",
+              }}
+              data-testid="profile-button"
+            >
+              {authUser?.avatar || user.charAt(0).toUpperCase()}
+            </button>
+          ) : (
+            <button onClick={() => setShowAuth(true)} style={styles.signInButton} data-testid="sign-in-button">
+              Sign In
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Main content */}
       <div style={styles.content}>
@@ -69,6 +145,22 @@ export default function Homepage() {
           </p>
         </div>
 
+        {/* Feature buttons */}
+        <div style={styles.featureButtons}>
+          <button onClick={() => setShowScheduled(true)} style={styles.featureButton} data-testid="scheduled-button">
+            📅 Scheduled
+          </button>
+          <button onClick={() => setShowFriends(true)} style={styles.featureButton} data-testid="friends-button">
+            👥 Friends
+          </button>
+          <button onClick={() => setShowHistory(true)} style={styles.featureButton} data-testid="history-button">
+            📺 History
+          </button>
+          <button onClick={() => setShowBookmarks(true)} style={styles.featureButton} data-testid="bookmarks-button">
+            🔖 Saved
+          </button>
+        </div>
+
         {/* Features */}
         <div style={styles.features}>
           <div style={styles.feature}>
@@ -80,8 +172,8 @@ export default function Homepage() {
             <span style={styles.featureText}>Real-time chat</span>
           </div>
           <div style={styles.feature}>
-            <span style={styles.featureIcon}>👥</span>
-            <span style={styles.featureText}>Unlimited guests</span>
+            <span style={styles.featureIcon}>🎉</span>
+            <span style={styles.featureText}>Emoji reactions</span>
           </div>
         </div>
 
@@ -101,6 +193,7 @@ export default function Homepage() {
                 onChange={handleUserChange}
                 placeholder="Enter your name"
                 style={styles.input}
+                data-testid="username-input"
               />
             </div>
 
@@ -112,6 +205,7 @@ export default function Homepage() {
                 onChange={handleRoomChange}
                 placeholder="Enter room name"
                 style={styles.input}
+                data-testid="room-name-input"
               />
             </div>
 
@@ -124,6 +218,7 @@ export default function Homepage() {
                   opacity: !roomName.trim() || isCreating ? 0.5 : 1,
                   cursor: !roomName.trim() || isCreating ? "not-allowed" : "pointer",
                 }}
+                data-testid="create-room-button"
               >
                 {isCreating ? (
                   <span style={styles.loadingText}>Creating...</span>
@@ -146,6 +241,7 @@ export default function Homepage() {
                   opacity: isCreating ? 0.5 : 1,
                   cursor: isCreating ? "not-allowed" : "pointer",
                 }}
+                data-testid="random-room-button"
               >
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                   <path d="M4 4V7M4 7H7M4 7L7 4.5C8.5 3 10.5 2.5 12.5 3C14.5 3.5 16 5 16.5 7M16 16V13M16 13H13M16 13L13 15.5C11.5 17 9.5 17.5 7.5 17C5.5 16.5 4 15 3.5 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -156,11 +252,89 @@ export default function Homepage() {
           </form>
         </div>
 
+        {/* Quick Access Sections */}
+        {(recentRooms.length > 0 || bookmarkedRooms.length > 0 || upcomingParties.length > 0) && (
+          <div style={styles.quickAccess}>
+            {/* Upcoming Parties */}
+            {upcomingParties.length > 0 && (
+              <div style={styles.quickSection}>
+                <h3 style={styles.quickTitle}>Upcoming Parties</h3>
+                <div style={styles.quickList}>
+                  {upcomingParties.map(party => (
+                    <button
+                      key={party.id}
+                      onClick={() => navigateToRoom(party.roomId)}
+                      style={styles.quickItem}
+                    >
+                      <span style={styles.quickIcon}>📅</span>
+                      <span style={styles.quickName}>{party.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Recent Rooms */}
+            {recentRooms.length > 0 && (
+              <div style={styles.quickSection}>
+                <h3 style={styles.quickTitle}>Recent Rooms</h3>
+                <div style={styles.quickList}>
+                  {recentRooms.map(room => (
+                    <button
+                      key={room.roomId}
+                      onClick={() => navigateToRoom(room.roomId)}
+                      style={styles.quickItem}
+                      data-testid={`recent-room-${room.roomId}`}
+                    >
+                      <span style={styles.quickIcon}>🎥</span>
+                      <span style={styles.quickName}>{room.roomName}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Bookmarked Rooms */}
+            {bookmarkedRooms.length > 0 && (
+              <div style={styles.quickSection}>
+                <h3 style={styles.quickTitle}>Saved Rooms</h3>
+                <div style={styles.quickList}>
+                  {bookmarkedRooms.map(room => (
+                    <button
+                      key={room.roomId}
+                      onClick={() => navigateToRoom(room.roomId)}
+                      style={styles.quickItem}
+                      data-testid={`bookmarked-room-${room.roomId}`}
+                    >
+                      <span style={styles.quickIcon}>🔖</span>
+                      <span style={styles.quickName}>{room.roomName}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Footer hint */}
         <p style={styles.hint}>
           Share the room link with friends after creating
         </p>
       </div>
+
+      {/* Modals */}
+      <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} />
+      <UserProfile isOpen={showProfile} onClose={() => setShowProfile(false)} />
+      <ThemeSettings isOpen={showTheme} onClose={() => setShowTheme(false)} />
+      <FriendsPanel isOpen={showFriends} onClose={() => setShowFriends(false)} />
+      <ScheduledParties isOpen={showScheduled} onClose={() => setShowScheduled(false)} />
+      <WatchHistory isOpen={showHistory} onClose={() => setShowHistory(false)} />
+      <RoomBookmarks
+        isOpen={showBookmarks}
+        onClose={() => setShowBookmarks(false)}
+        onNavigateToRoom={navigateToRoom}
+      />
+      <Notifications isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
     </div>
   );
 }
@@ -169,6 +343,7 @@ const styles: Record<string, React.CSSProperties> = {
   container: {
     minHeight: "100vh",
     display: "flex",
+    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
     padding: "2rem",
@@ -185,16 +360,57 @@ const styles: Record<string, React.CSSProperties> = {
     background: "radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%)",
     pointerEvents: "none",
   },
+  header: {
+    position: "fixed",
+    top: 0,
+    right: 0,
+    padding: "1rem",
+    zIndex: 100,
+  },
+  headerActions: {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.75rem",
+  },
+  headerButton: {
+    width: "36px",
+    height: "36px",
+    border: "none",
+    background: "#262626",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontSize: "1rem",
+  },
+  userButton: {
+    width: "36px",
+    height: "36px",
+    border: "none",
+    borderRadius: "50%",
+    cursor: "pointer",
+    fontSize: "0.875rem",
+    fontWeight: 600,
+    color: "#ffffff",
+  },
+  signInButton: {
+    padding: "0.5rem 1rem",
+    background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+    border: "none",
+    borderRadius: "8px",
+    color: "#ffffff",
+    fontSize: "0.875rem",
+    fontWeight: 500,
+    cursor: "pointer",
+  },
   content: {
     width: "100%",
-    maxWidth: "440px",
+    maxWidth: "480px",
     position: "relative",
     zIndex: 1,
     animation: "fadeIn 0.5s ease-out",
   },
   brandSection: {
     textAlign: "center" as const,
-    marginBottom: "2rem",
+    marginBottom: "1.5rem",
   },
   logoContainer: {
     display: "flex",
@@ -220,11 +436,28 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "1rem",
     margin: 0,
   },
+  featureButtons: {
+    display: "flex",
+    justifyContent: "center",
+    gap: "0.5rem",
+    marginBottom: "1.5rem",
+    flexWrap: "wrap" as const,
+  },
+  featureButton: {
+    padding: "0.5rem 0.75rem",
+    background: "#262626",
+    border: "1px solid #333",
+    borderRadius: "100px",
+    color: "#a3a3a3",
+    fontSize: "0.75rem",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+  },
   features: {
     display: "flex",
     justifyContent: "center",
-    gap: "1.5rem",
-    marginBottom: "2rem",
+    gap: "1rem",
+    marginBottom: "1.5rem",
     flexWrap: "wrap" as const,
   },
   feature: {
@@ -328,6 +561,51 @@ const styles: Record<string, React.CSSProperties> = {
     display: "flex",
     alignItems: "center",
     gap: "0.5rem",
+  },
+  quickAccess: {
+    marginTop: "1.5rem",
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "1rem",
+  },
+  quickSection: {
+    background: "#1a1a1a",
+    borderRadius: "12px",
+    padding: "1rem",
+    border: "1px solid #333",
+  },
+  quickTitle: {
+    margin: "0 0 0.75rem 0",
+    fontSize: "0.875rem",
+    fontWeight: 600,
+    color: "#a3a3a3",
+  },
+  quickList: {
+    display: "flex",
+    gap: "0.5rem",
+    flexWrap: "wrap" as const,
+  },
+  quickItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.5rem",
+    padding: "0.5rem 0.75rem",
+    background: "#262626",
+    border: "none",
+    borderRadius: "8px",
+    color: "#ffffff",
+    fontSize: "0.75rem",
+    cursor: "pointer",
+    transition: "background 0.2s ease",
+  },
+  quickIcon: {
+    fontSize: "0.875rem",
+  },
+  quickName: {
+    maxWidth: "120px",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap" as const,
   },
   hint: {
     textAlign: "center" as const,

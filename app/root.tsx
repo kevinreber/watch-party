@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Links,
   Meta,
@@ -11,6 +11,8 @@ import type { LinksFunction, MetaFunction } from "react-router";
 import { SnackbarProvider } from "notistack";
 
 import { UserContext } from "~/context/UserContext";
+import { AuthProvider } from "~/context/AuthContext";
+import { ThemeProvider } from "~/context/ThemeContext";
 import { generateName } from "~/utils/generateName";
 
 import "./styles/app.css";
@@ -53,21 +55,39 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Default username for SSR - must be consistent between server and client
+const DEFAULT_USERNAME = "Guest";
+
 export default function App() {
-  const [user, setUser] = useState<string>(generateName());
+  // Start with consistent default for hydration, then generate random name
+  const [user, setUser] = useState<string>(DEFAULT_USERNAME);
+  const [isHydrated, setIsHydrated] = useState(false);
   const userData = useMemo(() => ({ user, setUser }), [user, setUser]);
+
+  // Generate random name after hydration to avoid mismatch
+  useEffect(() => {
+    setIsHydrated(true);
+    // Only generate a new name if still using default
+    if (user === DEFAULT_USERNAME) {
+      setUser(generateName());
+    }
+  }, []);
 
   return (
     <div className="App">
-      <UserContext.Provider value={userData}>
-        <SnackbarProvider
-          maxSnack={5}
-          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-          autoHideDuration={10000}
-        >
-          <Outlet />
-        </SnackbarProvider>
-      </UserContext.Provider>
+      <AuthProvider>
+        <ThemeProvider>
+          <UserContext.Provider value={userData}>
+            <SnackbarProvider
+              maxSnack={5}
+              anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+              autoHideDuration={10000}
+            >
+              <Outlet />
+            </SnackbarProvider>
+          </UserContext.Provider>
+        </ThemeProvider>
+      </AuthProvider>
     </div>
   );
 }
