@@ -1,8 +1,8 @@
 import { useState, useContext } from "react";
 import { Button } from "@mui/material";
-import type { Socket } from "socket.io-client";
+import type { RealtimeChannel } from "ably";
 import { UserContext } from "~/context/UserContext";
-import { useHandleMessages } from "~/hooks";
+import { useHandleMessagesAbly } from "~/hooks";
 import { WatchList } from "../WatchList/WatchList";
 import { ChatList } from "../ChatList/ChatList";
 import { WatchCount } from "../WatchCount/WatchCount";
@@ -19,20 +19,22 @@ interface Video {
 interface SideListProps {
   videos: Video[];
   removeVideoFromList: (video: Video) => void;
-  socket: Socket | null;
+  channel: RealtimeChannel | null;
+  clientId: string | undefined;
   usersCount: number;
 }
 
 export const SideList = ({
   videos,
   removeVideoFromList,
-  socket,
+  channel,
+  clientId,
   usersCount,
 }: SideListProps) => {
   const { user } = useContext(UserContext);
   const [activeList, setActiveList] = useState<"videos" | "chats">("videos");
-  const { messages, sendMessage, userIsTyping, isTypingMessage } =
-    useHandleMessages(socket, user);
+  const { messages, sendMessage, userIsTyping, isTypingMessage, emitTyping, emitStopTyping } =
+    useHandleMessagesAbly(channel, user, clientId);
 
   const toggleActiveList = (active: "videos" | "chats") => {
     setActiveList(active);
@@ -61,12 +63,13 @@ export const SideList = ({
         )}
         {activeList === "chats" && (
           <ChatList
-            socket={socket}
             messages={messages}
             sendMessage={sendMessage}
             userIsTyping={userIsTyping}
             isTypingMessage={isTypingMessage}
             user={user}
+            onTyping={emitTyping}
+            onStopTyping={emitStopTyping}
           />
         )}
       </div>

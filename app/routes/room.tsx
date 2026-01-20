@@ -2,12 +2,12 @@ import { useContext, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router";
 import { UserContext } from "~/context/UserContext";
 import {
-  useGetWebSocket,
-  useHandleVideoList,
-  useGetUserCount,
+  useAbly,
+  useHandleVideoListAbly,
+  useGetUserCountAbly,
   useLoadYouTubeScript,
 } from "~/hooks";
-import { useVideoSync } from "~/hooks/useVideoSync";
+import { useVideoSyncAbly } from "~/hooks/useVideoSyncAbly";
 import {
   VideoPlayer,
   AddVideoBar,
@@ -20,9 +20,10 @@ export default function Room() {
   const { user } = useContext(UserContext);
   const [copied, setCopied] = useState(false);
 
-  const { socket, isConnected } = useGetWebSocket(user);
-  const { usersCount } = useGetUserCount(socket);
-  const { videos, addVideoToList, removeVideoFromList, playNextVideo } = useHandleVideoList(socket);
+  // Ably connection and channel
+  const { channel, isConnected, clientId } = useAbly(user);
+  const { usersCount } = useGetUserCountAbly(channel);
+  const { videos, addVideoToList, removeVideoFromList, playNextVideo } = useHandleVideoListAbly(channel, clientId);
 
   // Video sync state
   const {
@@ -35,7 +36,7 @@ export default function Room() {
     handleProgress,
     handleReady,
     handleUnmute,
-  } = useVideoSync(socket, roomId);
+  } = useVideoSyncAbly(channel, roomId, clientId);
 
   useLoadYouTubeScript();
 
@@ -152,7 +153,8 @@ export default function Room() {
         <SidePanel
           videos={videos}
           removeVideoFromList={removeVideoFromList}
-          socket={socket}
+          channel={channel}
+          clientId={clientId}
           usersCount={usersCount}
           user={user}
         />
