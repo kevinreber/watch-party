@@ -535,9 +535,15 @@ const styles: Record<string, React.CSSProperties> = {
     flexDirection: "column",
     padding: "1.5rem",
     overflow: "auto",
+    height: "100%",
+    minHeight: 0,
   },
   videoContainer: {
     position: "relative",
+    flex: 1,
+    minHeight: 0,
+    display: "flex",
+    flexDirection: "column",
   },
   nowPlaying: {
     marginTop: "1rem",

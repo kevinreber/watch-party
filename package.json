@@ -7,7 +7,7 @@
     "dev": "npm-run-all --parallel dev:convex dev:app",
     "dev:app": "node --import tsx ./server.ts",
     "dev:convex": "convex dev",
-    "build": "convex deploy && react-router build",
+    "build": "convex deploy && npx convex codegen && react-router build",
     "start": "NODE_ENV=production node --import tsx ./server.ts",
     "typecheck": "react-router typegen && tsc",
     "test": "vitest run",
