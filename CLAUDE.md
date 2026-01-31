@@ -273,8 +273,33 @@ npm run test
 ### 3. Push Changes
 Only push after all validations pass.
 
-### Automated Validation (Claude Code Hook)
-A pre-push hook is configured in `.claude/settings.json` that automatically runs `npm run typecheck && npm run test` before any `git push` command. If checks fail, the push will be blocked until issues are fixed.
+### Automated Validation (Claude Code Hooks)
+
+**IMPORTANT**: Claude Code hooks are configured in `.claude/settings.json` to automatically run validation before git operations. These hooks ensure CI checks will pass before code is committed or pushed.
+
+#### Pre-Commit Hook
+Before any `git commit` command, the following checks run automatically:
+```bash
+npm run typecheck && npm run test
+```
+If checks fail, the commit will be blocked until issues are fixed.
+
+#### Pre-Push Hook (Safety Net)
+Before any `git push` command, the same checks run again as a safety net:
+```bash
+npm run typecheck && npm run test
+```
+
+#### What This Means for Development
+1. **Always fix errors before committing** - If typecheck or tests fail, resolve the issues first
+2. **CI checks should pass** - Since the same checks run locally, PR validation in GitHub Actions should pass
+3. **No bypassing** - These hooks cannot be skipped; they ensure code quality
+
+#### If Checks Fail
+1. Read the error output carefully
+2. Fix type errors shown by `npm run typecheck`
+3. Fix failing tests shown by `npm run test`
+4. Re-attempt the commit/push after fixes
 
 ### Handling Merge Conflicts
 1. Identify conflicting files in the git output
