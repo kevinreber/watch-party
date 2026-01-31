@@ -1,6 +1,7 @@
 import { useContext, useState, useCallback, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
 import { UserContext } from "~/context/UserContext";
+import { useConvexAuth } from "~/context/ConvexAuthContext";
 import {
   useAbly,
   useHandleVideoListAbly,
@@ -22,6 +23,7 @@ export default function Room() {
   const { roomId } = useParams();
   const navigate = useNavigate();
   const { user } = useContext(UserContext);
+  const { user: convexUser } = useConvexAuth();
   const [copied, setCopied] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -29,9 +31,13 @@ export default function Room() {
   const [hasActivePoll, setHasActivePoll] = useState(false);
   const hasAutoShownPoll = useRef(false);
 
-  // Ably connection and channel
-  const { channel, isConnected, clientId } = useAbly(user);
-  const { usersCount } = useGetUserCountAbly(channel);
+  // Ably connection and channel (with avatar data for presence)
+  const { channel, isConnected, clientId } = useAbly(
+    user,
+    convexUser?.avatar,
+    convexUser?.avatarColor
+  );
+  const { usersCount, users } = useGetUserCountAbly(channel);
   const { videos, addVideoToList, removeVideoFromList, playNextVideo } = useHandleVideoListAbly(channel, clientId);
 
   // Video sync state
@@ -279,6 +285,7 @@ export default function Room() {
           channel={channel}
           clientId={clientId}
           usersCount={usersCount}
+          users={users}
           user={user}
         />
       </main>

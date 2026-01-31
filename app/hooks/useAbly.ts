@@ -15,12 +15,19 @@ const getAblyClient = (clientId: string): Ably.Realtime => {
   return ablyInstance!;
 };
 
-export const useAbly = (username: string) => {
+interface UserPresenceData {
+  username: string;
+  avatar?: string;
+  avatarColor?: string;
+}
+
+export const useAbly = (username: string, avatar?: string, avatarColor?: string) => {
   const { roomId } = useParams();
   const [isConnected, setIsConnected] = useState(false);
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
   const clientRef = useRef<Ably.Realtime | null>(null);
   const hasEnteredPresence = useRef(false);
+  const presenceDataRef = useRef<UserPresenceData>({ username, avatar, avatarColor });
 
   // Initialize Ably connection
   useEffect(() => {
@@ -64,13 +71,18 @@ export const useAbly = (username: string) => {
     };
   }, [username, roomId]);
 
+  // Update presence data ref when props change
+  useEffect(() => {
+    presenceDataRef.current = { username, avatar, avatarColor };
+  }, [username, avatar, avatarColor]);
+
   // Enter presence when connected
   useEffect(() => {
     if (!channel || !isConnected || !username || hasEnteredPresence.current) return;
 
     const enterPresence = async () => {
       try {
-        await channel.presence.enter({ username });
+        await channel.presence.enter(presenceDataRef.current);
         hasEnteredPresence.current = true;
         console.log(`Entered presence in room ${roomId} as ${username}`);
       } catch (err) {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { RealtimeChannel } from "ably";
 import { useHandleMessagesAbly } from "~/hooks";
+import type { PresenceUser } from "~/hooks/useGetUserCountAbly";
 import { WatchList } from "../WatchList/WatchList";
 import { ChatList } from "../ChatList/ChatList";
 
@@ -19,6 +20,7 @@ interface SidePanelProps {
   channel: RealtimeChannel | null;
   clientId: string | undefined;
   usersCount: number;
+  users: PresenceUser[];
   user: string;
 }
 
@@ -30,6 +32,7 @@ export const SidePanel = ({
   channel,
   clientId,
   usersCount,
+  users,
   user,
 }: SidePanelProps) => {
   const [activeTab, setActiveTab] = useState<TabType>("queue");
@@ -84,9 +87,45 @@ export const SidePanel = ({
           </button>
         </div>
 
-        {/* User count */}
+        {/* Users watching */}
         <div style={styles.userCount}>
           <div style={styles.userCountDot} />
+          <div style={styles.viewerAvatars}>
+            {users.slice(0, 3).map((viewer, index) => (
+              <div
+                key={viewer.clientId}
+                style={{
+                  ...styles.viewerAvatar,
+                  marginLeft: index === 0 ? 0 : -8,
+                  zIndex: users.length - index,
+                  backgroundColor: viewer.avatarColor,
+                }}
+                title={viewer.username}
+              >
+                {viewer.avatar ? (
+                  <img
+                    src={viewer.avatar}
+                    alt={viewer.username}
+                    style={styles.viewerAvatarImg}
+                  />
+                ) : (
+                  viewer.username.charAt(0).toUpperCase()
+                )}
+              </div>
+            ))}
+            {usersCount > 3 && (
+              <div
+                style={{
+                  ...styles.viewerAvatar,
+                  ...styles.viewerAvatarMore,
+                  marginLeft: -8,
+                  zIndex: 0,
+                }}
+              >
+                +{usersCount - 3}
+              </div>
+            )}
+          </div>
           <span>{usersCount} watching</span>
         </div>
       </div>
@@ -179,6 +218,33 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: "50%",
     background: "#22c55e",
     boxShadow: "0 0 8px rgba(34, 197, 94, 0.5)",
+  },
+  viewerAvatars: {
+    display: "flex",
+    alignItems: "center",
+  },
+  viewerAvatar: {
+    width: "24px",
+    height: "24px",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "0.625rem",
+    fontWeight: 600,
+    color: "#ffffff",
+    border: "2px solid #1a1a1a",
+    overflow: "hidden",
+    position: "relative" as const,
+  },
+  viewerAvatarImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover" as const,
+  },
+  viewerAvatarMore: {
+    backgroundColor: "#404040",
+    fontSize: "0.5rem",
   },
   content: {
     flex: 1,
