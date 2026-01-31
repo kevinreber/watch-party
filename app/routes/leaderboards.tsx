@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router";
 import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { api } from "convex/_generated/api";
 
 type Category = "watchTime" | "partiesHosted" | "messagesSent" | "reactionsGiven";
 type Period = "weekly" | "monthly" | "alltime";
