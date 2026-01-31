@@ -1,0 +1,65 @@
+# Label configuration for actions/labeler
+# Labels are applied based on which files are changed in a PR
+
+frontend:
+  - changed-files:
+      - any-glob-to-any-file: 'app/**/*'
+
+backend:
+  - changed-files:
+      - any-glob-to-any-file: 'convex/**/*'
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'e2e/**/*'
+          - '**/*.test.ts'
+          - '**/*.test.tsx'
+          - 'playwright.config.ts'
+          - 'vitest.config.ts'
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - 'docs/**/*'
+
+configuration:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '*.json'
+          - '*.config.ts'
+          - '*.config.js'
+          - '.eslintrc*'
+          - '.prettierrc*'
+          - 'tsconfig*.json'
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**/*'
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'package.json'
+          - 'package-lock.json'
+
+styles:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.css'
+          - '**/*.scss'
+          - '**/*.sass'
+
+components:
+  - changed-files:
+      - any-glob-to-any-file: 'app/components/**/*'
+
+routes:
+  - changed-files:
+      - any-glob-to-any-file: 'app/routes/**/*'
+
+hooks:
+  - changed-files:
+      - any-glob-to-any-file: 'app/hooks/**/*'
