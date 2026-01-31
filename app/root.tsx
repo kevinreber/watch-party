@@ -16,6 +16,7 @@ import { UserContext } from "~/context/UserContext";
 import { AuthProvider } from "~/context/AuthContext";
 import { ThemeProvider } from "~/context/ThemeContext";
 import { generateName } from "~/utils/generateName";
+import { generateMetaTags, generateWebsiteSchema, SEO_CONFIG } from "~/utils/seo";
 
 import "./styles/app.css";
 
@@ -30,16 +31,19 @@ export const links: LinksFunction = () => [
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap",
   },
+  { rel: "icon", href: "/favicon.ico", sizes: "any" },
+  { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+  { rel: "manifest", href: "/manifest.json" },
+  { rel: "canonical", href: SEO_CONFIG.siteUrl },
 ];
 
 export const meta: MetaFunction = () => {
-  return [
-    { title: "Watch Party" },
-    { name: "description", content: "Watch videos together with friends" },
-  ];
+  return generateMetaTags();
 };
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const websiteSchema = generateWebsiteSchema();
+
   return (
     <html lang="en">
       <head>
@@ -47,6 +51,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        {/* JSON-LD Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
       </head>
       <body>
         {children}

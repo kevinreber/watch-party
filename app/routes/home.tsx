@@ -1,8 +1,18 @@
 import { useState, useContext, useEffect } from "react";
 import { useNavigate, Link } from "react-router";
+import type { MetaFunction } from "react-router";
 import { useUser, useClerk } from "@clerk/clerk-react";
 
 import { UserContext } from "~/context/UserContext";
+import { generateMetaTags } from "~/utils/seo";
+
+export const meta: MetaFunction = () => {
+  return generateMetaTags({
+    title: "Watch Party - Watch Videos Together with Friends",
+    description:
+      "Create synchronized watch parties to enjoy YouTube videos with friends in real-time. Features live chat, emoji reactions, polls, and more. Start watching together now!",
+  });
+};
 import { generateName } from "~/utils/generateName";
 import { historyService } from "~/services/historyService";
 import type { RoomHistory, RoomBookmark, ScheduledParty } from "~/types";

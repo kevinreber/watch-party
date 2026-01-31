@@ -1,8 +1,21 @@
 import { useParams, useNavigate, Link } from "react-router";
+import type { MetaFunction } from "react-router";
+import type { Route } from "./+types/profile";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 import { useUser } from "@clerk/clerk-react";
+import { generateProfileMetaTags } from "~/utils/seo";
+
+export const meta: MetaFunction<typeof loader> = ({ params }) => {
+  const username = params.username || "User";
+
+  return generateProfileMetaTags(username);
+};
+
+export const loader = ({ params }: Route.LoaderArgs) => {
+  return { username: params.username };
+};
 
 export default function ProfilePage() {
   const { username } = useParams();

@@ -1,6 +1,23 @@
 import { useContext, useState, useCallback, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
+import type { MetaFunction } from "react-router";
+import type { Route } from "./+types/room";
 import { UserContext } from "~/context/UserContext";
+import { generateRoomMetaTags } from "~/utils/seo";
+
+export const meta: MetaFunction<typeof loader> = ({ params }) => {
+  const roomId = params.roomId || "Watch Party";
+  const roomName = roomId
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
+  return generateRoomMetaTags(roomName);
+};
+
+export const loader = ({ params }: Route.LoaderArgs) => {
+  return { roomId: params.roomId };
+};
 import { useConvexAuth } from "~/context/ConvexAuthContext";
 import {
   useAbly,

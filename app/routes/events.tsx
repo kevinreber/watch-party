@@ -1,7 +1,13 @@
 import { useNavigate } from "react-router";
+import type { MetaFunction } from "react-router";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
+import { generateEventsMetaTags } from "~/utils/seo";
+
+export const meta: MetaFunction = () => {
+  return generateEventsMetaTags();
+};
 
 export default function EventsPage() {
   const navigate = useNavigate();
