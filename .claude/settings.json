@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "PreToolCall": [
+      {
+        "matcher": "Bash(git push*)",
+        "command": "npm run typecheck && npm run test",
+        "description": "Run lint and tests before pushing to ensure all checks pass"
+      }
+    ]
+  }
+}
