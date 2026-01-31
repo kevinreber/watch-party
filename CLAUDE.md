@@ -242,6 +242,47 @@ See `FEATURE_BACKLOG.md` for complete list.
 - **Build**: `convex deploy --cmd 'react-router build'`
 - **SSR**: Enabled with isbot detection for crawlers
 
+## Pull Request Workflow
+
+When working on a PR branch, follow this workflow before pushing changes:
+
+### 1. Sync with Main Branch
+Before pushing, always pull the latest changes from main and resolve any conflicts:
+
+```bash
+# Fetch latest from main
+git fetch origin main
+
+# Merge main into your branch
+git merge origin/main
+
+# If conflicts occur, resolve them before proceeding
+```
+
+### 2. Run Validation Checks
+All checks must pass before pushing:
+
+```bash
+# Type checking (includes React Router typegen)
+npm run typecheck
+
+# Unit tests
+npm run test
+```
+
+### 3. Push Changes
+Only push after all validations pass.
+
+### Automated Validation (Claude Code Hook)
+A pre-push hook is configured in `.claude/settings.json` that automatically runs `npm run typecheck && npm run test` before any `git push` command. If checks fail, the push will be blocked until issues are fixed.
+
+### Handling Merge Conflicts
+1. Identify conflicting files in the git output
+2. Open each file and look for conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`)
+3. Resolve conflicts by choosing the correct code or combining changes
+4. Stage resolved files: `git add <file>`
+5. Complete the merge: `git commit`
+
 ## Troubleshooting
 
 ### Build Fails on Vercel
