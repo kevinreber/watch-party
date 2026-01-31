@@ -10,7 +10,26 @@ function getTodayDate(): string {
 function getYesterdayDate(): string {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
+
   return yesterday.toISOString().split("T")[0];
+}
+
+// Helper to get the start of the current week (Monday)
+function getWeekStartDate(): string {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday
+  const monday = new Date(now.setDate(diff));
+
+  return monday.toISOString().split("T")[0];
+}
+
+// Helper to get date N days ago
+function getDateDaysAgo(days: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+
+  return date.toISOString().split("T")[0];
 }
 
 // ============================================
@@ -306,5 +325,254 @@ export const checkStreakBadges = mutation({
     }
 
     return newBadges;
+  },
+});
+
+// ============================================
+// STREAK FREEZE TOKENS
+// ============================================
+
+export const getStreakFreezeStatus = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+    if (!user) return null;
+
+    const streakRecord = await ctx.db
+      .query("watchStreaks")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .first();
+
+    if (!streakRecord) {
+      return {
+        freezeTokens: 0,
+        maxTokens: 2,
+        canEarnTokenThisWeek: true,
+        streakAtRisk: false,
+      };
+    }
+
+    const today = getTodayDate();
+    const yesterday = getYesterdayDate();
+    const currentWeekStart = getWeekStartDate();
+
+    // Check if user can earn a token this week
+    const tokensEarnedThisWeek = streakRecord.freezeTokensEarnedThisWeek || 0;
+    const weekStartDate = streakRecord.weekStartDate;
+    const isNewWeek = !weekStartDate || weekStartDate !== currentWeekStart;
+    const canEarnTokenThisWeek = isNewWeek || tokensEarnedThisWeek < 1;
+
+    // Check if streak is at risk (didn't watch yesterday or today)
+    const streakAtRisk =
+      streakRecord.lastWatchDate !== today && streakRecord.lastWatchDate !== yesterday;
+
+    return {
+      freezeTokens: streakRecord.freezeTokens || 0,
+      maxTokens: 2,
+      canEarnTokenThisWeek,
+      lastFreezeUsed: streakRecord.lastFreezeUsed,
+      streakAtRisk,
+      currentStreak: streakRecord.currentStreak,
+    };
+  },
+});
+
+export const earnFreezeToken = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+    if (!user) throw new Error("User not found");
+
+    const streakRecord = await ctx.db
+      .query("watchStreaks")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .first();
+
+    const currentWeekStart = getWeekStartDate();
+    const maxTokens = 2;
+
+    if (!streakRecord) {
+      // Create streak record with a token
+      await ctx.db.insert("watchStreaks", {
+        userId: user._id,
+        currentStreak: 0,
+        longestStreak: 0,
+        lastWatchDate: "",
+        streakStartDate: "",
+        totalDaysWatched: 0,
+        freezeTokens: 1,
+        freezeTokensEarnedThisWeek: 1,
+        weekStartDate: currentWeekStart,
+      });
+
+      return { success: true, newTokenCount: 1 };
+    }
+
+    // Check if already at max tokens
+    const currentTokens = streakRecord.freezeTokens || 0;
+    if (currentTokens >= maxTokens) {
+      return { success: false, message: "Already at maximum freeze tokens" };
+    }
+
+    // Check if already earned this week
+    const isNewWeek = streakRecord.weekStartDate !== currentWeekStart;
+    const tokensEarnedThisWeek = isNewWeek ? 0 : streakRecord.freezeTokensEarnedThisWeek || 0;
+
+    if (tokensEarnedThisWeek >= 1) {
+      return { success: false, message: "Already earned a freeze token this week" };
+    }
+
+    // Award token
+    await ctx.db.patch(streakRecord._id, {
+      freezeTokens: currentTokens + 1,
+      freezeTokensEarnedThisWeek: tokensEarnedThisWeek + 1,
+      weekStartDate: currentWeekStart,
+    });
+
+    return { success: true, newTokenCount: currentTokens + 1 };
+  },
+});
+
+export const useStreakFreeze = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+    if (!user) throw new Error("User not found");
+
+    const streakRecord = await ctx.db
+      .query("watchStreaks")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .first();
+
+    if (!streakRecord) {
+      throw new Error("No streak record found");
+    }
+
+    const currentTokens = streakRecord.freezeTokens || 0;
+    if (currentTokens < 1) {
+      throw new Error("No freeze tokens available");
+    }
+
+    const today = getTodayDate();
+    const yesterday = getYesterdayDate();
+    const twoDaysAgo = getDateDaysAgo(2);
+
+    // Only allow freeze if streak would be broken
+    // (last watch was 2 days ago, meaning yesterday was missed)
+    if (streakRecord.lastWatchDate === today || streakRecord.lastWatchDate === yesterday) {
+      return { success: false, message: "Streak is not at risk" };
+    }
+
+    // Check if streak was active before the miss
+    if (streakRecord.lastWatchDate !== twoDaysAgo) {
+      return { success: false, message: "Streak has already been broken for too long" };
+    }
+
+    // Use the freeze token - preserve the streak by updating lastWatchDate to yesterday
+    await ctx.db.patch(streakRecord._id, {
+      freezeTokens: currentTokens - 1,
+      lastFreezeUsed: yesterday,
+      lastWatchDate: yesterday, // This preserves the streak
+    });
+
+    // Create notification
+    await ctx.db.insert("notifications", {
+      userId: user._id,
+      type: "streak_frozen",
+      title: "Streak Frozen! ❄️",
+      message: `You used a freeze token to save your ${streakRecord.currentStreak} day streak!`,
+      read: false,
+      data: { streakPreserved: streakRecord.currentStreak },
+      createdAt: Date.now(),
+    });
+
+    return {
+      success: true,
+      streakPreserved: streakRecord.currentStreak,
+      remainingTokens: currentTokens - 1,
+    };
+  },
+});
+
+export const checkStreakWarning = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return { atRisk: false };
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+    if (!user) return { atRisk: false };
+
+    const streakRecord = await ctx.db
+      .query("watchStreaks")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .first();
+
+    if (!streakRecord || streakRecord.currentStreak < 3) {
+      return { atRisk: false };
+    }
+
+    const today = getTodayDate();
+    const yesterday = getYesterdayDate();
+
+    // Streak is at risk if last watch was yesterday (need to watch today)
+    const atRisk = streakRecord.lastWatchDate === yesterday;
+
+    if (atRisk) {
+      // Check if we already sent a warning today
+      const existingNotifications = await ctx.db
+        .query("notifications")
+        .withIndex("by_user_and_time", (q) => q.eq("userId", user._id))
+        .order("desc")
+        .take(10);
+
+      const alreadyWarned = existingNotifications.some(
+        (n) =>
+          n.type === "streak_warning" &&
+          new Date(n.createdAt).toISOString().split("T")[0] === today
+      );
+
+      if (!alreadyWarned) {
+        await ctx.db.insert("notifications", {
+          userId: user._id,
+          type: "streak_warning",
+          title: "Streak at Risk! ⚠️",
+          message: `Don't lose your ${streakRecord.currentStreak} day streak! Watch something today to keep it going.`,
+          read: false,
+          data: {
+            currentStreak: streakRecord.currentStreak,
+            freezeTokensAvailable: streakRecord.freezeTokens || 0,
+          },
+          createdAt: Date.now(),
+        });
+      }
+    }
+
+    return {
+      atRisk,
+      currentStreak: streakRecord.currentStreak,
+      freezeTokensAvailable: streakRecord.freezeTokens || 0,
+    };
   },
 });

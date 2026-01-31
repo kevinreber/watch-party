@@ -306,7 +306,18 @@ export default defineSchema({
       v.literal("friend_request"),
       v.literal("party_invite"),
       v.literal("party_starting"),
-      v.literal("friend_online")
+      v.literal("friend_online"),
+      // New notification types for retention features
+      v.literal("badge_earned"),
+      v.literal("level_up"),
+      v.literal("challenge_complete"),
+      v.literal("streak_warning"),
+      v.literal("streak_frozen"),
+      v.literal("event_starting"),
+      v.literal("event_ending"),
+      v.literal("friend_watching"),
+      v.literal("weekly_recap"),
+      v.literal("milestone_reached")
     ),
     title: v.string(),
     message: v.string(),
@@ -450,6 +461,11 @@ export default defineSchema({
     lastWatchDate: v.string(), // YYYY-MM-DD format
     streakStartDate: v.string(),
     totalDaysWatched: v.number(),
+    // Streak freeze tokens
+    freezeTokens: v.optional(v.number()), // Available tokens (max 2)
+    lastFreezeUsed: v.optional(v.string()), // Date when last freeze was used
+    freezeTokensEarnedThisWeek: v.optional(v.number()), // Tokens earned this week (max 1/week)
+    weekStartDate: v.optional(v.string()), // Start of current tracking week
   }).index("by_user", ["userId"]),
 
   dailyWatchLog: defineTable({
@@ -546,4 +562,203 @@ export default defineSchema({
   })
     .index("by_period_category", ["period", "category"])
     .index("by_user", ["userId"]),
+
+  // ============================================
+  // DAILY CHALLENGES
+  // ============================================
+  dailyChallenges: defineTable({
+    date: v.string(), // YYYY-MM-DD format
+    challenges: v.array(
+      v.object({
+        id: v.string(),
+        title: v.string(),
+        description: v.string(),
+        icon: v.string(),
+        type: v.union(
+          v.literal("watch_time"),
+          v.literal("watch_with_friends"),
+          v.literal("send_messages"),
+          v.literal("send_reactions"),
+          v.literal("join_rooms"),
+          v.literal("host_party"),
+          v.literal("add_to_playlist"),
+          v.literal("use_poll")
+        ),
+        target: v.number(),
+        xpReward: v.number(),
+        difficulty: v.union(v.literal("easy"), v.literal("medium"), v.literal("hard")),
+      })
+    ),
+    createdAt: v.number(),
+  }).index("by_date", ["date"]),
+
+  userChallengeProgress: defineTable({
+    userId: v.id("users"),
+    date: v.string(), // YYYY-MM-DD format
+    challengeId: v.string(),
+    progress: v.number(),
+    completed: v.boolean(),
+    completedAt: v.optional(v.number()),
+    xpAwarded: v.boolean(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_date", ["userId", "date"])
+    .index("by_user_challenge", ["userId", "challengeId"]),
+
+  // ============================================
+  // XP & LEVELS SYSTEM
+  // ============================================
+  userLevels: defineTable({
+    userId: v.id("users"),
+    currentXp: v.number(),
+    totalXp: v.number(),
+    level: v.number(),
+    title: v.string(), // e.g., "Newbie", "Regular", "Enthusiast", etc.
+    lastXpGain: v.optional(
+      v.object({
+        amount: v.number(),
+        reason: v.string(),
+        timestamp: v.number(),
+      })
+    ),
+    updatedAt: v.number(),
+  }).index("by_user", ["userId"]),
+
+  xpTransactions: defineTable({
+    userId: v.id("users"),
+    amount: v.number(),
+    reason: v.string(),
+    type: v.union(
+      v.literal("challenge"),
+      v.literal("badge"),
+      v.literal("streak"),
+      v.literal("watching"),
+      v.literal("social"),
+      v.literal("hosting"),
+      v.literal("event"),
+      v.literal("bonus")
+    ),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_time", ["userId", "createdAt"]),
+
+  // ============================================
+  // EVENTS SYSTEM
+  // ============================================
+  events: defineTable({
+    name: v.string(),
+    description: v.string(),
+    type: v.union(
+      v.literal("community_watch"),
+      v.literal("marathon"),
+      v.literal("challenge_event"),
+      v.literal("seasonal"),
+      v.literal("special")
+    ),
+    // Timing
+    startsAt: v.number(),
+    endsAt: v.number(),
+    // Rewards
+    xpMultiplier: v.optional(v.number()), // e.g., 2x XP during event
+    specialBadgeId: v.optional(v.string()), // Badge earned for participating
+    // Content
+    featuredVideos: v.optional(
+      v.array(
+        v.object({
+          videoId: v.string(),
+          url: v.string(),
+          name: v.string(),
+          channel: v.optional(v.string()),
+          img: v.optional(v.string()),
+        })
+      )
+    ),
+    // Goals for challenge events
+    communityGoal: v.optional(
+      v.object({
+        type: v.string(), // e.g., "total_watch_hours"
+        target: v.number(),
+        current: v.number(),
+      })
+    ),
+    // Metadata
+    image: v.optional(v.string()),
+    color: v.string(), // Theme color for event
+    createdBy: v.optional(v.id("users")), // null for system events
+    isActive: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_active", ["isActive"])
+    .index("by_start", ["startsAt"])
+    .index("by_end", ["endsAt"]),
+
+  eventParticipants: defineTable({
+    eventId: v.id("events"),
+    userId: v.id("users"),
+    joinedAt: v.number(),
+    // Progress tracking
+    watchTime: v.number(), // seconds
+    videosWatched: v.number(),
+    contribution: v.number(), // For community goals
+    // Rewards
+    xpEarned: v.number(),
+    badgeAwarded: v.boolean(),
+  })
+    .index("by_event", ["eventId"])
+    .index("by_user", ["userId"])
+    .index("by_event_user", ["eventId", "userId"]),
+
+  // ============================================
+  // INVITE LINKS
+  // ============================================
+  inviteLinks: defineTable({
+    roomId: v.id("rooms"),
+    createdBy: v.id("users"),
+    code: v.string(), // Short unique code
+    // Settings
+    maxUses: v.optional(v.number()),
+    expiresAt: v.optional(v.number()),
+    // Stats
+    useCount: v.number(),
+    // Status
+    isActive: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_code", ["code"])
+    .index("by_room", ["roomId"])
+    .index("by_creator", ["createdBy"]),
+
+  inviteLinkUses: defineTable({
+    inviteLinkId: v.id("inviteLinks"),
+    userId: v.id("users"),
+    usedAt: v.number(),
+  })
+    .index("by_link", ["inviteLinkId"])
+    .index("by_user", ["userId"]),
+
+  // ============================================
+  // USER ONBOARDING
+  // ============================================
+  userOnboarding: defineTable({
+    userId: v.id("users"),
+    // Onboarding steps completed
+    steps: v.object({
+      profileSetup: v.boolean(),
+      firstRoom: v.boolean(),
+      firstVideo: v.boolean(),
+      firstMessage: v.boolean(),
+      firstFriend: v.boolean(),
+      firstPlaylist: v.boolean(),
+      tutorialComplete: v.boolean(),
+    }),
+    // Tutorial progress
+    currentStep: v.number(),
+    // Rewards claimed
+    onboardingBadgeClaimed: v.boolean(),
+    onboardingXpClaimed: v.boolean(),
+    // Metadata
+    startedAt: v.number(),
+    completedAt: v.optional(v.number()),
+  }).index("by_user", ["userId"]),
 });
