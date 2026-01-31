@@ -8,8 +8,8 @@
       },
       {
         "matcher": "Bash(git push*)",
-        "command": "npm run typecheck && npm run test",
-        "description": "Run typecheck and tests before pushing as a safety net"
+        "command": "git fetch origin main && git merge-tree $(git merge-base HEAD origin/main) HEAD origin/main 2>/dev/null | grep -q '<<<<<<<' && echo '❌ Merge conflicts detected with main! Run: git merge origin/main' && exit 1 || npm run typecheck && npm run test",
+        "description": "Check for merge conflicts with main, then run typecheck and tests before pushing"
       }
     ]
   }

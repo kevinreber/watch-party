@@ -284,18 +284,35 @@ npm run typecheck && npm run test
 ```
 If checks fail, the commit will be blocked until issues are fixed.
 
-#### Pre-Push Hook (Safety Net)
-Before any `git push` command, the same checks run again as a safety net:
+#### Pre-Push Hook (Merge Conflict Check + Validation)
+Before any `git push` command, the following checks run automatically:
+1. **Fetch latest main** and check for merge conflicts
+2. **If conflicts detected**: Push is blocked with instructions to merge main first
+3. **If no conflicts**: Run `npm run typecheck && npm run test`
+
 ```bash
-npm run typecheck && npm run test
+# What the hook does:
+git fetch origin main
+# Check for conflicts using merge-tree
+# If conflicts: exit with error
+# If clean: npm run typecheck && npm run test
 ```
 
 #### What This Means for Development
-1. **Always fix errors before committing** - If typecheck or tests fail, resolve the issues first
-2. **CI checks should pass** - Since the same checks run locally, PR validation in GitHub Actions should pass
-3. **No bypassing** - These hooks cannot be skipped; they ensure code quality
+1. **Merge conflicts are caught before pushing** - The hook fetches main and checks if your branch can merge cleanly
+2. **Always fix errors before committing** - If typecheck or tests fail, resolve the issues first
+3. **CI checks should pass** - Since the same checks run locally, PR validation in GitHub Actions should pass
+4. **No bypassing** - These hooks cannot be skipped; they ensure code quality
 
-#### If Checks Fail
+#### If Merge Conflicts Are Detected
+1. Run `git fetch origin main`
+2. Run `git merge origin/main`
+3. Resolve any conflicts in the affected files
+4. Stage resolved files: `git add <file>`
+5. Complete the merge: `git commit`
+6. Re-attempt the push
+
+#### If Typecheck or Tests Fail
 1. Read the error output carefully
 2. Fix type errors shown by `npm run typecheck`
 3. Fix failing tests shown by `npm run test`
@@ -311,14 +328,18 @@ npm run typecheck && npm run test
 ## Troubleshooting
 
 ### Build Fails on Vercel
-The build command is `convex deploy --cmd 'react-router build'`:
-1. **Convex deploy runs first** - generates types in `convex/_generated/`
-2. **React Router build runs second** - bundles the app
+The build command is `convex deploy && npx convex codegen && react-router build`:
+1. **Convex deploy runs first** - deploys functions and generates initial types
+2. **Convex codegen runs second** - ensures types are fully generated
+3. **React Router build runs last** - bundles the app with types available
+
+**Important**: We use separate commands (`&&`) instead of `--cmd` flag to avoid timing issues where Vite might start before types are fully written.
 
 If build fails:
 - Ensure `CONVEX_DEPLOY_KEY` is set in Vercel environment
 - Check that Convex project exists and is accessible
 - The `convex/_generated/` directory is gitignored and must be generated fresh
+- Ensure imports use path alias `convex/_generated/api` not relative paths
 
 ### Convex Types Not Updating
 Run `npx convex dev` to regenerate types in `convex/_generated/`
