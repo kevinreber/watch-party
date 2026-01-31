@@ -20,8 +20,8 @@ import {
   PlaylistsPanel,
 } from "~/components";
 import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import type { Id } from "../../convex/_generated/dataModel";
+import { api } from "convex/_generated/api";
+import type { Id } from "convex/_generated/dataModel";
 import { historyService } from "~/services/historyService";
 
 export default function Room() {
