@@ -1,48 +1,17 @@
-import { useState, type CSSProperties } from "react";
-import { useAuth } from "~/context/AuthContext";
+import { type CSSProperties } from "react";
+import { SignIn, SignUp } from "@clerk/clerk-react";
+import { useState } from "react";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  defaultMode?: "signIn" | "signUp";
 }
 
-export function AuthModal({ isOpen, onClose }: AuthModalProps) {
-  const { login, register, isLoading } = useAuth();
-  const [mode, setMode] = useState<"login" | "register">("login");
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+export function AuthModal({ isOpen, onClose, defaultMode = "signIn" }: AuthModalProps) {
+  const [mode, setMode] = useState<"signIn" | "signUp">(defaultMode);
 
   if (!isOpen) return null;
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
-    try {
-      if (mode === "login") {
-        await login(email, password);
-      } else {
-        await register(username, email, password);
-      }
-      onClose();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    }
-  };
-
-  const resetForm = () => {
-    setUsername("");
-    setEmail("");
-    setPassword("");
-    setError("");
-  };
-
-  const toggleMode = () => {
-    setMode(mode === "login" ? "register" : "login");
-    resetForm();
-  };
 
   return (
     <div style={styles.overlay} onClick={onClose} data-testid="auth-modal">
@@ -51,76 +20,92 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           ✕
         </button>
 
-        <h2 style={styles.title}>
-          {mode === "login" ? "Welcome Back" : "Create Account"}
-        </h2>
-        <p style={styles.subtitle}>
-          {mode === "login"
-            ? "Sign in to access your watch parties"
-            : "Join to save your watch history and more"
-          }
-        </p>
-
-        <form onSubmit={handleSubmit} style={styles.form}>
-          {mode === "register" && (
-            <div style={styles.inputGroup}>
-              <label style={styles.label}>Username</label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter username"
-                style={styles.input}
-                required
-                data-testid="username-input"
-              />
-            </div>
+        <div style={styles.clerkContainer}>
+          {mode === "signIn" ? (
+            <SignIn
+              appearance={{
+                elements: {
+                  rootBox: { width: "100%" },
+                  card: {
+                    background: "transparent",
+                    boxShadow: "none",
+                    border: "none",
+                  },
+                  headerTitle: { color: "#ffffff" },
+                  headerSubtitle: { color: "#a3a3a3" },
+                  socialButtonsBlockButton: {
+                    background: "#262626",
+                    border: "1px solid #404040",
+                    color: "#ffffff",
+                  },
+                  socialButtonsBlockButtonText: { color: "#ffffff" },
+                  dividerLine: { background: "#404040" },
+                  dividerText: { color: "#737373" },
+                  formFieldLabel: { color: "#a3a3a3" },
+                  formFieldInput: {
+                    background: "#262626",
+                    border: "1px solid #404040",
+                    color: "#ffffff",
+                  },
+                  formButtonPrimary: {
+                    background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+                  },
+                  footerActionLink: { color: "#6366f1" },
+                  identityPreviewEditButton: { color: "#6366f1" },
+                },
+              }}
+              routing="hash"
+              signUpUrl="#sign-up"
+              afterSignInUrl="/"
+            />
+          ) : (
+            <SignUp
+              appearance={{
+                elements: {
+                  rootBox: { width: "100%" },
+                  card: {
+                    background: "transparent",
+                    boxShadow: "none",
+                    border: "none",
+                  },
+                  headerTitle: { color: "#ffffff" },
+                  headerSubtitle: { color: "#a3a3a3" },
+                  socialButtonsBlockButton: {
+                    background: "#262626",
+                    border: "1px solid #404040",
+                    color: "#ffffff",
+                  },
+                  socialButtonsBlockButtonText: { color: "#ffffff" },
+                  dividerLine: { background: "#404040" },
+                  dividerText: { color: "#737373" },
+                  formFieldLabel: { color: "#a3a3a3" },
+                  formFieldInput: {
+                    background: "#262626",
+                    border: "1px solid #404040",
+                    color: "#ffffff",
+                  },
+                  formButtonPrimary: {
+                    background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+                  },
+                  footerActionLink: { color: "#6366f1" },
+                },
+              }}
+              routing="hash"
+              signInUrl="#sign-in"
+              afterSignUpUrl="/"
+            />
           )}
-
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter email"
-              style={styles.input}
-              required
-              data-testid="email-input"
-            />
-          </div>
-
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password"
-              style={styles.input}
-              required
-              data-testid="password-input"
-            />
-          </div>
-
-          {error && <div style={styles.error} data-testid="auth-error">{error}</div>}
-
-          <button
-            type="submit"
-            style={styles.submitButton}
-            disabled={isLoading}
-            data-testid="auth-submit"
-          >
-            {isLoading ? "Loading..." : mode === "login" ? "Sign In" : "Create Account"}
-          </button>
-        </form>
+        </div>
 
         <div style={styles.switchMode}>
           <span style={styles.switchText}>
-            {mode === "login" ? "Don't have an account?" : "Already have an account?"}
+            {mode === "signIn" ? "Don't have an account?" : "Already have an account?"}
           </span>
-          <button onClick={toggleMode} style={styles.switchButton}>
-            {mode === "login" ? "Sign Up" : "Sign In"}
+          <button
+            onClick={() => setMode(mode === "signIn" ? "signUp" : "signIn")}
+            style={styles.switchButton}
+          >
+            {mode === "signIn" ? "Sign Up" : "Sign In"}
           </button>
         </div>
       </div>
@@ -141,10 +126,10 @@ const styles: Record<string, CSSProperties> = {
   modal: {
     position: "relative",
     width: "100%",
-    maxWidth: "400px",
+    maxWidth: "420px",
     background: "#1a1a1a",
     borderRadius: "16px",
-    padding: "2rem",
+    padding: "1.5rem",
     border: "1px solid #333",
     boxShadow: "0 20px 40px rgba(0, 0, 0, 0.4)",
   },
@@ -160,67 +145,21 @@ const styles: Record<string, CSSProperties> = {
     color: "#a3a3a3",
     cursor: "pointer",
     fontSize: "1rem",
+    zIndex: 10,
   },
-  title: {
-    margin: "0 0 0.5rem 0",
-    fontSize: "1.5rem",
-    fontWeight: 600,
-    color: "#ffffff",
-  },
-  subtitle: {
-    margin: "0 0 1.5rem 0",
-    fontSize: "0.875rem",
-    color: "#a3a3a3",
-  },
-  form: {
+  clerkContainer: {
     display: "flex",
-    flexDirection: "column",
-    gap: "1rem",
-  },
-  inputGroup: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.5rem",
-  },
-  label: {
-    fontSize: "0.875rem",
-    fontWeight: 500,
-    color: "#a3a3a3",
-  },
-  input: {
-    padding: "0.875rem 1rem",
-    background: "#262626",
-    border: "1px solid #404040",
-    borderRadius: "10px",
-    color: "#ffffff",
-    fontSize: "1rem",
-    outline: "none",
-  },
-  error: {
-    padding: "0.75rem",
-    background: "rgba(239, 68, 68, 0.1)",
-    border: "1px solid rgba(239, 68, 68, 0.3)",
-    borderRadius: "8px",
-    color: "#ef4444",
-    fontSize: "0.875rem",
-  },
-  submitButton: {
-    padding: "0.875rem 1.5rem",
-    background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-    border: "none",
-    borderRadius: "10px",
-    color: "#ffffff",
-    fontSize: "1rem",
-    fontWeight: 600,
-    cursor: "pointer",
-    marginTop: "0.5rem",
+    justifyContent: "center",
+    minHeight: "300px",
   },
   switchMode: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     gap: "0.5rem",
-    marginTop: "1.5rem",
+    marginTop: "1rem",
+    paddingTop: "1rem",
+    borderTop: "1px solid #333",
   },
   switchText: {
     fontSize: "0.875rem",
