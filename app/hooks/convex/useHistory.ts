@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import { api } from "convex/_generated/api";
 
 export function useWatchHistory(limit?: number) {
   const watchHistory = useQuery(api.history.getWatchHistory, { limit });
