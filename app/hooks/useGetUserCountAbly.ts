@@ -3,11 +3,20 @@ import type { RealtimeChannel, PresenceMessage } from "ably";
 
 interface PresenceData {
   username: string;
+  avatar?: string;
+  avatarColor?: string;
+}
+
+export interface PresenceUser {
+  username: string;
+  avatar?: string;
+  avatarColor: string;
+  clientId: string;
 }
 
 export const useGetUserCountAbly = (channel: RealtimeChannel | null) => {
   const [usersCount, setUsersCount] = useState(1);
-  const [users, setUsers] = useState<string[]>([]);
+  const [users, setUsers] = useState<PresenceUser[]>([]);
 
   // Get current presence members
   const updatePresenceCount = useCallback(async () => {
@@ -19,7 +28,12 @@ export const useGetUserCountAbly = (channel: RealtimeChannel | null) => {
       setUsers(
         members.map((m: PresenceMessage) => {
           const data = m.data as PresenceData | undefined;
-          return data?.username || m.clientId || "Unknown";
+          return {
+            username: data?.username || m.clientId || "Unknown",
+            avatar: data?.avatar,
+            avatarColor: data?.avatarColor || "#8B5CF6",
+            clientId: m.clientId || "",
+          };
         })
       );
     } catch (err) {
