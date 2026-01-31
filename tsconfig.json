@@ -18,13 +18,15 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "~/*": ["./app/*"]
+      "~/*": ["./app/*"],
+      "convex/_generated/*": ["./convex/_generated/*"]
     },
     "rootDirs": [".", "./.react-router/types"]
   },
   "include": [
     ".react-router/types/**/*",
     "app/**/*",
+    "convex/**/*",
     "env.d.ts",
     "vite.config.ts",
     "react-router.config.ts"
