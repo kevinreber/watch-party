@@ -16,6 +16,9 @@
 /build
 /.react-router
 
+# convex
+convex/_generated/
+
 # misc
 .DS_Store
 .env.local
