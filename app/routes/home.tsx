@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, Link } from "react-router";
 import { useUser, useClerk } from "@clerk/clerk-react";
 
 import { UserContext } from "~/context/UserContext";
@@ -192,6 +192,15 @@ export default function Homepage() {
           </button>
           {isSignedIn && <StreakDisplay compact />}
         </div>
+
+        {/* Admin link for signed-in users */}
+        {isSignedIn && (
+          <div style={styles.adminLinkContainer}>
+            <Link to="/admin" style={styles.adminLink} data-testid="admin-link">
+              📊 Admin Dashboard
+            </Link>
+          </div>
+        )}
 
         {/* Features */}
         <div style={styles.features}>
@@ -681,6 +690,24 @@ const styles: Record<string, React.CSSProperties> = {
     color: "#a3a3a3",
     fontSize: "0.875rem",
     cursor: "pointer",
+    transition: "all 0.2s ease",
+  },
+  adminLinkContainer: {
+    display: "flex",
+    justifyContent: "center",
+    marginBottom: "1rem",
+  },
+  adminLink: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "0.5rem",
+    padding: "0.5rem 1rem",
+    background: "rgba(139, 92, 246, 0.1)",
+    border: "1px solid rgba(139, 92, 246, 0.3)",
+    borderRadius: "100px",
+    color: "#8B5CF6",
+    fontSize: "0.75rem",
+    textDecoration: "none",
     transition: "all 0.2s ease",
   },
 };
