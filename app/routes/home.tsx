@@ -1,8 +1,8 @@
 import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { useUser, useClerk } from "@clerk/clerk-react";
 
 import { UserContext } from "~/context/UserContext";
-import { useAuth } from "~/context/AuthContext";
 import { generateName } from "~/utils/generateName";
 import { historyService } from "~/services/historyService";
 import type { RoomHistory, RoomBookmark, ScheduledParty } from "~/types";
@@ -24,7 +24,8 @@ export default function Homepage() {
   const navigate = useNavigate();
   const [roomName, setRoomName] = useState("");
   const { user, setUser } = useContext(UserContext);
-  const { user: authUser, isLoggedIn } = useAuth();
+  const { user: clerkUser, isSignedIn, isLoaded } = useUser();
+  const { openSignIn, openUserProfile } = useClerk();
   const [isCreating, setIsCreating] = useState(false);
 
   // Modal states
@@ -49,12 +50,15 @@ export default function Homepage() {
     setUpcomingParties(scheduledPartyService.getUpcomingParties().slice(0, 2));
   }, []);
 
-  // Sync user name with auth user if logged in
+  // Sync user name with Clerk user if signed in
   useEffect(() => {
-    if (authUser && authUser.username !== user) {
-      setUser(authUser.username);
+    if (clerkUser) {
+      const displayName = clerkUser.username || clerkUser.firstName || clerkUser.emailAddresses[0]?.emailAddress?.split("@")[0] || "User";
+      if (displayName !== user) {
+        setUser(displayName);
+      }
     }
-  }, [authUser, user, setUser]);
+  }, [clerkUser, user, setUser]);
 
   const handleRoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRoomName(e.target.value);
@@ -104,19 +108,24 @@ export default function Homepage() {
           <button onClick={() => setShowTheme(true)} style={styles.headerButton} data-testid="theme-button">
             ⚙️
           </button>
-          {isLoggedIn ? (
+          {isSignedIn ? (
             <button
-              onClick={() => setShowProfile(true)}
-              style={{
-                ...styles.userButton,
-                backgroundColor: authUser?.avatarColor || "#6366f1",
-              }}
+              onClick={() => openUserProfile()}
+              style={styles.userButton}
               data-testid="profile-button"
             >
-              {authUser?.avatar || user.charAt(0).toUpperCase()}
+              {clerkUser?.imageUrl ? (
+                <img
+                  src={clerkUser.imageUrl}
+                  alt={clerkUser.firstName || "User"}
+                  style={styles.userAvatar}
+                />
+              ) : (
+                user.charAt(0).toUpperCase()
+              )}
             </button>
           ) : (
-            <button onClick={() => setShowAuth(true)} style={styles.signInButton} data-testid="sign-in-button">
+            <button onClick={() => openSignIn()} style={styles.signInButton} data-testid="sign-in-button">
               Sign In
             </button>
           )}
@@ -390,6 +399,17 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "0.875rem",
     fontWeight: 600,
     color: "#ffffff",
+    background: "#6366f1",
+    overflow: "hidden",
+    padding: 0,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  userAvatar: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover" as const,
   },
   signInButton: {
     padding: "0.5rem 1rem",
