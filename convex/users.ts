@@ -231,6 +231,159 @@ export const searchUsers = query({
   },
 });
 
+// Get user by username for public profile
+export const getUserByUsername = query({
+  args: { username: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_username", (q) => q.eq("username", args.username))
+      .first();
+
+    if (!user) return null;
+
+    return {
+      _id: user._id,
+      username: user.username,
+      avatar: user.avatar,
+      avatarColor: user.avatarColor,
+      createdAt: user.createdAt,
+    };
+  },
+});
+
+// Get comprehensive public profile
+export const getUserProfile = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) return null;
+
+    // Get badges
+    const badges = await ctx.db
+      .query("badges")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+
+    // Get friends count
+    const friends = await ctx.db
+      .query("friends")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+
+    // Get public playlists
+    const playlists = await ctx.db
+      .query("playlists")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+    const publicPlaylists = playlists.filter((p) => p.isPublic);
+
+    // Get groups
+    const groupMemberships = await ctx.db
+      .query("groupMembers")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+
+    // Get watch streak
+    const streakRecords = await ctx.db
+      .query("watchStreaks")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+    const streak = streakRecords[0];
+
+    // Get recent activity (public events only)
+    const recentActivity = await ctx.db
+      .query("userActivity")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .order("desc")
+      .take(10);
+
+    // Check if current user is friends with this user
+    let isFriend = false;
+    let friendRequestStatus = null;
+    const identity = await ctx.auth.getUserIdentity();
+    if (identity) {
+      const currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+        .first();
+
+      if (currentUser && currentUser._id !== user._id) {
+        const friendship = await ctx.db
+          .query("friends")
+          .withIndex("by_both", (q) =>
+            q.eq("userId", currentUser._id).eq("friendId", user._id)
+          )
+          .first();
+        isFriend = !!friendship;
+
+        // Check pending requests
+        if (!isFriend) {
+          const sentRequest = await ctx.db
+            .query("friendRequests")
+            .withIndex("by_from_user", (q) => q.eq("fromUserId", currentUser._id))
+            .collect();
+          const pendingSent = sentRequest.find(
+            (r) => r.toUserId === user._id && r.status === "pending"
+          );
+
+          const receivedRequest = await ctx.db
+            .query("friendRequests")
+            .withIndex("by_to_user", (q) => q.eq("toUserId", currentUser._id))
+            .collect();
+          const pendingReceived = receivedRequest.find(
+            (r) => r.fromUserId === user._id && r.status === "pending"
+          );
+
+          if (pendingSent) friendRequestStatus = "sent";
+          else if (pendingReceived) friendRequestStatus = "received";
+        }
+      }
+    }
+
+    return {
+      user: {
+        _id: user._id,
+        username: user.username,
+        avatar: user.avatar,
+        avatarColor: user.avatarColor,
+        createdAt: new Date(user.createdAt).toISOString(),
+      },
+      stats: {
+        totalWatchTime: user.stats.totalWatchTime,
+        videosWatched: user.stats.videosWatched,
+        partiesHosted: user.stats.partiesHosted,
+        partiesJoined: user.stats.partiesJoined,
+        messagesSent: user.stats.messagesSent,
+        reactionsGiven: user.stats.reactionsGiven,
+      },
+      badges: badges.map((b) => ({
+        ...b,
+        earnedAt: new Date(b.earnedAt).toISOString(),
+      })),
+      friendsCount: friends.length,
+      publicPlaylistsCount: publicPlaylists.length,
+      groupsCount: groupMemberships.length,
+      streak: streak
+        ? {
+            currentStreak: streak.currentStreak,
+            longestStreak: streak.longestStreak,
+            totalDaysWatched: streak.totalDaysWatched,
+          }
+        : null,
+      recentActivity: recentActivity.map((a) => ({
+        type: a.type,
+        roomName: a.roomName,
+        videoName: a.videoName,
+        badgeName: a.badgeName,
+        createdAt: new Date(a.createdAt).toISOString(),
+      })),
+      isFriend,
+      friendRequestStatus,
+    };
+  },
+});
+
 export const awardBadge = mutation({
   args: {
     userId: v.id("users"),

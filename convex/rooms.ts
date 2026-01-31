@@ -211,6 +211,25 @@ export const getRoom = query({
     const room = await ctx.db.get(args.roomId);
     if (!room) return null;
 
+    // Get current user for permission checks
+    const identity = await ctx.auth.getUserIdentity();
+    let currentUser = null;
+    let currentMember = null;
+    if (identity) {
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+        .first();
+      if (currentUser) {
+        currentMember = await ctx.db
+          .query("roomMembers")
+          .withIndex("by_room_and_user", (q) =>
+            q.eq("roomId", args.roomId).eq("userId", currentUser._id)
+          )
+          .first();
+      }
+    }
+
     const owner = await ctx.db.get(room.ownerId);
     const members = await ctx.db
       .query("roomMembers")
@@ -230,9 +249,13 @@ export const getRoom = query({
           isTyping: member.isTyping,
           joinedAt: member.joinedAt,
           lastActiveAt: member.lastActiveAt,
+          role: member.role,
         };
       })
     );
+
+    const isOwner = currentUser ? room.ownerId.toString() === currentUser._id.toString() : false;
+    const memberRole = currentMember?.role || null;
 
     return {
       id: room._id,
@@ -252,6 +275,8 @@ export const getRoom = query({
       currentTime: room.currentTime,
       lastSyncAt: room.lastSyncAt,
       createdAt: room.createdAt,
+      isOwner,
+      memberRole,
     };
   },
 });

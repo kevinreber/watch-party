@@ -108,6 +108,10 @@ export default defineSchema({
     joinedAt: v.number(),
     lastActiveAt: v.number(),
     isTyping: v.boolean(),
+    // Role for room permissions
+    role: v.optional(
+      v.union(v.literal("viewer"), v.literal("cohost"), v.literal("moderator"))
+    ),
   })
     .index("by_room", ["roomId"])
     .index("by_user", ["userId"])
@@ -325,5 +329,221 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_video", ["videoId"])
+    .index("by_user", ["userId"]),
+
+  // ============================================
+  // PLAYLISTS
+  // ============================================
+  playlists: defineTable({
+    userId: v.id("users"),
+    name: v.string(),
+    description: v.optional(v.string()),
+    isPublic: v.boolean(),
+    videoCount: v.number(),
+    totalDuration: v.optional(v.number()),
+    coverImage: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_public", ["isPublic"]),
+
+  playlistVideos: defineTable({
+    playlistId: v.id("playlists"),
+    videoId: v.string(),
+    url: v.string(),
+    name: v.string(),
+    channel: v.optional(v.string()),
+    img: v.optional(v.string()),
+    duration: v.optional(v.number()),
+    position: v.number(),
+    addedAt: v.number(),
+  })
+    .index("by_playlist", ["playlistId"])
+    .index("by_playlist_position", ["playlistId", "position"]),
+
+  // ============================================
+  // GROUPS / COMMUNITIES
+  // ============================================
+  groups: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    ownerId: v.id("users"),
+    isPublic: v.boolean(),
+    memberCount: v.number(),
+    avatar: v.optional(v.string()),
+    avatarColor: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_owner", ["ownerId"])
+    .index("by_public", ["isPublic"]),
+
+  groupMembers: defineTable({
+    groupId: v.id("groups"),
+    userId: v.id("users"),
+    role: v.union(v.literal("owner"), v.literal("admin"), v.literal("member")),
+    joinedAt: v.number(),
+  })
+    .index("by_group", ["groupId"])
+    .index("by_user", ["userId"])
+    .index("by_group_and_user", ["groupId", "userId"]),
+
+  groupInvites: defineTable({
+    groupId: v.id("groups"),
+    fromUserId: v.id("users"),
+    toUserId: v.id("users"),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("accepted"),
+      v.literal("declined")
+    ),
+    sentAt: v.number(),
+    respondedAt: v.optional(v.number()),
+  })
+    .index("by_group", ["groupId"])
+    .index("by_to_user", ["toUserId"])
+    .index("by_to_user_pending", ["toUserId", "status"]),
+
+  // ============================================
+  // ACTIVITY FEED
+  // ============================================
+  userActivity: defineTable({
+    userId: v.id("users"),
+    type: v.union(
+      v.literal("watching"),
+      v.literal("joined_room"),
+      v.literal("created_room"),
+      v.literal("started_party"),
+      v.literal("added_friend"),
+      v.literal("earned_badge"),
+      v.literal("created_playlist"),
+      v.literal("joined_group")
+    ),
+    // Activity details
+    roomId: v.optional(v.id("rooms")),
+    roomName: v.optional(v.string()),
+    videoName: v.optional(v.string()),
+    friendId: v.optional(v.id("users")),
+    friendName: v.optional(v.string()),
+    badgeName: v.optional(v.string()),
+    playlistId: v.optional(v.id("playlists")),
+    playlistName: v.optional(v.string()),
+    groupId: v.optional(v.id("groups")),
+    groupName: v.optional(v.string()),
+    // Metadata
+    isActive: v.boolean(), // For "watching" activities, mark when stopped
+    createdAt: v.number(),
+    endedAt: v.optional(v.number()),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_active", ["userId", "isActive"])
+    .index("by_created", ["createdAt"])
+    .index("by_type", ["type"]),
+
+  // ============================================
+  // WATCH STREAKS
+  // ============================================
+  watchStreaks: defineTable({
+    userId: v.id("users"),
+    currentStreak: v.number(),
+    longestStreak: v.number(),
+    lastWatchDate: v.string(), // YYYY-MM-DD format
+    streakStartDate: v.string(),
+    totalDaysWatched: v.number(),
+  }).index("by_user", ["userId"]),
+
+  dailyWatchLog: defineTable({
+    userId: v.id("users"),
+    date: v.string(), // YYYY-MM-DD format
+    watchTime: v.number(), // in seconds
+    videosWatched: v.number(),
+    roomsVisited: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_date", ["userId", "date"]),
+
+  // ============================================
+  // ROOM TEMPLATES
+  // ============================================
+  roomTemplates: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    createdBy: v.optional(v.id("users")), // null for system templates
+    isSystem: v.boolean(),
+    // Room settings
+    isPrivate: v.boolean(),
+    maxCapacity: v.number(),
+    // Theme
+    theme: v.object({
+      backgroundColor: v.string(),
+      accentColor: v.string(),
+      chatBackground: v.string(),
+    }),
+    // Pre-loaded videos
+    videos: v.array(
+      v.object({
+        videoId: v.string(),
+        url: v.string(),
+        name: v.string(),
+        channel: v.optional(v.string()),
+        img: v.optional(v.string()),
+      })
+    ),
+    icon: v.optional(v.string()),
+    usageCount: v.number(),
+    createdAt: v.number(),
+  })
+    .index("by_creator", ["createdBy"])
+    .index("by_system", ["isSystem"]),
+
+  // ============================================
+  // ROOM MODERATION
+  // ============================================
+  roomBans: defineTable({
+    roomId: v.id("rooms"),
+    userId: v.id("users"),
+    bannedBy: v.id("users"),
+    reason: v.optional(v.string()),
+    expiresAt: v.optional(v.number()), // null = permanent
+    bannedAt: v.number(),
+  })
+    .index("by_room", ["roomId"])
+    .index("by_user", ["userId"])
+    .index("by_room_and_user", ["roomId", "userId"]),
+
+  roomMutes: defineTable({
+    roomId: v.id("rooms"),
+    userId: v.id("users"),
+    mutedBy: v.id("users"),
+    expiresAt: v.optional(v.number()),
+    mutedAt: v.number(),
+  })
+    .index("by_room", ["roomId"])
+    .index("by_room_and_user", ["roomId", "userId"]),
+
+  // ============================================
+  // LEADERBOARDS (cached/aggregated)
+  // ============================================
+  leaderboardEntries: defineTable({
+    userId: v.id("users"),
+    username: v.string(),
+    avatar: v.optional(v.string()),
+    avatarColor: v.string(),
+    period: v.union(
+      v.literal("weekly"),
+      v.literal("monthly"),
+      v.literal("alltime")
+    ),
+    category: v.union(
+      v.literal("watchTime"),
+      v.literal("partiesHosted"),
+      v.literal("messagesSent"),
+      v.literal("reactionsGiven")
+    ),
+    score: v.number(),
+    rank: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_period_category", ["period", "category"])
     .index("by_user", ["userId"]),
 });
