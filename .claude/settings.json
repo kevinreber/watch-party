@@ -2,9 +2,14 @@
   "hooks": {
     "PreToolCall": [
       {
-        "matcher": "Bash(git push*)",
+        "matcher": "Bash(git commit*)",
         "command": "npm run typecheck && npm run test",
-        "description": "Run lint and tests before pushing to ensure all checks pass"
+        "description": "Run typecheck and tests before committing to ensure CI checks will pass"
+      },
+      {
+        "matcher": "Bash(git push*)",
+        "command": "git fetch origin main && git merge-tree $(git merge-base HEAD origin/main) HEAD origin/main 2>/dev/null | grep -q '<<<<<<<' && echo '❌ Merge conflicts detected with main! Run: git merge origin/main' && exit 1 || npm run typecheck && npm run test",
+        "description": "Check for merge conflicts with main, then run typecheck and tests before pushing"
       }
     ]
   }

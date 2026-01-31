@@ -273,8 +273,50 @@ npm run test
 ### 3. Push Changes
 Only push after all validations pass.
 
-### Automated Validation (Claude Code Hook)
-A pre-push hook is configured in `.claude/settings.json` that automatically runs `npm run typecheck && npm run test` before any `git push` command. If checks fail, the push will be blocked until issues are fixed.
+### Automated Validation (Claude Code Hooks)
+
+**IMPORTANT**: Claude Code hooks are configured in `.claude/settings.json` to automatically run validation before git operations. These hooks ensure CI checks will pass before code is committed or pushed.
+
+#### Pre-Commit Hook
+Before any `git commit` command, the following checks run automatically:
+```bash
+npm run typecheck && npm run test
+```
+If checks fail, the commit will be blocked until issues are fixed.
+
+#### Pre-Push Hook (Merge Conflict Check + Validation)
+Before any `git push` command, the following checks run automatically:
+1. **Fetch latest main** and check for merge conflicts
+2. **If conflicts detected**: Push is blocked with instructions to merge main first
+3. **If no conflicts**: Run `npm run typecheck && npm run test`
+
+```bash
+# What the hook does:
+git fetch origin main
+# Check for conflicts using merge-tree
+# If conflicts: exit with error
+# If clean: npm run typecheck && npm run test
+```
+
+#### What This Means for Development
+1. **Merge conflicts are caught before pushing** - The hook fetches main and checks if your branch can merge cleanly
+2. **Always fix errors before committing** - If typecheck or tests fail, resolve the issues first
+3. **CI checks should pass** - Since the same checks run locally, PR validation in GitHub Actions should pass
+4. **No bypassing** - These hooks cannot be skipped; they ensure code quality
+
+#### If Merge Conflicts Are Detected
+1. Run `git fetch origin main`
+2. Run `git merge origin/main`
+3. Resolve any conflicts in the affected files
+4. Stage resolved files: `git add <file>`
+5. Complete the merge: `git commit`
+6. Re-attempt the push
+
+#### If Typecheck or Tests Fail
+1. Read the error output carefully
+2. Fix type errors shown by `npm run typecheck`
+3. Fix failing tests shown by `npm run test`
+4. Re-attempt the commit/push after fixes
 
 ### Handling Merge Conflicts
 1. Identify conflicting files in the git output
@@ -286,14 +328,18 @@ A pre-push hook is configured in `.claude/settings.json` that automatically runs
 ## Troubleshooting
 
 ### Build Fails on Vercel
-The build command is `convex deploy --cmd 'react-router build'`:
-1. **Convex deploy runs first** - generates types in `convex/_generated/`
-2. **React Router build runs second** - bundles the app
+The build command is `convex deploy && npx convex codegen && react-router build`:
+1. **Convex deploy runs first** - deploys functions and generates initial types
+2. **Convex codegen runs second** - ensures types are fully generated
+3. **React Router build runs last** - bundles the app with types available
+
+**Important**: We use separate commands (`&&`) instead of `--cmd` flag to avoid timing issues where Vite might start before types are fully written.
 
 If build fails:
 - Ensure `CONVEX_DEPLOY_KEY` is set in Vercel environment
 - Check that Convex project exists and is accessible
 - The `convex/_generated/` directory is gitignored and must be generated fresh
+- Ensure imports use path alias `convex/_generated/api` not relative paths
 
 ### Convex Types Not Updating
 Run `npx convex dev` to regenerate types in `convex/_generated/`
