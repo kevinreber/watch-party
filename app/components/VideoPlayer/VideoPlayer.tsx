@@ -138,6 +138,10 @@ const styles: Record<string, React.CSSProperties> = {
   container: {
     position: "relative",
     width: "100%",
+    flex: 1,
+    minHeight: 0,
+    display: "flex",
+    flexDirection: "column",
     borderRadius: "16px",
     overflow: "hidden",
     background: "#000",
@@ -145,11 +149,13 @@ const styles: Record<string, React.CSSProperties> = {
   },
   playerWrapper: {
     position: "relative",
-    paddingTop: "56.25%", // 16:9 aspect ratio
+    flex: 1,
+    minHeight: 0,
   },
   emptyState: {
     width: "100%",
-    aspectRatio: "16/9",
+    flex: 1,
+    minHeight: "200px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -232,6 +238,8 @@ const playerStyles = `
     position: absolute !important;
     top: 0;
     left: 0;
+    width: 100% !important;
+    height: 100% !important;
   }
 `;
 
