@@ -20,3 +20,11 @@ export { Notifications, NotificationBell } from "./Notifications/Notifications";
 export { RoomSettings } from "./RoomSettings/RoomSettings";
 export { EmojiReactions } from "./EmojiReactions/EmojiReactions";
 export { Poll } from "./Poll/Poll";
+
+// Social & engagement components
+export { ActivityFeed } from "./ActivityFeed/ActivityFeed";
+export { PlaylistsPanel } from "./PlaylistsPanel/PlaylistsPanel";
+export { GroupsPanel } from "./GroupsPanel/GroupsPanel";
+export { RoomTemplatesModal } from "./RoomTemplatesModal/RoomTemplatesModal";
+export { StreakDisplay } from "./StreakDisplay/StreakDisplay";
+export { ModerationPanel } from "./ModerationPanel/ModerationPanel";

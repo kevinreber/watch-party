@@ -16,7 +16,12 @@ import {
   EmojiReactions,
   Poll,
   RoomSettings,
+  ModerationPanel,
+  PlaylistsPanel,
 } from "~/components";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel";
 import { historyService } from "~/services/historyService";
 
 export default function Room() {
@@ -30,6 +35,12 @@ export default function Room() {
   const [showPoll, setShowPoll] = useState(false);
   const [hasActivePoll, setHasActivePoll] = useState(false);
   const hasAutoShownPoll = useRef(false);
+  const [showModeration, setShowModeration] = useState(false);
+  const [showPlaylists, setShowPlaylists] = useState(false);
+
+  // Get room data to check if user is owner/moderator
+  const roomData = useQuery(api.rooms.getRoom, roomId ? { roomId: roomId as Id<"rooms"> } : "skip");
+  const isModerator = roomData?.isOwner || roomData?.memberRole === "cohost" || roomData?.memberRole === "moderator";
 
   // Ably connection and channel (with avatar data for presence)
   const { channel, isConnected, clientId } = useAbly(
@@ -176,6 +187,24 @@ export default function Room() {
             {isBookmarked ? "★" : "☆"}
           </button>
           <button
+            onClick={() => setShowPlaylists(true)}
+            style={styles.iconButton}
+            title="Load playlist"
+            data-testid="playlists-button"
+          >
+            🎵
+          </button>
+          {isModerator && (
+            <button
+              onClick={() => setShowModeration(true)}
+              style={styles.iconButton}
+              title="Moderation"
+              data-testid="moderation-button"
+            >
+              🛡️
+            </button>
+          )}
+          <button
             onClick={() => setShowSettings(true)}
             style={styles.iconButton}
             title="Room settings"
@@ -296,6 +325,22 @@ export default function Room() {
           isOpen={showSettings}
           onClose={() => setShowSettings(false)}
           roomId={roomId}
+        />
+      )}
+
+      {/* Moderation Panel */}
+      {roomId && showModeration && (
+        <ModerationPanel
+          roomId={roomId as Id<"rooms">}
+          onClose={() => setShowModeration(false)}
+        />
+      )}
+
+      {/* Playlists Panel */}
+      {showPlaylists && (
+        <PlaylistsPanel
+          onClose={() => setShowPlaylists(false)}
+          roomId={roomId as Id<"rooms">}
         />
       )}
     </div>

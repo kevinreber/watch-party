@@ -18,6 +18,11 @@ import {
   RoomBookmarks,
   Notifications,
   NotificationBell,
+  ActivityFeed,
+  PlaylistsPanel,
+  GroupsPanel,
+  RoomTemplatesModal,
+  StreakDisplay,
 } from "~/components";
 
 export default function Homepage() {
@@ -37,6 +42,10 @@ export default function Homepage() {
   const [showHistory, setShowHistory] = useState(false);
   const [showBookmarks, setShowBookmarks] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showActivity, setShowActivity] = useState(false);
+  const [showPlaylists, setShowPlaylists] = useState(false);
+  const [showGroups, setShowGroups] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
 
   // Quick access data
   const [recentRooms, setRecentRooms] = useState<RoomHistory[]>([]);
@@ -154,13 +163,26 @@ export default function Homepage() {
           </p>
         </div>
 
-        {/* Feature buttons */}
+        {/* Feature buttons - Row 1 */}
         <div style={styles.featureButtons}>
-          <button onClick={() => setShowScheduled(true)} style={styles.featureButton} data-testid="scheduled-button">
-            📅 Scheduled
+          <button onClick={() => setShowActivity(true)} style={styles.featureButton} data-testid="activity-button">
+            🌐 Activity
           </button>
           <button onClick={() => setShowFriends(true)} style={styles.featureButton} data-testid="friends-button">
             👥 Friends
+          </button>
+          <button onClick={() => setShowGroups(true)} style={styles.featureButton} data-testid="groups-button">
+            🏠 Groups
+          </button>
+          <button onClick={() => setShowPlaylists(true)} style={styles.featureButton} data-testid="playlists-button">
+            🎵 Playlists
+          </button>
+        </div>
+
+        {/* Feature buttons - Row 2 */}
+        <div style={styles.featureButtons}>
+          <button onClick={() => setShowScheduled(true)} style={styles.featureButton} data-testid="scheduled-button">
+            📅 Scheduled
           </button>
           <button onClick={() => setShowHistory(true)} style={styles.featureButton} data-testid="history-button">
             📺 History
@@ -168,6 +190,7 @@ export default function Homepage() {
           <button onClick={() => setShowBookmarks(true)} style={styles.featureButton} data-testid="bookmarks-button">
             🔖 Saved
           </button>
+          {isSignedIn && <StreakDisplay compact />}
         </div>
 
         {/* Features */}
@@ -255,9 +278,18 @@ export default function Homepage() {
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                   <path d="M4 4V7M4 7H7M4 7L7 4.5C8.5 3 10.5 2.5 12.5 3C14.5 3.5 16 5 16.5 7M16 16V13M16 13H13M16 13L13 15.5C11.5 17 9.5 17.5 7.5 17C5.5 16.5 4 15 3.5 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                Random Room
+                Random
               </button>
             </div>
+
+            <button
+              type="button"
+              onClick={() => setShowTemplates(true)}
+              style={styles.templateButton}
+              data-testid="template-button"
+            >
+              🎬 Use a Template
+            </button>
           </form>
         </div>
 
@@ -344,6 +376,12 @@ export default function Homepage() {
         onNavigateToRoom={navigateToRoom}
       />
       <Notifications isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
+
+      {/* New Social & Engagement Modals */}
+      {showActivity && <ActivityFeed onClose={() => setShowActivity(false)} />}
+      {showPlaylists && <PlaylistsPanel onClose={() => setShowPlaylists(false)} />}
+      {showGroups && <GroupsPanel onClose={() => setShowGroups(false)} />}
+      {showTemplates && <RoomTemplatesModal onClose={() => setShowTemplates(false)} />}
     </div>
   );
 }
@@ -632,5 +670,17 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "0.875rem",
     color: "#737373",
     marginTop: "1.5rem",
+  },
+  templateButton: {
+    width: "100%",
+    padding: "0.75rem",
+    marginTop: "0.5rem",
+    background: "transparent",
+    border: "1px dashed #404040",
+    borderRadius: "10px",
+    color: "#a3a3a3",
+    fontSize: "0.875rem",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
   },
 };
