@@ -20,8 +20,8 @@ import {
   PlaylistsPanel,
 } from "~/components";
 import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import type { Id } from "../../convex/_generated/dataModel";
+import { api } from "convex/_generated/api";
+import type { Id } from "convex/_generated/dataModel";
 import { historyService } from "~/services/historyService";
 
 export default function Room() {
@@ -535,9 +535,15 @@ const styles: Record<string, React.CSSProperties> = {
     flexDirection: "column",
     padding: "1.5rem",
     overflow: "auto",
+    height: "100%",
+    minHeight: 0,
   },
   videoContainer: {
     position: "relative",
+    flex: 1,
+    minHeight: 0,
+    display: "flex",
+    flexDirection: "column",
   },
   nowPlaying: {
     marginTop: "1rem",
