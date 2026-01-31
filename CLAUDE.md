@@ -244,8 +244,22 @@ See `FEATURE_BACKLOG.md` for complete list.
 
 ## Troubleshooting
 
+### Build Fails on Vercel
+The build command is `convex deploy --cmd 'react-router build'`:
+1. **Convex deploy runs first** - generates types in `convex/_generated/`
+2. **React Router build runs second** - bundles the app
+
+If build fails:
+- Ensure `CONVEX_DEPLOY_KEY` is set in Vercel environment
+- Check that Convex project exists and is accessible
+- The `convex/_generated/` directory is gitignored and must be generated fresh
+
 ### Convex Types Not Updating
 Run `npx convex dev` to regenerate types in `convex/_generated/`
+
+### TypeScript Errors in Convex Files
+Convex files in `convex/*.ts` show "implicit any" errors until types are generated.
+Run `npx convex dev` locally to generate types before running `npm run typecheck`.
 
 ### Authentication Issues
 - Ensure Clerk keys are set in environment
