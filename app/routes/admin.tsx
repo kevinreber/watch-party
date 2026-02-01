@@ -1,8 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router';
+import type { MetaFunction } from 'react-router';
 import { useQuery } from 'convex/react';
 import { api } from 'convex/_generated/api';
 import type { Id } from 'convex/_generated/dataModel';
+import { generateAdminMetaTags } from '~/utils/seo';
+
+export const meta: MetaFunction = () => {
+  return generateAdminMetaTags();
+};
 
 type TabType = 'overview' | 'users' | 'rooms' | 'activity';
 type TopUserMetric = 'watchTime' | 'messages' | 'partiesHosted' | 'reactions' | 'streak';
