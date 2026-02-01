@@ -475,3 +475,93 @@ export const listPublicRooms = query({
     );
   },
 });
+
+export const getRoomBySlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, args) => {
+    // Slugs are created from room names by lowercasing and replacing spaces with dashes
+    // We need to find a room that matches this slug pattern
+    const rooms = await ctx.db.query("rooms").collect();
+
+    // Find a room whose slugified name matches the provided slug
+    const room = rooms.find((r) => {
+      const roomSlug = r.name.toLowerCase().split(" ").join("-");
+
+      return roomSlug === args.slug.toLowerCase();
+    });
+
+    if (!room) {
+      // Room doesn't exist in database - this is valid for ephemeral Ably-only rooms
+      return null;
+    }
+
+    // Get current user for permission checks
+    const identity = await ctx.auth.getUserIdentity();
+    let currentUser = null;
+    let currentMember = null;
+    if (identity) {
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+        .first();
+      if (currentUser) {
+        currentMember = await ctx.db
+          .query("roomMembers")
+          .withIndex("by_room_and_user", (q) =>
+            q.eq("roomId", room._id).eq("userId", currentUser._id)
+          )
+          .first();
+      }
+    }
+
+    const owner = await ctx.db.get(room.ownerId);
+    const members = await ctx.db
+      .query("roomMembers")
+      .withIndex("by_room", (q) => q.eq("roomId", room._id))
+      .collect();
+
+    // Get user details for each member
+    const membersWithDetails = await Promise.all(
+      members.map(async (member) => {
+        const user = await ctx.db.get(member.userId);
+
+        return {
+          id: member.userId,
+          oderId: member._id,
+          username: user?.username || "Unknown",
+          avatar: user?.avatar,
+          avatarColor: user?.avatarColor || "#8B5CF6",
+          isTyping: member.isTyping,
+          joinedAt: member.joinedAt,
+          lastActiveAt: member.lastActiveAt,
+          role: member.role,
+        };
+      })
+    );
+
+    const isOwner = currentUser ? room.ownerId.toString() === currentUser._id.toString() : false;
+    const memberRole = currentMember?.role || null;
+
+    return {
+      id: room._id,
+      name: room.name,
+      ownerId: room.ownerId,
+      ownerName: owner?.username || "Unknown",
+      isPrivate: room.isPrivate,
+      hasPassword: !!room.password,
+      maxCapacity: room.maxCapacity,
+      currentUsers: members.length,
+      members: membersWithDetails,
+      theme: room.theme,
+      isPersistent: room.isPersistent,
+      currentVideo: room.currentVideo,
+      videoQueue: room.videoQueue,
+      isPlaying: room.isPlaying,
+      currentTime: room.currentTime,
+      lastSyncAt: room.lastSyncAt,
+      createdAt: room.createdAt,
+      isOwner,
+      memberRole,
+    };
+  },
+});

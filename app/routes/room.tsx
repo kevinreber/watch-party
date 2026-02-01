@@ -21,7 +21,6 @@ import {
 } from "~/components";
 import { useQuery } from "convex/react";
 import { api } from "convex/_generated/api";
-import type { Id } from "convex/_generated/dataModel";
 import { historyService } from "~/services/historyService";
 
 export default function Room() {
@@ -39,7 +38,8 @@ export default function Room() {
   const [showPlaylists, setShowPlaylists] = useState(false);
 
   // Get room data to check if user is owner/moderator
-  const roomData = useQuery(api.rooms.getRoom, roomId ? { roomId: roomId as Id<"rooms"> } : "skip");
+  // Use getRoomBySlug since the URL contains a slug, not a Convex ID
+  const roomData = useQuery(api.rooms.getRoomBySlug, roomId ? { slug: roomId } : "skip");
   const isModerator = roomData?.isOwner || roomData?.memberRole === "cohost" || roomData?.memberRole === "moderator";
 
   // Ably connection and channel (with avatar data for presence)
@@ -328,19 +328,19 @@ export default function Room() {
         />
       )}
 
-      {/* Moderation Panel */}
-      {roomId && showModeration && (
+      {/* Moderation Panel - only show when room exists in database */}
+      {roomData?.id && showModeration && (
         <ModerationPanel
-          roomId={roomId as Id<"rooms">}
+          roomId={roomData.id}
           onClose={() => setShowModeration(false)}
         />
       )}
 
-      {/* Playlists Panel */}
-      {showPlaylists && (
+      {/* Playlists Panel - only show when room exists in database */}
+      {roomData?.id && showPlaylists && (
         <PlaylistsPanel
           onClose={() => setShowPlaylists(false)}
-          roomId={roomId as Id<"rooms">}
+          roomId={roomData.id}
         />
       )}
     </div>
