@@ -40,9 +40,42 @@ export const VideoPlayer = ({
 }: VideoPlayerProps) => {
   const playerRef = useRef<ReactPlayer>(null);
   const lastSeekTime = useRef<number>(0);
+  const isPlayerReady = useRef<boolean>(false);
+  const pendingSeekTime = useRef<number | null>(null);
+
+  // Handle player ready - perform any pending seek
+  const handlePlayerReady = () => {
+    isPlayerReady.current = true;
+
+    // If we have a pending seek time or an initial currentTime, seek now
+    const seekTarget = pendingSeekTime.current ?? (currentTime > 2 ? currentTime : null);
+    if (seekTarget !== null && playerRef.current) {
+      playerRef.current.seekTo(seekTarget, "seconds");
+      lastSeekTime.current = seekTarget;
+      pendingSeekTime.current = null;
+    }
+
+    onReady();
+  };
+
+  // Reset player ready state when video changes
+  useEffect(() => {
+    isPlayerReady.current = false;
+    pendingSeekTime.current = null;
+    lastSeekTime.current = 0;
+  }, [curVideo?.videoId]);
 
   // Seek to time when currentTime changes significantly (sync event)
   useEffect(() => {
+    // If player isn't ready yet, store the seek time for later
+    if (!isPlayerReady.current) {
+      if (currentTime > 2) {
+        pendingSeekTime.current = currentTime;
+      }
+
+      return;
+    }
+
     if (playerRef.current && Math.abs(currentTime - lastSeekTime.current) > 2) {
       playerRef.current.seekTo(currentTime, "seconds");
       lastSeekTime.current = currentTime;
@@ -97,7 +130,7 @@ export const VideoPlayer = ({
           onPlay={onPlay}
           onPause={onPause}
           onProgress={handleProgress}
-          onReady={onReady}
+          onReady={handlePlayerReady}
           onEnded={onEnded}
           onSeek={handleSeek}
           progressInterval={1000}
