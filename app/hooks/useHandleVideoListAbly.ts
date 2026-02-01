@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "react-router";
 import type { RealtimeChannel, Message as AblyMessage } from "ably";
 import { useSnackbar } from "notistack";
@@ -33,6 +33,8 @@ export const useHandleVideoListAbly = (
   const { roomId } = useParams();
   const [videos, setVideos] = useState<Video[]>([]);
   const [hasInitialized, setHasInitialized] = useState(false);
+  // Track if we've processed Convex data - Convex is source of truth and should override API
+  const hasInitializedFromConvex = useRef(false);
   const { enqueueSnackbar } = useSnackbar();
 
   // Fetch initial video state from API
@@ -54,10 +56,11 @@ export const useHandleVideoListAbly = (
   }, [roomId, enqueueSnackbar]);
 
   // Initialize from Convex data when available (preferred source of truth)
+  // Convex data should ALWAYS override API data since it's persistent
   useEffect(() => {
-    if (hasInitialized) return;
-
-    if (initialData) {
+    // If we have Convex data and haven't processed it yet, use it
+    // This takes precedence over any API data we might have fetched
+    if (initialData && !hasInitializedFromConvex.current) {
       const initialVideos: Video[] = [];
 
       // Add current video first if it exists
@@ -74,17 +77,29 @@ export const useHandleVideoListAbly = (
         }
       }
 
+      // Mark that we've processed Convex data
+      hasInitializedFromConvex.current = true;
+      setHasInitialized(true);
+
       if (initialVideos.length > 0) {
         setVideos(initialVideos);
-        setHasInitialized(true);
-
-        return;
       }
+
+      return;
     }
 
-    // Fallback to API fetch if no Convex data
-    if (channel && roomId && !hasInitialized) {
-      fetchInitialState().then(() => setHasInitialized(true));
+    // Fallback to API fetch only if:
+    // 1. No Convex data yet (initialData is undefined - still loading or room not in DB)
+    // 2. We haven't processed Convex data yet
+    // 3. Channel is ready and we have a roomId
+    // 4. We haven't initialized at all yet
+    if (!initialData && !hasInitializedFromConvex.current && channel && roomId && !hasInitialized) {
+      fetchInitialState().then(() => {
+        // Only mark as initialized if Convex data still hasn't arrived
+        if (!hasInitializedFromConvex.current) {
+          setHasInitialized(true);
+        }
+      });
     }
   }, [channel, roomId, initialData, hasInitialized, fetchInitialState]);
 
@@ -211,6 +226,13 @@ export const useHandleVideoListAbly = (
       channel.unsubscribe("video-list-update", onVideoListUpdate);
     };
   }, [channel, clientId]);
+
+  // Reset initialization state when room changes
+  useEffect(() => {
+    hasInitializedFromConvex.current = false;
+    setHasInitialized(false);
+    setVideos([]);
+  }, [roomId]);
 
   return { videos, addVideoToList, removeVideoFromList, playNextVideo };
 };
