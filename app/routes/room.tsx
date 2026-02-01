@@ -66,7 +66,28 @@ export default function Room() {
     convexUser?.avatarColor
   );
   const { usersCount, users } = useGetUserCountAbly(channel);
-  const { videos, addVideoToList, removeVideoFromList, playNextVideo } = useHandleVideoListAbly(channel, clientId);
+
+  // Pass Convex room data to initialize video state for late joiners
+  const initialVideoData = roomData
+    ? {
+        currentVideo: roomData.currentVideo,
+        videoQueue: roomData.videoQueue,
+      }
+    : undefined;
+
+  const initialSyncData = roomData
+    ? {
+        isPlaying: roomData.isPlaying,
+        currentTime: roomData.currentTime,
+        lastSyncAt: roomData.lastSyncAt,
+      }
+    : undefined;
+
+  const { videos, addVideoToList, removeVideoFromList, playNextVideo } = useHandleVideoListAbly(
+    channel,
+    clientId,
+    initialVideoData
+  );
 
   // Video sync state
   const {
@@ -79,7 +100,7 @@ export default function Room() {
     handleProgress,
     handleReady,
     handleUnmute,
-  } = useVideoSyncAbly(channel, roomId, clientId);
+  } = useVideoSyncAbly(channel, roomId, clientId, initialSyncData);
 
   useLoadYouTubeScript();
 
