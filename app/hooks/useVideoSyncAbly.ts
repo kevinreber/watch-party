@@ -13,10 +13,17 @@ interface SyncEvent {
   senderId?: string;
 }
 
+interface InitialSyncData {
+  isPlaying?: boolean;
+  currentTime?: number;
+  lastSyncAt?: number;
+}
+
 export const useVideoSyncAbly = (
   channel: RealtimeChannel | null,
   roomId: string | undefined,
-  clientId: string | undefined
+  clientId: string | undefined,
+  initialData?: InitialSyncData
 ) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -25,6 +32,7 @@ export const useVideoSyncAbly = (
   const isLocalAction = useRef(false);
   const lastSyncTime = useRef(0);
   const hasReceivedInitialSync = useRef(false);
+  const hasInitializedFromConvex = useRef(false);
 
   // Fetch initial video state from API
   const fetchInitialState = useCallback(async () => {
@@ -69,6 +77,32 @@ export const useVideoSyncAbly = (
     },
     [roomId]
   );
+
+  // Initialize from Convex data when available (preferred source of truth)
+  useEffect(() => {
+    if (hasInitializedFromConvex.current || !initialData) return;
+
+    // Calculate the actual current time accounting for elapsed time since last sync
+    let calculatedTime = initialData.currentTime ?? 0;
+    if (initialData.isPlaying && initialData.lastSyncAt) {
+      const elapsedSeconds = (Date.now() - initialData.lastSyncAt) / 1000;
+      calculatedTime += elapsedSeconds;
+    }
+
+    // If video is playing, mute to allow autoplay
+    if (initialData.isPlaying) {
+      setIsMutedForSync(true);
+    }
+
+    setIsPlaying(initialData.isPlaying ?? false);
+    setCurrentTime(calculatedTime);
+    if (calculatedTime > 0) {
+      setSeekTime(calculatedTime);
+    }
+
+    hasInitializedFromConvex.current = true;
+    hasReceivedInitialSync.current = true;
+  }, [initialData]);
 
   // Handle play action (local user pressed play)
   const handlePlay = useCallback(() => {
@@ -151,9 +185,11 @@ export const useVideoSyncAbly = (
     }
   }, []);
 
-  // Handle player ready - fetch initial state
+  // Handle player ready - fetch initial state only if not already initialized from Convex
   const handleReady = useCallback(() => {
-    fetchInitialState();
+    if (!hasInitializedFromConvex.current) {
+      fetchInitialState();
+    }
   }, [fetchInitialState]);
 
   // Handle unmuting after user interaction
@@ -207,6 +243,7 @@ export const useVideoSyncAbly = (
   // Reset initial sync flag when room changes
   useEffect(() => {
     hasReceivedInitialSync.current = false;
+    hasInitializedFromConvex.current = false;
     setIsMutedForSync(false);
   }, [roomId]);
 

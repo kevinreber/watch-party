@@ -20,12 +20,19 @@ interface VideoListEvent {
   senderId?: string;
 }
 
+interface InitialVideoData {
+  currentVideo?: Video | null;
+  videoQueue?: Video[];
+}
+
 export const useHandleVideoListAbly = (
   channel: RealtimeChannel | null,
-  clientId: string | undefined
+  clientId: string | undefined,
+  initialData?: InitialVideoData
 ) => {
   const { roomId } = useParams();
   const [videos, setVideos] = useState<Video[]>([]);
+  const [hasInitialized, setHasInitialized] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
 
   // Fetch initial video state from API
@@ -46,12 +53,40 @@ export const useHandleVideoListAbly = (
     }
   }, [roomId, enqueueSnackbar]);
 
-  // Fetch initial state when channel is ready
+  // Initialize from Convex data when available (preferred source of truth)
   useEffect(() => {
-    if (channel && roomId) {
-      fetchInitialState();
+    if (hasInitialized) return;
+
+    if (initialData) {
+      const initialVideos: Video[] = [];
+
+      // Add current video first if it exists
+      if (initialData.currentVideo) {
+        initialVideos.push(initialData.currentVideo);
+      }
+
+      // Add queue videos (excluding current if it's already added)
+      if (initialData.videoQueue && initialData.videoQueue.length > 0) {
+        for (const video of initialData.videoQueue) {
+          if (!initialVideos.some((v) => v.videoId === video.videoId)) {
+            initialVideos.push(video);
+          }
+        }
+      }
+
+      if (initialVideos.length > 0) {
+        setVideos(initialVideos);
+        setHasInitialized(true);
+
+        return;
+      }
     }
-  }, [channel, roomId, fetchInitialState]);
+
+    // Fallback to API fetch if no Convex data
+    if (channel && roomId && !hasInitialized) {
+      fetchInitialState().then(() => setHasInitialized(true));
+    }
+  }, [channel, roomId, initialData, hasInitialized, fetchInitialState]);
 
   const addVideoToList = useCallback(
     async (video: Video) => {
