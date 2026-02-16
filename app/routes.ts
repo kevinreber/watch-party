@@ -9,4 +9,5 @@ export default [
   route("api/room", "routes/api.room.ts"),
   route("api/ably-auth", "routes/api.ably-auth.ts"),
   route("api/video-state", "routes/api.video-state.ts"),
+  route("whats-new", "routes/whats-new.tsx"),
 ] satisfies RouteConfig;
