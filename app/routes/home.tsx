@@ -212,6 +212,13 @@ export default function Homepage() {
           </div>
         )}
 
+        {/* What's New link */}
+        <div style={styles.whatsNewLinkContainer}>
+          <Link to="/whats-new" style={styles.whatsNewLink} data-testid="whats-new-link">
+            📋 What's New
+          </Link>
+        </div>
+
         {/* Features */}
         <div style={styles.features}>
           <div style={styles.feature}>
@@ -716,6 +723,24 @@ const styles: Record<string, React.CSSProperties> = {
     border: "1px solid rgba(139, 92, 246, 0.3)",
     borderRadius: "100px",
     color: "#8B5CF6",
+    fontSize: "0.75rem",
+    textDecoration: "none",
+    transition: "all 0.2s ease",
+  },
+  whatsNewLinkContainer: {
+    display: "flex",
+    justifyContent: "center",
+    marginBottom: "1rem",
+  },
+  whatsNewLink: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "0.5rem",
+    padding: "0.5rem 1rem",
+    background: "rgba(59, 130, 246, 0.1)",
+    border: "1px solid rgba(59, 130, 246, 0.3)",
+    borderRadius: "100px",
+    color: "#3B82F6",
     fontSize: "0.75rem",
     textDecoration: "none",
     transition: "all 0.2s ease",
