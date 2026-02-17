@@ -83,11 +83,8 @@ export default function Room() {
       }
     : undefined;
 
-  const { videos, addVideoToList, removeVideoFromList, playNextVideo } = useHandleVideoListAbly(
-    channel,
-    clientId,
-    initialVideoData
-  );
+  const { videos, addVideoToList, removeVideoFromList, playNextVideo, forceSync: forceSyncVideos } =
+    useHandleVideoListAbly(channel, clientId, initialVideoData, roomData?.id);
 
   // Video sync state
   const {
@@ -100,7 +97,14 @@ export default function Room() {
     handleProgress,
     handleReady,
     handleUnmute,
-  } = useVideoSyncAbly(channel, roomId, clientId, initialSyncData);
+    forceSync: forceSyncPlayback,
+  } = useVideoSyncAbly(channel, roomId, clientId, initialSyncData, roomData?.id);
+
+  // Combined sync handler for the sync button
+  const handleSyncNow = useCallback(() => {
+    forceSyncVideos();
+    forceSyncPlayback();
+  }, [forceSyncVideos, forceSyncPlayback]);
 
   useLoadYouTubeScript();
 
@@ -265,6 +269,20 @@ export default function Room() {
             {hasActivePoll && !showPoll && (
               <span style={styles.pollBadge}>!</span>
             )}
+          </button>
+          <button
+            onClick={handleSyncNow}
+            style={styles.syncButton}
+            title="Sync video with room"
+            data-testid="sync-button"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 2v6h-6" />
+              <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+              <path d="M3 22v-6h6" />
+              <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+            </svg>
+            Sync
           </button>
           <div style={styles.connectionStatus}>
             <span style={{
@@ -479,6 +497,20 @@ const styles: Record<string, React.CSSProperties> = {
     border: "none",
     borderRadius: "8px",
     fontSize: "1rem",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+  },
+  syncButton: {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.375rem",
+    padding: "0.5rem 0.75rem",
+    fontSize: "0.75rem",
+    fontWeight: 500,
+    color: "#ffffff",
+    background: "rgba(99, 102, 241, 0.15)",
+    border: "1px solid rgba(99, 102, 241, 0.3)",
+    borderRadius: "8px",
     cursor: "pointer",
     transition: "all 0.2s ease",
   },

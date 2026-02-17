@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "react-router";
 import type { RealtimeChannel, Message as AblyMessage } from "ably";
 import { useSnackbar } from "notistack";
+import { useMutation } from "convex/react";
+import { api } from "convex/_generated/api";
+import type { Id } from "convex/_generated/dataModel";
 import { isValidYTLink, ifArrayContains } from "~/utils/helpers";
 
 interface Video {
@@ -28,7 +31,8 @@ interface InitialVideoData {
 export const useHandleVideoListAbly = (
   channel: RealtimeChannel | null,
   clientId: string | undefined,
-  initialData?: InitialVideoData
+  initialData?: InitialVideoData,
+  convexRoomId?: Id<"rooms">
 ) => {
   const { roomId } = useParams();
   const [videos, setVideos] = useState<Video[]>([]);
@@ -36,6 +40,12 @@ export const useHandleVideoListAbly = (
   // Track if we've processed Convex data - Convex is source of truth and should override API
   const hasInitializedFromConvex = useRef(false);
   const { enqueueSnackbar } = useSnackbar();
+
+  // Convex mutations for persisting video state (enables late joiner sync)
+  const addToQueueMutation = useMutation(api.videoSync.addToQueue);
+  const removeFromQueueMutation = useMutation(api.videoSync.removeFromQueue);
+  const playNextMutation = useMutation(api.videoSync.playNext);
+  const setCurrentVideoMutation = useMutation(api.videoSync.setCurrentVideo);
 
   // Fetch initial video state from API
   const fetchInitialState = useCallback(async () => {
@@ -123,6 +133,20 @@ export const useHandleVideoListAbly = (
             console.error("Failed to update server state:", err);
           }
 
+          // Persist to Convex for late joiner sync
+          if (convexRoomId) {
+            try {
+              // If this is the first video, set it as current video
+              if (videos.length === 0) {
+                await setCurrentVideoMutation({ roomId: convexRoomId, video });
+              } else {
+                await addToQueueMutation({ roomId: convexRoomId, video });
+              }
+            } catch (err) {
+              console.error("Failed to persist to Convex:", err);
+            }
+          }
+
           // Broadcast to other users
           const event: VideoListEvent = {
             type: "add-video",
@@ -140,13 +164,14 @@ export const useHandleVideoListAbly = (
         enqueueSnackbar("Invalid URL", { variant: "warning" });
       }
     },
-    [channel, roomId, videos, clientId, enqueueSnackbar]
+    [channel, roomId, videos, clientId, enqueueSnackbar, convexRoomId, addToQueueMutation, setCurrentVideoMutation]
   );
 
   const removeVideoFromList = useCallback(
     async (video: Video) => {
       if (!channel || !roomId) return;
 
+      const isCurrentVideo = videos[0]?.videoId === video.videoId;
       const filteredVideos = videos.filter((vid) => vid.videoId !== video.videoId);
       setVideos(filteredVideos);
 
@@ -161,6 +186,20 @@ export const useHandleVideoListAbly = (
         console.error("Failed to update server state:", err);
       }
 
+      // Persist to Convex for late joiner sync
+      if (convexRoomId) {
+        try {
+          if (isCurrentVideo) {
+            // Removing current video - advance to next in queue
+            await playNextMutation({ roomId: convexRoomId });
+          } else {
+            await removeFromQueueMutation({ roomId: convexRoomId, videoId: video.videoId });
+          }
+        } catch (err) {
+          console.error("Failed to persist to Convex:", err);
+        }
+      }
+
       // Broadcast to other users
       const event: VideoListEvent = {
         type: "remove-video",
@@ -170,7 +209,7 @@ export const useHandleVideoListAbly = (
       };
       channel.publish("video-list-update", event);
     },
-    [channel, roomId, videos, clientId]
+    [channel, roomId, videos, clientId, convexRoomId, playNextMutation, removeFromQueueMutation]
   );
 
   // Play next video in queue (remove current video)
@@ -192,6 +231,15 @@ export const useHandleVideoListAbly = (
       console.error("Failed to update server state:", err);
     }
 
+    // Persist to Convex for late joiner sync
+    if (convexRoomId) {
+      try {
+        await playNextMutation({ roomId: convexRoomId });
+      } catch (err) {
+        console.error("Failed to persist to Convex:", err);
+      }
+    }
+
     // Broadcast to other users
     const event: VideoListEvent = {
       type: "remove-video",
@@ -204,7 +252,7 @@ export const useHandleVideoListAbly = (
     if (filteredVideos.length > 0) {
       enqueueSnackbar(`Now playing: ${filteredVideos[0].name}`, { variant: "info" });
     }
-  }, [channel, roomId, videos, clientId, enqueueSnackbar]);
+  }, [channel, roomId, videos, clientId, enqueueSnackbar, convexRoomId, playNextMutation]);
 
   // Subscribe to video list updates
   useEffect(() => {
@@ -227,6 +275,24 @@ export const useHandleVideoListAbly = (
     };
   }, [channel, clientId]);
 
+  // Force re-sync video list from Convex data (for manual sync button)
+  const forceSync = useCallback(() => {
+    if (!initialData) return;
+
+    const syncedVideos: Video[] = [];
+    if (initialData.currentVideo) {
+      syncedVideos.push(initialData.currentVideo);
+    }
+    if (initialData.videoQueue && initialData.videoQueue.length > 0) {
+      for (const video of initialData.videoQueue) {
+        if (!syncedVideos.some((v) => v.videoId === video.videoId)) {
+          syncedVideos.push(video);
+        }
+      }
+    }
+    setVideos(syncedVideos);
+  }, [initialData]);
+
   // Reset initialization state when room changes
   useEffect(() => {
     hasInitializedFromConvex.current = false;
@@ -234,5 +300,5 @@ export const useHandleVideoListAbly = (
     setVideos([]);
   }, [roomId]);
 
-  return { videos, addVideoToList, removeVideoFromList, playNextVideo };
+  return { videos, addVideoToList, removeVideoFromList, playNextVideo, forceSync };
 };
