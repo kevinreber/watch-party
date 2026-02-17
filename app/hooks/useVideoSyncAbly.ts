@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { RealtimeChannel, Message } from "ably";
+import { useMutation } from "convex/react";
+import { api } from "convex/_generated/api";
+import type { Id } from "convex/_generated/dataModel";
 
 interface VideoSyncState {
   isPlaying: boolean;
@@ -23,7 +26,8 @@ export const useVideoSyncAbly = (
   channel: RealtimeChannel | null,
   roomId: string | undefined,
   clientId: string | undefined,
-  initialData?: InitialSyncData
+  initialData?: InitialSyncData,
+  convexRoomId?: Id<"rooms">
 ) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -33,6 +37,9 @@ export const useVideoSyncAbly = (
   const lastSyncTime = useRef(0);
   const hasReceivedInitialSync = useRef(false);
   const hasInitializedFromConvex = useRef(false);
+
+  // Convex mutation for persisting playback state (enables late joiner sync)
+  const syncVideoStateMutation = useMutation(api.videoSync.syncVideoState);
 
   // Fetch initial video state from API
   const fetchInitialState = useCallback(async () => {
@@ -121,10 +128,17 @@ export const useVideoSyncAbly = (
     channel.publish("video-sync", event);
     updateServerState("play", currentTime);
 
+    // Persist to Convex for late joiner sync
+    if (convexRoomId) {
+      syncVideoStateMutation({ roomId: convexRoomId, type: "play", currentTime }).catch((err) =>
+        console.error("Failed to sync play to Convex:", err)
+      );
+    }
+
     setTimeout(() => {
       isLocalAction.current = false;
     }, 100);
-  }, [channel, roomId, currentTime, clientId, updateServerState]);
+  }, [channel, roomId, currentTime, clientId, updateServerState, convexRoomId, syncVideoStateMutation]);
 
   // Handle pause action (local user pressed pause)
   const handlePause = useCallback(() => {
@@ -143,10 +157,17 @@ export const useVideoSyncAbly = (
     channel.publish("video-sync", event);
     updateServerState("pause", currentTime);
 
+    // Persist to Convex for late joiner sync
+    if (convexRoomId) {
+      syncVideoStateMutation({ roomId: convexRoomId, type: "pause", currentTime }).catch((err) =>
+        console.error("Failed to sync pause to Convex:", err)
+      );
+    }
+
     setTimeout(() => {
       isLocalAction.current = false;
     }, 100);
-  }, [channel, roomId, currentTime, clientId, updateServerState]);
+  }, [channel, roomId, currentTime, clientId, updateServerState, convexRoomId, syncVideoStateMutation]);
 
   // Handle seek action (local user seeked)
   const handleSeek = useCallback(
@@ -171,11 +192,18 @@ export const useVideoSyncAbly = (
       channel.publish("video-sync", event);
       updateServerState("seek", time);
 
+      // Persist to Convex for late joiner sync
+      if (convexRoomId) {
+        syncVideoStateMutation({ roomId: convexRoomId, type: "seek", currentTime: time }).catch((err) =>
+          console.error("Failed to sync seek to Convex:", err)
+        );
+      }
+
       setTimeout(() => {
         isLocalAction.current = false;
       }, 100);
     },
-    [channel, roomId, clientId, updateServerState]
+    [channel, roomId, clientId, updateServerState, convexRoomId, syncVideoStateMutation]
   );
 
   // Handle progress update from player (for tracking current time)
@@ -240,6 +268,22 @@ export const useVideoSyncAbly = (
     }
   }, [seekTime]);
 
+  // Force re-sync playback state from Convex data (for manual sync button)
+  const forceSync = useCallback(() => {
+    if (!initialData) return;
+
+    let calculatedTime = initialData.currentTime ?? 0;
+    if (initialData.isPlaying && initialData.lastSyncAt) {
+      const elapsedSeconds = (Date.now() - initialData.lastSyncAt) / 1000;
+      calculatedTime += elapsedSeconds;
+    }
+
+    setIsPlaying(initialData.isPlaying ?? false);
+    setCurrentTime(calculatedTime);
+    setSeekTime(calculatedTime);
+    // Don't mute on manual sync - user interaction satisfies autoplay policy
+  }, [initialData]);
+
   // Reset initial sync flag when room changes
   useEffect(() => {
     hasReceivedInitialSync.current = false;
@@ -257,5 +301,6 @@ export const useVideoSyncAbly = (
     handleProgress,
     handleReady,
     handleUnmute,
+    forceSync,
   };
 };

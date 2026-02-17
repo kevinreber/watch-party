@@ -67,11 +67,16 @@ export const addToQueue = mutation({
     video: videoValidator,
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
-
     const room = await ctx.db.get(args.roomId);
     if (!room) throw new Error("Room not found");
+
+    // Deduplicate: don't add if already in queue or currently playing
+    const isDuplicate =
+      room.videoQueue.some((v) => v.videoId === args.video.videoId) ||
+      room.currentVideo?.videoId === args.video.videoId;
+    if (isDuplicate) {
+      return { success: true };
+    }
 
     const newQueue = [...room.videoQueue, args.video];
     await ctx.db.patch(args.roomId, { videoQueue: newQueue });
