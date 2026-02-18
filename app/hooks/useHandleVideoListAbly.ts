@@ -39,6 +39,8 @@ export const useHandleVideoListAbly = (
   const [hasInitialized, setHasInitialized] = useState(false);
   // Track if we've processed Convex data - Convex is source of truth and should override API
   const hasInitializedFromConvex = useRef(false);
+  // Track the last known current video ID to detect changes from Convex subscription
+  const lastConvexVideoId = useRef<string | undefined>(undefined);
   const { enqueueSnackbar } = useSnackbar();
 
   // Convex mutations for persisting video state (enables late joiner sync)
@@ -112,6 +114,35 @@ export const useHandleVideoListAbly = (
       });
     }
   }, [channel, roomId, initialData, hasInitialized, fetchInitialState]);
+
+  // Watch for Convex subscription updates to currentVideo after initialization.
+  // This handles the case where a late joiner's initial Convex query resolves before
+  // the host's setCurrentVideo mutation has completed, and the subscription later
+  // delivers the actual video.
+  useEffect(() => {
+    if (!initialData) return;
+
+    const newVideoId = initialData.currentVideo?.videoId;
+
+    // Only update if the current video has actually changed to a new video
+    if (newVideoId && newVideoId !== lastConvexVideoId.current) {
+      lastConvexVideoId.current = newVideoId;
+
+      // If we haven't displayed this video yet, sync from Convex
+      const alreadyDisplayed = videos.length > 0 && videos[0].videoId === newVideoId;
+      if (!alreadyDisplayed) {
+        const syncedVideos: Video[] = [initialData.currentVideo!];
+        if (initialData.videoQueue && initialData.videoQueue.length > 0) {
+          for (const video of initialData.videoQueue) {
+            if (!syncedVideos.some((v) => v.videoId === video.videoId)) {
+              syncedVideos.push(video);
+            }
+          }
+        }
+        setVideos(syncedVideos);
+      }
+    }
+  }, [initialData, videos]);
 
   const addVideoToList = useCallback(
     async (video: Video) => {
@@ -275,27 +306,36 @@ export const useHandleVideoListAbly = (
     };
   }, [channel, clientId]);
 
-  // Force re-sync video list from Convex data (for manual sync button)
-  const forceSync = useCallback(() => {
-    if (!initialData) return;
-
-    const syncedVideos: Video[] = [];
-    if (initialData.currentVideo) {
-      syncedVideos.push(initialData.currentVideo);
-    }
-    if (initialData.videoQueue && initialData.videoQueue.length > 0) {
-      for (const video of initialData.videoQueue) {
-        if (!syncedVideos.some((v) => v.videoId === video.videoId)) {
-          syncedVideos.push(video);
+  // Force re-sync video list from Convex data, falling back to API
+  const forceSync = useCallback(async () => {
+    // Try Convex data first (source of truth)
+    if (initialData) {
+      const syncedVideos: Video[] = [];
+      if (initialData.currentVideo) {
+        syncedVideos.push(initialData.currentVideo);
+      }
+      if (initialData.videoQueue && initialData.videoQueue.length > 0) {
+        for (const video of initialData.videoQueue) {
+          if (!syncedVideos.some((v) => v.videoId === video.videoId)) {
+            syncedVideos.push(video);
+          }
         }
       }
+      if (syncedVideos.length > 0) {
+        setVideos(syncedVideos);
+
+        return;
+      }
     }
-    setVideos(syncedVideos);
-  }, [initialData]);
+
+    // Fall back to API fetch when Convex data is unavailable or empty
+    await fetchInitialState();
+  }, [initialData, fetchInitialState]);
 
   // Reset initialization state when room changes
   useEffect(() => {
     hasInitializedFromConvex.current = false;
+    lastConvexVideoId.current = undefined;
     setHasInitialized(false);
     setVideos([]);
   }, [roomId]);

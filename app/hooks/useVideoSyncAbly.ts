@@ -85,9 +85,12 @@ export const useVideoSyncAbly = (
     [roomId]
   );
 
+  // Track whether we've received meaningful sync data (with a playing video)
+  const lastSyncedAt = useRef<number>(0);
+
   // Initialize from Convex data when available (preferred source of truth)
   useEffect(() => {
-    if (hasInitializedFromConvex.current || !initialData) return;
+    if (!initialData) return;
 
     // Calculate the actual current time accounting for elapsed time since last sync
     let calculatedTime = initialData.currentTime ?? 0;
@@ -96,19 +99,35 @@ export const useVideoSyncAbly = (
       calculatedTime += elapsedSeconds;
     }
 
-    // If video is playing, mute to allow autoplay
-    if (initialData.isPlaying) {
-      setIsMutedForSync(true);
+    // On first initialization, handle muting for autoplay
+    if (!hasInitializedFromConvex.current) {
+      if (initialData.isPlaying) {
+        setIsMutedForSync(true);
+      }
+
+      setIsPlaying(initialData.isPlaying ?? false);
+      setCurrentTime(calculatedTime);
+      if (calculatedTime > 0) {
+        setSeekTime(calculatedTime);
+      }
+
+      hasInitializedFromConvex.current = true;
+      hasReceivedInitialSync.current = true;
+
+      return;
     }
 
-    setIsPlaying(initialData.isPlaying ?? false);
-    setCurrentTime(calculatedTime);
-    if (calculatedTime > 0) {
-      setSeekTime(calculatedTime);
+    // After initialization, still respond to significant Convex subscription updates.
+    // This handles the case where a late joiner's initial query had stale data and
+    // the subscription later delivers the updated playback state.
+    if (initialData.lastSyncAt && initialData.lastSyncAt > lastSyncedAt.current) {
+      lastSyncedAt.current = initialData.lastSyncAt;
+      setIsPlaying(initialData.isPlaying ?? false);
+      setCurrentTime(calculatedTime);
+      if (Math.abs(calculatedTime - currentTime) > 2) {
+        setSeekTime(calculatedTime);
+      }
     }
-
-    hasInitializedFromConvex.current = true;
-    hasReceivedInitialSync.current = true;
   }, [initialData]);
 
   // Handle play action (local user pressed play)
@@ -268,26 +287,33 @@ export const useVideoSyncAbly = (
     }
   }, [seekTime]);
 
-  // Force re-sync playback state from Convex data (for manual sync button)
-  const forceSync = useCallback(() => {
-    if (!initialData) return;
+  // Force re-sync playback state from Convex data, falling back to API
+  const forceSync = useCallback(async () => {
+    // Try Convex data first (source of truth)
+    if (initialData && initialData.lastSyncAt) {
+      let calculatedTime = initialData.currentTime ?? 0;
+      if (initialData.isPlaying && initialData.lastSyncAt) {
+        const elapsedSeconds = (Date.now() - initialData.lastSyncAt) / 1000;
+        calculatedTime += elapsedSeconds;
+      }
 
-    let calculatedTime = initialData.currentTime ?? 0;
-    if (initialData.isPlaying && initialData.lastSyncAt) {
-      const elapsedSeconds = (Date.now() - initialData.lastSyncAt) / 1000;
-      calculatedTime += elapsedSeconds;
+      setIsPlaying(initialData.isPlaying ?? false);
+      setCurrentTime(calculatedTime);
+      setSeekTime(calculatedTime);
+      // Don't mute on manual sync - user interaction satisfies autoplay policy
+
+      return;
     }
 
-    setIsPlaying(initialData.isPlaying ?? false);
-    setCurrentTime(calculatedTime);
-    setSeekTime(calculatedTime);
-    // Don't mute on manual sync - user interaction satisfies autoplay policy
-  }, [initialData]);
+    // Fall back to API fetch when Convex data is unavailable
+    await fetchInitialState();
+  }, [initialData, fetchInitialState]);
 
   // Reset initial sync flag when room changes
   useEffect(() => {
     hasReceivedInitialSync.current = false;
     hasInitializedFromConvex.current = false;
+    lastSyncedAt.current = 0;
     setIsMutedForSync(false);
   }, [roomId]);
 
