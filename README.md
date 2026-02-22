@@ -1,94 +1,39 @@
 # Watch Party
 
-## ToDo
+A real-time synchronized video watching application where users can watch YouTube videos together in shared rooms with chat, social features, and gamification.
 
-### Front End
+## Features
 
-- [x] When user inputs YouTube link, get video id
-- [x] Sync player with video playback
-- [x] Validate YT link before YT id
-- [ ] Disable play bar if no video is loaded
-- [ ] Create list of queued videos
-- [ ] Users can re-arrange queued videos
-- [ ] Chat interface
+- **Synchronized Video Playback** - Watch YouTube videos in sync with friends in real-time
+- **Live Chat** - Chat with room members while watching, with emoji reactions
+- **Rooms** - Create and join watch party rooms with video queues
+- **Social** - Friends system, groups/communities, and activity feeds
+- **Gamification** - Badges, watch streaks, and leaderboards
+- **Playlists** - Save and manage video playlists
+- **Moderation** - Room roles, bans, mutes, and member management
+- **Scheduled Parties** - Plan watch parties in advance with invitations
 
-### YT Player
+## Tech Stack
 
-- [x] Basic YouTube iframe setup
-- [x] Feat: Add volume controls
-- [ ] Feat: Add keyboard arrow features to control video
-- [ ] Disable player controls if no video is loaded
-- [ ] ? If video is removed, next video in queue takes it's place
-- [ ] If last video is removed, need to remove script and show "No Videos Found"
-- [ ] YouTube API
-- [ ] hide ads if possible
-- [ ] enlarge video
-- [ ] video controls with "space bar"
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 18, TypeScript, Material-UI 5 |
+| Routing | React Router 7 (SSR enabled) |
+| Backend | Convex (real-time database, functions, subscriptions) |
+| Auth | Clerk (Google OAuth) |
+| Build | Vite 5 |
+| Server | Express (SSR) |
+| Testing | Vitest (unit), Playwright (E2E) |
 
-### Websockets
+## Getting Started
 
-- [x] Setup backend servers for video
-- [x] Manage play state of video
-- [x] Manage pause state of video
-- [x] Manage time state of video
-- [x] Setup backend servers for chat w/ Socket.io
-- [x] Sync state with YouTube API
-- [x] Setup Rooms
-- [x] Setup Users
-- [ ] Setup action when User joins room
-- [ ] When new users log in, they need updated Video List
-- [ ] When new users log in, they need current Playlist state
+### Prerequisites
 
-### DB
+- Node.js 20+
+- A [Convex](https://convex.dev) account
+- A [Clerk](https://clerk.com) account with Google OAuth configured
 
-- [ ] Database?
-
-### Future Features
-
-- [ ] Integrate with google calendars so users can plan recurring "meetings"
-
-### Resources
-
-#### Similar Projects
-
-- https://github.com/howardchung/watchparty/blob/master/server/room.ts (Hackathon Project)
-- https://github.com/filahf/wevid-youtube-together/blob/master/server/server.js (Reddit Post)
-- https://github.com/filahf/wevid-youtube-together/blob/master/client/src/components/video/Video.js (Reddit Post)
-- https://www.reddit.com/r/reactjs/comments/gh76ez/synchronized_youtube_player_built_in_react/ (Reddit Post)
-
-- https://github.com/bramgiessen/react-youtube-sync/tree/master/server
-- https://github.com/YasserYka/YT-Together/blob/master/frontend/src/components/Watch.js
-
-#### Instructions (How To)
-
-- https://www.linode.com/docs/guides/build-react-video-streaming-app/
-
-#### Whiteboard Feature
-
-- https://medium.com/better-programming/building-a-realtime-drawing-app-using-socket-io-and-p5-js-86f979285b12
-
-#### Chat Feature
-
-- https://www.npmjs.com/package/emoji-mart (Emojis)
-
-#### YT Player & React Player Packages
-
-- https://github.com/BTMPL/react-yt
-- https://cookpete.com/react-player/
-
-#### App Ideas
-
-- https://dev.to/reedbarger/7-react-projects-you-should-build-in-2021-p20
-
-## Other Resources
-
-- https://www.freecodecamp.org/news/create-a-professional-node-express/
-- https://dev.to/armelpingault/how-to-create-a-simple-and-beautiful-chat-with-mongodb-express-react-and-node-js-mern-stack-29l6
-- https://github.com/gordonpn/slack-clone
-
-## Project Setup
-
-### Clone and Install
+### Setup
 
 ```bash
 git clone https://github.com/kevinreber/watch-party.git
@@ -100,19 +45,88 @@ npm install
 
 Create a `.env` file in the root directory:
 
-- `YOUTUBE_API_KEY`: Enables YouTube video search - [Get YouTube API Credentials](https://developers.google.com/youtube/v3/docs/)
-
-### Run Development Server
-
 ```bash
-npm run dev
+# Required
+VITE_CONVEX_URL=https://your-deployment.convex.cloud
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+
+# Optional
+YOUTUBE_API_KEY=...       # Enables YouTube video search
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the project in the browser.
-
-### Build for Production
+### Development
 
 ```bash
-npm run build
-npm start
+npm run dev          # Start dev server (Express + Convex)
 ```
+
+This runs the Express SSR server and Convex dev backend in parallel. Open [http://localhost:3000](http://localhost:3000) to view the app.
+
+You can also run them separately:
+
+```bash
+npm run dev:convex   # Convex dev backend only
+npm run dev:app      # Express server only
+```
+
+### Build & Production
+
+```bash
+npm run build        # Deploy Convex functions + build React Router app
+npm run start        # Start production server
+```
+
+## Project Structure
+
+```
+watch-party/
+├── app/                        # React application
+│   ├── components/             # UI components
+│   ├── context/                # React contexts (Auth, Theme, User)
+│   ├── hooks/                  # Custom hooks (including Convex hooks)
+│   ├── providers/              # Convex + Clerk providers
+│   ├── routes/                 # File-based routes
+│   ├── types/                  # TypeScript types
+│   └── utils/                  # Helpers and constants
+├── convex/                     # Backend (schema, queries, mutations)
+├── e2e/                        # Playwright E2E tests
+├── docs/                       # Documentation
+└── public/                     # Static assets
+```
+
+## Testing
+
+```bash
+npm run test         # Run unit tests (Vitest)
+npm run test:watch   # Watch mode
+npm run test:e2e     # Run E2E tests (Playwright)
+npm run test:e2e:ui  # Playwright UI mode
+```
+
+### Test Data Seeding
+
+```bash
+npm run test:seed    # Seed test users, rooms, and friend data
+npm run test:clear   # Clear test data
+```
+
+## Other Commands
+
+```bash
+npm run typecheck    # Run React Router typegen + TypeScript check
+```
+
+## Deployment
+
+- **Frontend**: Vercel with SSR
+- **Backend**: Convex Cloud
+- **Build command**: `convex deploy && npx convex codegen && react-router build`
+
+## Contributing
+
+See [FEATURE_BACKLOG.md](./FEATURE_BACKLOG.md) for features that have backend support ready and need UI work.
+
+## License
+
+This project is private.
