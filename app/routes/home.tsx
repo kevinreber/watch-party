@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, useRef, useCallback } from "react";
 import { useNavigate, Link } from "react-router";
 import type { MetaFunction } from "react-router";
 import { useUser, useClerk } from "@clerk/clerk-react";
@@ -35,6 +35,113 @@ import {
   StreakDisplay,
 } from "~/components";
 
+import "~/styles/landing.css";
+
+// ===== Scroll-triggered animation hook =====
+const useScrollReveal = () => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(element);
+        }
+      },
+      { threshold: 0.15 }
+    );
+
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, isVisible };
+};
+
+// ===== Particle config =====
+const PARTICLES = Array.from({ length: 20 }, (_, i) => ({
+  id: i,
+  left: `${Math.random() * 100}%`,
+  top: `${Math.random() * 100}%`,
+  duration: `${8 + Math.random() * 12}s`,
+  delay: `${Math.random() * 6}s`,
+  driftX: `${(Math.random() - 0.5) * 300}px`,
+  driftY: `${-100 - Math.random() * 300}px`,
+}));
+
+// ===== Feature cards data =====
+const FEATURES = [
+  {
+    icon: "🎬",
+    title: "Synchronized Playback",
+    desc: "Everyone watches at the same moment. Play, pause, and seek stays perfectly in sync across all viewers.",
+    iconBg: "rgba(99, 102, 241, 0.15)",
+    accent: "#6366f1",
+  },
+  {
+    icon: "💬",
+    title: "Live Chat & Reactions",
+    desc: "React in real-time with messages, emojis, and reactions. Share the moment as it happens.",
+    iconBg: "rgba(34, 197, 94, 0.15)",
+    accent: "#22c55e",
+  },
+  {
+    icon: "👥",
+    title: "Friends & Groups",
+    desc: "Build your community. Add friends, create groups, and jump into watch parties together.",
+    iconBg: "rgba(59, 130, 246, 0.15)",
+    accent: "#3b82f6",
+  },
+  {
+    icon: "🏆",
+    title: "Badges & Streaks",
+    desc: "Earn achievements and maintain watch streaks. Climb the leaderboard and show off your dedication.",
+    iconBg: "rgba(245, 158, 11, 0.15)",
+    accent: "#f59e0b",
+  },
+  {
+    icon: "🎵",
+    title: "Playlists & Queues",
+    desc: "Curate playlists and queue up videos. Let the party keep going without interruption.",
+    iconBg: "rgba(236, 72, 153, 0.15)",
+    accent: "#ec4899",
+  },
+  {
+    icon: "📅",
+    title: "Scheduled Parties",
+    desc: "Plan watch events ahead of time. Invite friends and get notified when the party starts.",
+    iconBg: "rgba(139, 92, 246, 0.15)",
+    accent: "#8b5cf6",
+  },
+];
+
+// ===== Steps data =====
+const STEPS = [
+  {
+    number: "1",
+    title: "Create a Room",
+    desc: "Pick a name or generate a random one. Your watch room is ready in seconds.",
+  },
+  {
+    number: "2",
+    title: "Share the Link",
+    desc: "Send your friends the room link. They join instantly — no account required.",
+  },
+  {
+    number: "3",
+    title: "Watch Together",
+    desc: "Paste a YouTube URL and everyone watches in sync with live chat and reactions.",
+  },
+];
+
 export default function Homepage() {
   const navigate = useNavigate();
   const [roomName, setRoomName] = useState("");
@@ -62,6 +169,12 @@ export default function Homepage() {
   const [bookmarkedRooms, setBookmarkedRooms] = useState<RoomBookmark[]>([]);
   const [upcomingParties, setUpcomingParties] = useState<ScheduledParty[]>([]);
 
+  // Scroll reveal hooks
+  const featuresReveal = useScrollReveal();
+  const stepsReveal = useScrollReveal();
+  const statsReveal = useScrollReveal();
+  const ctaReveal = useScrollReveal();
+
   // Load quick access data
   useEffect(() => {
     setRecentRooms(historyService.getRoomHistory().slice(0, 3));
@@ -72,7 +185,11 @@ export default function Homepage() {
   // Sync user name with Clerk user if signed in
   useEffect(() => {
     if (clerkUser) {
-      const displayName = clerkUser.username || clerkUser.firstName || clerkUser.emailAddresses[0]?.emailAddress?.split("@")[0] || "User";
+      const displayName =
+        clerkUser.username ||
+        clerkUser.firstName ||
+        clerkUser.emailAddresses[0]?.emailAddress?.split("@")[0] ||
+        "User";
       if (displayName !== user) {
         setUser(displayName);
       }
@@ -115,12 +232,42 @@ export default function Homepage() {
     navigate(`/room/${roomId}`);
   };
 
-  return (
-    <div style={styles.container}>
-      {/* Background decoration */}
-      <div style={styles.backgroundGlow} />
+  const scrollToCreate = useCallback(() => {
+    const el = document.getElementById("create-section");
+    el?.scrollIntoView({ behavior: "smooth" });
+  }, []);
 
-      {/* Header with user actions */}
+  const handleQuickStart = useCallback(() => {
+    const name = generateName();
+    setRoomName(name);
+    setIsCreating(true);
+    const newRoute = name.toLowerCase().split(" ").join("-");
+    setTimeout(() => {
+      navigate(`/room/${newRoute}`);
+    }, 300);
+  }, [navigate]);
+
+  return (
+    <div className="landing-page">
+      {/* Floating particles */}
+      <div className="landing-particles">
+        {PARTICLES.map((p) => (
+          <div
+            key={p.id}
+            className="landing-particle"
+            style={{
+              left: p.left,
+              top: p.top,
+              "--duration": p.duration,
+              "--delay": p.delay,
+              "--drift-x": p.driftX,
+              "--drift-y": p.driftY,
+            } as React.CSSProperties}
+          />
+        ))}
+      </div>
+
+      {/* Header */}
       <div style={styles.header}>
         <div style={styles.headerActions}>
           <NotificationBell onClick={() => setShowNotifications(true)} />
@@ -128,17 +275,9 @@ export default function Homepage() {
             ⚙️
           </button>
           {isSignedIn ? (
-            <button
-              onClick={() => openUserProfile()}
-              style={styles.userButton}
-              data-testid="profile-button"
-            >
+            <button onClick={() => openUserProfile()} style={styles.userButton} data-testid="profile-button">
               {clerkUser?.imageUrl ? (
-                <img
-                  src={clerkUser.imageUrl}
-                  alt={clerkUser.firstName || "User"}
-                  style={styles.userAvatar}
-                />
+                <img src={clerkUser.imageUrl} alt={clerkUser.firstName || "User"} style={styles.userAvatar} />
               ) : (
                 user.charAt(0).toUpperCase()
               )}
@@ -151,28 +290,130 @@ export default function Homepage() {
         </div>
       </div>
 
-      {/* Main content */}
-      <div style={styles.content}>
-        {/* Logo/Brand */}
-        <div style={styles.brandSection}>
-          <div style={styles.logoContainer}>
-            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" style={styles.logo}>
-              <rect width="48" height="48" rx="12" fill="url(#gradient)" />
+      {/* ===== Hero Section ===== */}
+      <section className="landing-hero">
+        <div className="landing-hero-glow" />
+        <div className="landing-hero-content">
+          <div className="landing-logo">
+            <svg width="72" height="72" viewBox="0 0 48 48" fill="none">
+              <rect width="48" height="48" rx="12" fill="url(#heroGradient)" />
               <path d="M18 16L34 24L18 32V16Z" fill="white" />
               <defs>
-                <linearGradient id="gradient" x1="0" y1="0" x2="48" y2="48">
+                <linearGradient id="heroGradient" x1="0" y1="0" x2="48" y2="48">
                   <stop stopColor="#6366f1" />
                   <stop offset="1" stopColor="#8b5cf6" />
                 </linearGradient>
               </defs>
             </svg>
-            <h1 style={styles.brandName}>Watch Party</h1>
           </div>
-          <p style={styles.tagline}>
-            Watch YouTube videos together with friends in perfect sync
+
+          <h1 className="landing-hero-title">Watch Together, Anywhere</h1>
+
+          <p className="landing-hero-subtitle">
+            Create a room, share the link, and enjoy YouTube videos in perfect sync with friends. Real-time chat,
+            reactions, and more.
+          </p>
+
+          <div className="landing-hero-cta">
+            <button className="landing-cta-primary" onClick={handleQuickStart} data-testid="quick-start-button">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M7 4L15 10L7 16V4Z" fill="currentColor" />
+              </svg>
+              Quick Start
+            </button>
+            <button className="landing-cta-secondary" onClick={scrollToCreate}>
+              Create Custom Room
+            </button>
+          </div>
+        </div>
+
+        <div className="landing-scroll-indicator" onClick={scrollToCreate}>
+          <span>Explore</span>
+          <div className="landing-scroll-arrow" />
+        </div>
+      </section>
+
+      {/* ===== Features Section ===== */}
+      <section className="landing-features" ref={featuresReveal.ref}>
+        <div className="landing-section-header">
+          <div className="landing-section-badge">Features</div>
+          <h2 className="landing-section-title">Everything you need for the perfect watch party</h2>
+          <p className="landing-section-subtitle">
+            Built for groups who love watching together. Powerful features, zero friction.
           </p>
         </div>
 
+        <div className="landing-features-grid">
+          {FEATURES.map((feature) => (
+            <div
+              key={feature.title}
+              className={`landing-feature-card ${featuresReveal.isVisible ? "visible" : ""}`}
+              style={{ "--card-accent": feature.accent } as React.CSSProperties}
+            >
+              <div className="landing-feature-icon" style={{ "--icon-bg": feature.iconBg } as React.CSSProperties}>
+                {feature.icon}
+              </div>
+              <h3 className="landing-feature-title">{feature.title}</h3>
+              <p className="landing-feature-desc">{feature.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ===== How It Works ===== */}
+      <section className="landing-how-it-works" ref={stepsReveal.ref}>
+        <div className="landing-section-header">
+          <div className="landing-section-badge">How It Works</div>
+          <h2 className="landing-section-title">Up and running in 30 seconds</h2>
+          <p className="landing-section-subtitle">No downloads, no plugins. Just share a link and start watching.</p>
+        </div>
+
+        <div className="landing-steps">
+          {STEPS.map((step) => (
+            <div key={step.number} className={`landing-step ${stepsReveal.isVisible ? "visible" : ""}`}>
+              <div className="landing-step-number">{step.number}</div>
+              <div className="landing-step-content">
+                <h3>{step.title}</h3>
+                <p>{step.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ===== Stats ===== */}
+      <section className="landing-stats" ref={statsReveal.ref}>
+        <div className="landing-stats-grid">
+          {[
+            { value: "100%", label: "Free to use" },
+            { value: "<1s", label: "Sync latency" },
+            { value: "0", label: "Downloads needed" },
+            { value: "∞", label: "Watch parties" },
+          ].map((stat) => (
+            <div key={stat.label} className={`landing-stat ${statsReveal.isVisible ? "visible" : ""}`}>
+              <p className="landing-stat-value">{stat.value}</p>
+              <p className="landing-stat-label">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ===== Final CTA + Room Creation ===== */}
+      <section className="landing-final-cta" id="create-section" ref={ctaReveal.ref}>
+        <div className={`landing-final-cta-box ${ctaReveal.isVisible ? "visible" : ""}`}>
+          <h2>Ready to watch together?</h2>
+          <p>Create a room and share the link with your friends. It takes less than 10 seconds.</p>
+          <button className="landing-cta-primary" onClick={handleQuickStart}>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M7 4L15 10L7 16V4Z" fill="currentColor" />
+            </svg>
+            Start a Watch Party
+          </button>
+        </div>
+      </section>
+
+      {/* ===== Dashboard Section (existing functionality) ===== */}
+      <div className="landing-dashboard">
         {/* Feature buttons - Row 1 */}
         <div style={styles.featureButtons}>
           <button onClick={() => setShowActivity(true)} style={styles.featureButton} data-testid="activity-button">
@@ -203,7 +444,7 @@ export default function Homepage() {
           {isSignedIn && <StreakDisplay compact />}
         </div>
 
-        {/* Admin link for signed-in users */}
+        {/* Admin link */}
         {isSignedIn && (
           <div style={styles.adminLinkContainer}>
             <Link to="/admin" style={styles.adminLink} data-testid="admin-link">
@@ -212,35 +453,17 @@ export default function Homepage() {
           </div>
         )}
 
-        {/* What's New link */}
+        {/* What's New */}
         <div style={styles.whatsNewLinkContainer}>
           <Link to="/whats-new" style={styles.whatsNewLink} data-testid="whats-new-link">
             📋 What's New
           </Link>
         </div>
 
-        {/* Features */}
-        <div style={styles.features}>
-          <div style={styles.feature}>
-            <span style={styles.featureIcon}>🎬</span>
-            <span style={styles.featureText}>Synchronized playback</span>
-          </div>
-          <div style={styles.feature}>
-            <span style={styles.featureIcon}>💬</span>
-            <span style={styles.featureText}>Real-time chat</span>
-          </div>
-          <div style={styles.feature}>
-            <span style={styles.featureIcon}>🎉</span>
-            <span style={styles.featureText}>Emoji reactions</span>
-          </div>
-        </div>
-
         {/* Form Card */}
         <div style={styles.card}>
           <h2 style={styles.cardTitle}>Start a Watch Party</h2>
-          <p style={styles.cardSubtitle}>
-            Create a room and invite your friends to watch together
-          </p>
+          <p style={styles.cardSubtitle}>Create a room and invite your friends to watch together</p>
 
           <form onSubmit={handleSubmit} style={styles.form}>
             <div style={styles.inputGroup}>
@@ -302,7 +525,13 @@ export default function Homepage() {
                 data-testid="random-room-button"
               >
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path d="M4 4V7M4 7H7M4 7L7 4.5C8.5 3 10.5 2.5 12.5 3C14.5 3.5 16 5 16.5 7M16 16V13M16 13H13M16 13L13 15.5C11.5 17 9.5 17.5 7.5 17C5.5 16.5 4 15 3.5 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path
+                    d="M4 4V7M4 7H7M4 7L7 4.5C8.5 3 10.5 2.5 12.5 3C14.5 3.5 16 5 16.5 7M16 16V13M16 13H13M16 13L13 15.5C11.5 17 9.5 17.5 7.5 17C5.5 16.5 4 15 3.5 13"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
                 Random
               </button>
@@ -322,17 +551,12 @@ export default function Homepage() {
         {/* Quick Access Sections */}
         {(recentRooms.length > 0 || bookmarkedRooms.length > 0 || upcomingParties.length > 0) && (
           <div style={styles.quickAccess}>
-            {/* Upcoming Parties */}
             {upcomingParties.length > 0 && (
               <div style={styles.quickSection}>
                 <h3 style={styles.quickTitle}>Upcoming Parties</h3>
                 <div style={styles.quickList}>
-                  {upcomingParties.map(party => (
-                    <button
-                      key={party.id}
-                      onClick={() => navigateToRoom(party.roomId)}
-                      style={styles.quickItem}
-                    >
+                  {upcomingParties.map((party) => (
+                    <button key={party.id} onClick={() => navigateToRoom(party.roomId)} style={styles.quickItem}>
                       <span style={styles.quickIcon}>📅</span>
                       <span style={styles.quickName}>{party.name}</span>
                     </button>
@@ -341,12 +565,11 @@ export default function Homepage() {
               </div>
             )}
 
-            {/* Recent Rooms */}
             {recentRooms.length > 0 && (
               <div style={styles.quickSection}>
                 <h3 style={styles.quickTitle}>Recent Rooms</h3>
                 <div style={styles.quickList}>
-                  {recentRooms.map(room => (
+                  {recentRooms.map((room) => (
                     <button
                       key={room.roomId}
                       onClick={() => navigateToRoom(room.roomId)}
@@ -361,12 +584,11 @@ export default function Homepage() {
               </div>
             )}
 
-            {/* Bookmarked Rooms */}
             {bookmarkedRooms.length > 0 && (
               <div style={styles.quickSection}>
                 <h3 style={styles.quickTitle}>Saved Rooms</h3>
                 <div style={styles.quickList}>
-                  {bookmarkedRooms.map(room => (
+                  {bookmarkedRooms.map((room) => (
                     <button
                       key={room.roomId}
                       onClick={() => navigateToRoom(room.roomId)}
@@ -384,9 +606,7 @@ export default function Homepage() {
         )}
 
         {/* Footer hint */}
-        <p style={styles.hint}>
-          Share the room link with friends after creating
-        </p>
+        <p style={styles.hint}>Share the room link with friends after creating</p>
       </div>
 
       {/* Modals */}
@@ -396,14 +616,9 @@ export default function Homepage() {
       <FriendsPanel isOpen={showFriends} onClose={() => setShowFriends(false)} />
       <ScheduledParties isOpen={showScheduled} onClose={() => setShowScheduled(false)} />
       <WatchHistory isOpen={showHistory} onClose={() => setShowHistory(false)} />
-      <RoomBookmarks
-        isOpen={showBookmarks}
-        onClose={() => setShowBookmarks(false)}
-        onNavigateToRoom={navigateToRoom}
-      />
+      <RoomBookmarks isOpen={showBookmarks} onClose={() => setShowBookmarks(false)} onNavigateToRoom={navigateToRoom} />
       <Notifications isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
 
-      {/* New Social & Engagement Modals */}
       {showActivity && <ActivityFeed onClose={() => setShowActivity(false)} />}
       {showPlaylists && <PlaylistsPanel onClose={() => setShowPlaylists(false)} />}
       {showGroups && <GroupsPanel onClose={() => setShowGroups(false)} />}
@@ -413,26 +628,6 @@ export default function Homepage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container: {
-    minHeight: "100vh",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "2rem",
-    position: "relative",
-    overflow: "hidden",
-  },
-  backgroundGlow: {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: "800px",
-    height: "800px",
-    background: "radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%)",
-    pointerEvents: "none",
-  },
   header: {
     position: "fixed",
     top: 0,
@@ -485,41 +680,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 500,
     cursor: "pointer",
   },
-  content: {
-    width: "100%",
-    maxWidth: "480px",
-    position: "relative",
-    zIndex: 1,
-    animation: "fadeIn 0.5s ease-out",
-  },
-  brandSection: {
-    textAlign: "center" as const,
-    marginBottom: "1.5rem",
-  },
-  logoContainer: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "0.75rem",
-    marginBottom: "1rem",
-  },
-  logo: {
-    filter: "drop-shadow(0 4px 12px rgba(99, 102, 241, 0.4))",
-  },
-  brandName: {
-    fontSize: "2rem",
-    fontWeight: 700,
-    margin: 0,
-    background: "linear-gradient(135deg, #ffffff 0%, #a3a3a3 100%)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    backgroundClip: "text",
-  },
-  tagline: {
-    color: "#a3a3a3",
-    fontSize: "1rem",
-    margin: 0,
-  },
   featureButtons: {
     display: "flex",
     justifyContent: "center",
@@ -536,29 +696,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "0.75rem",
     cursor: "pointer",
     transition: "all 0.2s ease",
-  },
-  features: {
-    display: "flex",
-    justifyContent: "center",
-    gap: "1rem",
-    marginBottom: "1.5rem",
-    flexWrap: "wrap" as const,
-  },
-  feature: {
-    display: "flex",
-    alignItems: "center",
-    gap: "0.5rem",
-    padding: "0.5rem 1rem",
-    background: "rgba(255, 255, 255, 0.05)",
-    borderRadius: "100px",
-    border: "1px solid rgba(255, 255, 255, 0.1)",
-  },
-  featureIcon: {
-    fontSize: "1rem",
-  },
-  featureText: {
-    fontSize: "0.875rem",
-    color: "#a3a3a3",
   },
   card: {
     background: "#1a1a1a",
