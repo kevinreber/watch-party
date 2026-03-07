@@ -172,14 +172,14 @@ export default function Room() {
   return (
     <div style={styles.container}>
       {/* Header */}
-      <header style={styles.header}>
+      <header style={styles.header} className="room-header">
         <div style={styles.headerLeft}>
           <button onClick={() => navigate("/")} style={styles.backButton} data-testid="back-button">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M12 4L6 10L12 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
-          <div style={styles.logoContainer}>
+          <div style={styles.logoContainer} className="room-logo">
             <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
               <rect width="48" height="48" rx="10" fill="url(#headerGradient)" />
               <path d="M18 16L34 24L18 32V16Z" fill="white" />
@@ -190,22 +190,22 @@ export default function Room() {
                 </linearGradient>
               </defs>
             </svg>
-            <span style={styles.logoText}>Watch Party</span>
+            <span style={styles.logoText} className="room-logo-text">Watch Party</span>
           </div>
         </div>
 
-        <div style={styles.roomInfo}>
-          <div style={styles.roomBadge}>
+        <div style={styles.roomInfo} className="room-info">
+          <div style={styles.roomBadge} className="room-badge">
             <span style={styles.roomLabel}>Room</span>
             <span style={styles.roomName}>{roomId}</span>
           </div>
-          <button onClick={copyRoomLink} style={styles.shareButton} data-testid="share-button">
+          <button onClick={copyRoomLink} style={styles.shareButton} data-testid="share-button" className="room-share-btn">
             {copied ? (
               <>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <path d="M3 8L6 11L13 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                Copied!
+                <span className="room-share-text">Copied!</span>
               </>
             ) : (
               <>
@@ -213,7 +213,7 @@ export default function Room() {
                   <path d="M10 2H12C13.1046 2 14 2.89543 14 4V12C14 13.1046 13.1046 14 12 14H4C2.89543 14 2 13.1046 2 12V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                   <rect x="2" y="2" width="8" height="8" rx="1" stroke="currentColor" strokeWidth="1.5" />
                 </svg>
-                Share Link
+                <span className="room-share-text">Share Link</span>
               </>
             )}
           </button>
@@ -233,6 +233,7 @@ export default function Room() {
             style={styles.iconButton}
             title="Load playlist"
             data-testid="playlists-button"
+            className="room-playlists-btn"
           >
             🎵
           </button>
@@ -256,7 +257,7 @@ export default function Room() {
           </button>
         </div>
 
-        <div style={styles.headerRight}>
+        <div style={styles.headerRight} className="room-header-right">
           <button
             onClick={() => setShowPoll(!showPoll)}
             style={{
@@ -264,8 +265,9 @@ export default function Room() {
               ...(hasActivePoll && !showPoll ? styles.pollButtonActive : {}),
             }}
             data-testid="poll-button"
+            className="room-poll-btn"
           >
-            📊 Poll
+            📊 <span className="room-btn-text">Poll</span>
             {hasActivePoll && !showPoll && (
               <span style={styles.pollBadge}>!</span>
             )}
@@ -275,6 +277,7 @@ export default function Room() {
             style={styles.syncButton}
             title="Sync video with room"
             data-testid="sync-button"
+            className="room-sync-btn"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 2v6h-6" />
@@ -282,30 +285,30 @@ export default function Room() {
               <path d="M3 22v-6h6" />
               <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
             </svg>
-            Sync
+            <span className="room-btn-text">Sync</span>
           </button>
-          <div style={styles.connectionStatus}>
+          <div style={styles.connectionStatus} className="room-connection-status">
             <span style={{
               ...styles.statusDot,
               backgroundColor: isConnected ? "#22c55e" : "#ef4444",
             }} />
-            <span style={styles.statusText}>
+            <span style={styles.statusText} className="room-status-text">
               {isConnected ? "Connected" : "Connecting..."}
             </span>
           </div>
-          <div style={styles.userBadge}>
+          <div style={styles.userBadge} className="room-user-badge">
             <div style={styles.userAvatar}>
               {user.charAt(0).toUpperCase()}
             </div>
-            <span style={styles.userName}>{user}</span>
+            <span style={styles.userName} className="room-user-name">{user}</span>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main style={styles.main}>
+      <main style={styles.main} className="room-main">
         {/* Video Section */}
-        <div style={styles.videoSection}>
+        <div style={styles.videoSection} className="room-video-section">
           <AddVideoBar addVideoToList={addVideoToList} />
           <div style={styles.videoContainer}>
             <VideoPlayer
@@ -669,10 +672,108 @@ const styles: Record<string, React.CSSProperties> = {
 
 // Add media query styles via CSS module or style tag
 const mediaQueryStyles = `
+  /* Tablet: stack to single column */
   @media (max-width: 1024px) {
     .room-main {
       grid-template-columns: 1fr !important;
       grid-template-rows: auto 1fr !important;
+      height: auto !important;
+      overflow: visible !important;
+    }
+    .room-video-section {
+      height: auto !important;
+      overflow: visible !important;
+      padding: 1rem !important;
+    }
+    .room-side-panel {
+      border-left: none !important;
+      border-top: 1px solid #262626 !important;
+      height: 50vh !important;
+      min-height: 350px !important;
+    }
+  }
+
+  /* Mobile: compact header and optimized layout */
+  @media (max-width: 768px) {
+    .room-header {
+      padding: 0.5rem 0.75rem !important;
+      gap: 0.5rem !important;
+    }
+    .room-logo-text {
+      display: none !important;
+    }
+    .room-info {
+      gap: 0.5rem !important;
+    }
+    .room-badge {
+      max-width: 120px;
+    }
+    .room-badge .room-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 80px;
+      display: inline-block;
+    }
+    .room-share-text {
+      display: none !important;
+    }
+    .room-share-btn {
+      padding: 0.5rem !important;
+      min-width: 36px !important;
+      justify-content: center !important;
+    }
+    .room-playlists-btn {
+      display: none !important;
+    }
+    .room-header-right {
+      gap: 0.5rem !important;
+    }
+    .room-btn-text {
+      display: none !important;
+    }
+    .room-status-text {
+      display: none !important;
+    }
+    .room-user-name {
+      display: none !important;
+    }
+    .room-user-badge {
+      padding: 0.25rem !important;
+    }
+    .room-poll-btn,
+    .room-sync-btn {
+      padding: 0.5rem !important;
+    }
+    .room-video-section {
+      padding: 0.75rem !important;
+    }
+    .room-main {
+      height: auto !important;
+      min-height: calc(100vh - 52px) !important;
+    }
+    .room-side-panel {
+      height: 45vh !important;
+      min-height: 300px !important;
+    }
+  }
+
+  /* Small mobile: further compaction */
+  @media (max-width: 480px) {
+    .room-header {
+      padding: 0.375rem 0.5rem !important;
+    }
+    .room-info {
+      order: 3;
+      width: 100%;
+      justify-content: center;
+    }
+    .room-video-section {
+      padding: 0.5rem !important;
+    }
+    .room-side-panel {
+      height: 50vh !important;
+      min-height: 280px !important;
     }
   }
 `;
