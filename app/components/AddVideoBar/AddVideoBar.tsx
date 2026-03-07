@@ -124,7 +124,7 @@ export const AddVideoBar = ({ addVideoToList }: AddVideoBarProps) => {
 
   return (
     <div ref={containerRef} style={styles.container}>
-      <form onSubmit={handleSubmit} style={styles.form}>
+      <form onSubmit={handleSubmit} style={styles.form} className="add-video-form">
         <div style={{
           ...styles.inputWrapper,
           borderColor: isFocused ? "#6366f1" : "#333",
@@ -169,11 +169,12 @@ export const AddVideoBar = ({ addVideoToList }: AddVideoBarProps) => {
             opacity: !searchQuery.trim() ? 0.5 : 1,
             cursor: !searchQuery.trim() ? "not-allowed" : "pointer",
           }}
+          className="add-video-btn"
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path d="M10 4V16M4 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
-          Add
+          <span className="add-video-btn-text">Add</span>
         </button>
       </form>
 
@@ -373,7 +374,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
 };
 
-// Inject keyframes for spinner
+// Inject keyframes for spinner and mobile styles
 const spinnerStyles = `
   @keyframes spin {
     to { transform: rotate(360deg); }
@@ -386,6 +387,20 @@ const spinnerStyles = `
   .search-result-item:hover .add-icon-wrapper {
     background: #6366f1 !important;
     color: #ffffff !important;
+  }
+
+  @media (max-width: 768px) {
+    .add-video-btn-text {
+      display: none !important;
+    }
+    .add-video-btn {
+      padding: 0 0.75rem !important;
+      min-width: 44px !important;
+      justify-content: center !important;
+    }
+    .add-video-form {
+      gap: 0.5rem !important;
+    }
   }
 `;
 

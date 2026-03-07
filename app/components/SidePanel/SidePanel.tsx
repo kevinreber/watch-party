@@ -40,9 +40,9 @@ export const SidePanel = ({
     useHandleMessagesAbly(channel, user, clientId);
 
   return (
-    <div style={styles.container}>
+    <div style={styles.container} className="room-side-panel">
       {/* Header with tabs */}
-      <div style={styles.header}>
+      <div style={styles.header} className="side-panel-header">
         <div style={styles.tabs}>
           <button
             onClick={() => setActiveTab("queue")}
@@ -251,3 +251,24 @@ const styles: Record<string, React.CSSProperties> = {
     overflow: "hidden",
   },
 };
+
+// Inject mobile styles for SidePanel
+const sidePanelMobileStyles = `
+  @media (max-width: 768px) {
+    .side-panel-header {
+      padding: 0.5rem 0.75rem !important;
+      gap: 0.5rem !important;
+    }
+  }
+  @media (max-width: 480px) {
+    .side-panel-header {
+      flex-wrap: wrap !important;
+    }
+  }
+`;
+
+if (typeof document !== "undefined") {
+  const styleEl = document.createElement("style");
+  styleEl.textContent = sidePanelMobileStyles;
+  document.head.appendChild(styleEl);
+}
