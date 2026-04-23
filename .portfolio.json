@@ -1,0 +1,9 @@
+{
+  "displayName": "Watch Party",
+  "description": "Real-time synchronized video watching app. Watch YouTube videos together in shared rooms with live chat, playlists, badges, leaderboards, and social features.",
+  "tech": ["React", "TypeScript", "Material UI", "Convex", "Clerk", "React Router"],
+  "thumbnail": "docs/images/thumbnail.png",
+  "demo": "docs/images/demo.gif",
+  "liveUrl": "https://watch-party-red-zeta.vercel.app",
+  "order": 2
+}
